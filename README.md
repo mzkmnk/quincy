@@ -233,34 +233,5 @@ q configure
 - プロジェクトディレクトリの書き込み権限を確認
 - ディスク容量を確認
 
-## 貢献
-
-プルリクエストを歓迎します！以下のガイドラインに従ってください：
-
-1. フォークを作成
-2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'Add amazing feature'`)
-4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
-5. プルリクエストを作成
-
-## ライセンス
-
-このプロジェクトはMITライセンスの下で公開されています。詳細は[LICENSE](LICENSE)ファイルを参照してください。
-
-## 謝辞
-
-- [claudecodeui](https://github.com/siteboon/claudecodeui) - インスピレーションとアーキテクチャの参考
-- Amazon Q Developer チーム - 素晴らしいAIアシスタントの提供
-- コントリビューターの皆様
-
-## ロードマップ
-
-- [ ] 複数モデルのサポート
-- [ ] コラボレーション機能
-- [ ] プラグインシステム
-- [ ] IDE拡張機能
-- [ ] 使用統計とレポート
-
-## サポート
 
 問題が発生した場合は、[Issues](https://github.com/yourusername/quincy/issues)で報告してください。
