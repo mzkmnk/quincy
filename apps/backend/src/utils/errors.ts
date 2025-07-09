@@ -1,3 +1,4 @@
+import type { Context, Next } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import { logger } from './logger.ts'
 
@@ -15,7 +16,7 @@ export const createErrorResponse = (error: string, message: string, path?: strin
   path
 })
 
-export const errorHandler = async (c: any, next: any) => {
+export const errorHandler = async (c: Context, next: Next) => {
   try {
     await next()
   } catch (error) {
@@ -40,7 +41,7 @@ export const errorHandler = async (c: any, next: any) => {
   }
 }
 
-export const notFoundHandler = (c: any) => {
+export const notFoundHandler = (c: Context) => {
   const response = createErrorResponse(
     'NOT_FOUND',
     'The requested resource was not found',
