@@ -1,5 +1,5 @@
 import { HTTPException } from 'hono/http-exception'
-import { logger } from './logger'
+import { logger } from './logger.js'
 
 export interface ErrorResponse {
   error: string

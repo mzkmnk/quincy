@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { getHealthStatus } from '../services/health'
+import { getHealthStatus } from '../services/health.js'
 
 const healthRoute = new Hono()
 

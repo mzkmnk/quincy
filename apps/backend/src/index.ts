@@ -5,9 +5,9 @@ import { logger } from 'hono/logger'
 import type { Project, Session } from '@quincy/shared'
 
 // Import middleware and utilities
-import { loggerMiddleware } from './utils/logger'
-import { errorHandler, notFoundHandler } from './utils/errors'
-import { routes } from './routes'
+import { loggerMiddleware } from './utils/logger.js'
+import { errorHandler, notFoundHandler } from './utils/errors.js'
+import { routes } from './routes/index.js'
 
 const app = new Hono()
 
