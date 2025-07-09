@@ -1,10 +1,26 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
+import type { Project, Session } from '@quincy/shared'
 
 const app = new Hono()
 
 app.get('/', (c) => {
-  return c.text('Hello Hono!')
+  // sharedパッケージの型を使用するテスト
+  const testProject: Project = {
+    id: '1',
+    name: 'Test Project'
+  }
+  
+  const testSession: Session = {
+    id: 'session-1',
+    projectId: testProject.id
+  }
+  
+  return c.json({ 
+    message: 'Hello Hono!',
+    project: testProject,
+    session: testSession
+  })
 })
 
 serve({
