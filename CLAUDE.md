@@ -82,3 +82,14 @@ ng generate component component-name
 2. Start backend: `pnpm --filter backend dev`
 3. Start frontend: `pnpm --filter frontend start`
 4. Backend serves on localhost:3000, frontend on localhost:4200
+
+### Test-Driven Development (TDD)
+
+- 原則としてテスト駆動開発（TDD）で進める
+- 期待される入出力に基づき、まずテストを作成する
+- 実装コードは書かず、テストのみを用意する
+- テストを実行し、失敗を確認する
+- テストが正しいことを確認できた段階でコミットする
+- その後、テストをパスさせる実装を進める
+- 実装中はテストを変更せず、コードを修正し続ける
+- すべてのテストが通過するまで繰り返す
