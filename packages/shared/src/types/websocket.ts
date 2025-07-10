@@ -9,6 +9,11 @@ export interface ClientToServerEvents {
   'shell:init': (data: ShellInitEvent) => void;
   'shell:input': (data: ShellInputEvent) => void;
   'shell:resize': (data: ShellResizeEvent) => void;
+  'auth:request': (data: AuthenticationData) => void;
+  'message:send': (data: MessageSendEvent) => void;
+  'room:join': (data: RoomData) => void;
+  'room:leave': (data: RoomData) => void;
+  'ping': () => void;
 }
 
 // サーバー → クライアントのイベント
@@ -20,6 +25,14 @@ export interface ServerToClientEvents {
   'shell:output': (data: ShellOutputEvent) => void;
   'shell:exit': (data: ShellExitEvent) => void;
   'session:created': (data: SessionCreatedEvent) => void;
+  'auth:success': (data: ConnectionInfo) => void;
+  'auth:failure': (data: ErrorData) => void;
+  'message:received': (data: MessageData) => void;
+  'message:broadcast': (data: MessageData) => void;
+  'room:joined': (data: RoomJoinedEvent) => void;
+  'room:left': (data: RoomLeftEvent) => void;
+  'error': (data: ErrorData) => void;
+  'pong': () => void;
 }
 
 // イベントペイロードの型定義
@@ -87,4 +100,71 @@ export interface ShellExitEvent {
 export interface SessionCreatedEvent {
   sessionId: string;
   projectId: string;
+}
+
+// 新しいWebSocket通信用の型定義
+export interface AuthenticationData {
+  token?: string;
+  sessionId?: string;
+  userId?: string;
+}
+
+export interface MessageData {
+  id: string;
+  content: string;
+  senderId: string;
+  timestamp: number;
+  type: 'text' | 'system' | 'notification';
+}
+
+export interface MessageSendEvent {
+  content: string;
+  senderId: string;
+  type: 'text' | 'system' | 'notification';
+  roomId?: string;
+}
+
+export interface RoomData {
+  roomId: string;
+  projectId?: string;
+  sessionId?: string;
+}
+
+export interface RoomJoinedEvent {
+  roomId: string;
+  userId: string;
+  timestamp: number;
+}
+
+export interface RoomLeftEvent {
+  roomId: string;
+  userId: string;
+  timestamp: number;
+}
+
+export interface ErrorData {
+  code: string;
+  message: string;
+  details?: Record<string, any>;
+}
+
+export interface ConnectionInfo {
+  socketId: string;
+  userId?: string;
+  sessionId?: string;
+  connectedAt: number;
+  authenticated: boolean;
+}
+
+// Socket.ioのSocket型用のデータ
+export interface SocketData {
+  userId?: string;
+  sessionId?: string;
+  authenticated: boolean;
+  rooms: string[];
+}
+
+// サーバー間通信用のイベント
+export interface InterServerEvents {
+  'message:broadcast': (data: MessageData) => void;
 }
