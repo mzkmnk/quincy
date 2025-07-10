@@ -2,6 +2,8 @@
  * WebSocketイベント関連の型定義
  */
 
+import type { Project } from './project.js';
+
 // クライアント → サーバーのイベント
 export interface ClientToServerEvents {
   'q:command': (data: QCommandEvent) => void;
@@ -67,7 +69,7 @@ export interface QCompleteEvent {
 
 export interface ProjectUpdateEvent {
   type: 'created' | 'updated' | 'deleted';
-  project: any; // Projectインターフェースをインポート
+  project: Project;
 }
 
 export interface ShellInitEvent {
