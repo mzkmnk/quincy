@@ -12,15 +12,11 @@ on:
 
 jobs:
   claude-review:
-    # Only run on non-draft pull requests
-    if: github.event.pull_request.draft == false
-    
-    # Optional: Filter by PR author (combined with draft check)
+    # Optional: Filter by PR author
     # if: |
-    #   github.event.pull_request.draft == false &&
-    #   (github.event.pull_request.user.login == 'external-contributor' ||
+    #   github.event.pull_request.user.login == 'external-contributor' ||
     #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR')
+    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
     
     runs-on: ubuntu-latest
     permissions:
@@ -79,4 +75,3 @@ jobs:
           # if: |
           #   !contains(github.event.pull_request.title, '[skip-review]') &&
           #   !contains(github.event.pull_request.title, '[WIP]')
-
