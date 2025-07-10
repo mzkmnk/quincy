@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
 
@@ -47,6 +47,7 @@ import { WebSocketService } from '../../../core/services/websocket.service';
     </nav>
   `,
   styles: [`
+    @reference "tailwindcss";
     .router-link-active {
       @apply text-blue-500 bg-blue-50;
     }
@@ -55,5 +56,4 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 export class NavigationComponent {
   protected appStore = inject(AppStore);
   protected websocket = inject(WebSocketService);
-  private router = inject(Router);
 }

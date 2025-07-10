@@ -5,7 +5,6 @@ import { LayoutComponent } from './shared/components/layout/layout.component';
   selector: 'app-root',
   imports: [LayoutComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css'
 })
 export class App {
   protected title = 'Quincy';
