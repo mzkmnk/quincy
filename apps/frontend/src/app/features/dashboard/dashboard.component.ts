@@ -9,198 +9,65 @@ import { WebSocketService } from '../../core/services/websocket.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="dashboard">
-      <header class="header">
-        <h1>Quincy Dashboard</h1>
-        <div class="connection-status">
-          <span class="status-indicator" [class.connected]="websocket.connected()" [class.connecting]="websocket.connecting()">
+    <div class="p-8 max-w-screen-xl mx-auto">
+      <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
+        <h1 class="m-0 text-gray-800">Quincy Dashboard</h1>
+        <div class="flex items-center gap-4">
+          <span class="py-2 px-4 rounded text-sm font-medium bg-gray-100 text-gray-600"
+                [class.bg-green-100]="websocket.connected()"
+                [class.text-green-800]="websocket.connected()"
+                [class.bg-orange-100]="websocket.connecting()"
+                [class.text-orange-800]="websocket.connecting()">
             {{ websocket.connected() ? 'Connected' : websocket.connecting() ? 'Connecting...' : 'Disconnected' }}
           </span>
           @if (websocket.error()) {
-            <span class="error">{{ websocket.error() }}</span>
+            <span class="text-red-600 text-sm">{{ websocket.error() }}</span>
           }
         </div>
       </header>
 
-      <main class="main-content">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <h3>Projects</h3>
-            <p class="stat-number">{{ appStore.projects().length }}</p>
-            <p class="stat-label">Total Projects</p>
+      <main class="flex flex-col gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <h3 class="m-0 mb-4 text-gray-600 text-sm font-medium uppercase">Projects</h3>
+            <p class="text-2xl font-bold text-gray-800 m-0">{{ appStore.projects().length }}</p>
+            <p class="text-gray-600 text-sm mt-2 mb-0">Total Projects</p>
           </div>
           
-          <div class="stat-card">
-            <h3>Sessions</h3>
-            <p class="stat-number">{{ appStore.sessions().length }}</p>
-            <p class="stat-label">Total Sessions</p>
+          <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <h3 class="m-0 mb-4 text-gray-600 text-sm font-medium uppercase">Sessions</h3>
+            <p class="text-2xl font-bold text-gray-800 m-0">{{ appStore.sessions().length }}</p>
+            <p class="text-gray-600 text-sm mt-2 mb-0">Total Sessions</p>
           </div>
           
-          <div class="stat-card">
-            <h3>Current Project</h3>
-            <p class="stat-text">{{ appStore.currentProject()?.name || 'None selected' }}</p>
+          <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <h3 class="m-0 mb-4 text-gray-600 text-sm font-medium uppercase">Current Project</h3>
+            <p class="text-lg text-gray-800 m-0">{{ appStore.currentProject()?.name || 'None selected' }}</p>
           </div>
           
-          <div class="stat-card">
-            <h3>Current Session</h3>
-            <p class="stat-text">{{ appStore.currentSession()?.id || 'None selected' }}</p>
+          <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <h3 class="m-0 mb-4 text-gray-600 text-sm font-medium uppercase">Current Session</h3>
+            <p class="text-lg text-gray-800 m-0">{{ appStore.currentSession()?.id || 'None selected' }}</p>
           </div>
         </div>
 
-        <div class="actions">
-          <button class="action-btn primary" (click)="navigateToProjects()">
+        <div class="flex gap-4 flex-wrap">
+          <button class="py-3 px-6 border border-blue-500 rounded bg-blue-500 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-blue-600" 
+                  (click)="navigateToProjects()">
             Manage Projects
           </button>
-          <button class="action-btn secondary" (click)="navigateToSessions()">
+          <button class="py-3 px-6 border border-green-500 rounded bg-green-500 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-green-600" 
+                  (click)="navigateToSessions()">
             View Sessions
           </button>
-          <button class="action-btn" (click)="toggleConnection()">
+          <button class="py-3 px-6 border border-gray-200 rounded bg-white text-gray-800 cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-gray-50" 
+                  (click)="toggleConnection()">
             {{ websocket.connected() ? 'Disconnect' : 'Connect' }}
           </button>
         </div>
       </main>
     </div>
   `,
-  styles: [`
-    .dashboard {
-      padding: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .header h1 {
-      margin: 0;
-      color: #333;
-    }
-
-    .connection-status {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .status-indicator {
-      padding: 0.5rem 1rem;
-      border-radius: 0.25rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      background: #f5f5f5;
-      color: #666;
-    }
-
-    .status-indicator.connected {
-      background: #e8f5e8;
-      color: #2e7d32;
-    }
-
-    .status-indicator.connecting {
-      background: #fff3e0;
-      color: #f57c00;
-    }
-
-    .error {
-      color: #d32f2f;
-      font-size: 0.875rem;
-    }
-
-    .main-content {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .stat-card {
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 0.5rem;
-      padding: 1.5rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .stat-card h3 {
-      margin: 0 0 1rem 0;
-      color: #666;
-      font-size: 0.875rem;
-      font-weight: 500;
-      text-transform: uppercase;
-    }
-
-    .stat-number {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #333;
-      margin: 0;
-    }
-
-    .stat-text {
-      font-size: 1.125rem;
-      color: #333;
-      margin: 0;
-    }
-
-    .stat-label {
-      color: #666;
-      font-size: 0.875rem;
-      margin: 0.5rem 0 0 0;
-    }
-
-    .actions {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .action-btn {
-      padding: 0.75rem 1.5rem;
-      border: 1px solid #e0e0e0;
-      border-radius: 0.25rem;
-      background: white;
-      color: #333;
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    .action-btn:hover {
-      background: #f5f5f5;
-    }
-
-    .action-btn.primary {
-      background: #2196f3;
-      color: white;
-      border-color: #2196f3;
-    }
-
-    .action-btn.primary:hover {
-      background: #1976d2;
-    }
-
-    .action-btn.secondary {
-      background: #4caf50;
-      color: white;
-      border-color: #4caf50;
-    }
-
-    .action-btn.secondary:hover {
-      background: #388e3c;
-    }
-  `]
 })
 export class DashboardComponent implements OnInit {
   protected appStore = inject(AppStore);
