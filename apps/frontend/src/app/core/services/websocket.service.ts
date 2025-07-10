@@ -44,7 +44,7 @@ export class WebSocketService {
       this.connectionState.set({ connected: false, connecting: false, error: null });
     });
 
-    this.socket.on('connect_error', (error) => {
+    this.socket.on('connect_error', (error: any) => {
       this.connectionState.set({ 
         connected: false, 
         connecting: false, 
