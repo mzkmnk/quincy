@@ -44,7 +44,7 @@ export class WebSocketService {
       this.connectionState.set({ connected: false, connecting: false, error: null });
     });
 
-    this.socket.on('connect_error', (error: any) => {
+    this.socket.on('connect_error', (error: Error) => {
       this.connectionState.set({ 
         connected: false, 
         connecting: false, 
@@ -61,19 +61,19 @@ export class WebSocketService {
     this.connectionState.set({ connected: false, connecting: false, error: null });
   }
 
-  emit(event: string, data?: any): void {
+  emit<T = unknown>(event: string, data?: T): void {
     if (this.socket?.connected) {
       this.socket.emit(event, data);
     }
   }
 
-  on(event: string, callback: (data: any) => void): void {
+  on<T = unknown>(event: string, callback: (data: T) => void): void {
     if (this.socket) {
       this.socket.on(event, callback);
     }
   }
 
-  off(event: string, callback?: (data: any) => void): void {
+  off<T = unknown>(event: string, callback?: (data: T) => void): void {
     if (this.socket) {
       this.socket.off(event, callback);
     }
