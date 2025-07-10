@@ -1,24 +1,12 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import type { Project, Session } from '@quincy/shared';
+import { LayoutComponent } from './shared/components/layout/layout.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [LayoutComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
-  protected title = 'frontend';
-  
-  // sharedパッケージの型を使用するテスト
-  private testProject: Project = {
-    id: '1',
-    name: 'Test Project'
-  };
-  
-  private testSession: Session = {
-    id: 'session-1',
-    projectId: this.testProject.id
-  };
+  protected title = 'Quincy';
 }
