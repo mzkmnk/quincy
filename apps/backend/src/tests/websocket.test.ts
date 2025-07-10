@@ -4,8 +4,8 @@
  */
 
 import { WebSocketService } from '../services/websocket.ts'
-import { createServer } from 'http'
-import { io as Client } from 'socket.io-client'
+import { createServer, Server } from 'http'
+import { io as Client, Socket as ClientSocket } from 'socket.io-client'
 import type { 
   AuthenticationData, 
   ConnectionInfo, 
@@ -14,9 +14,9 @@ import type {
 } from '@quincy/shared'
 
 describe('WebSocket Server', () => {
-  let httpServer: any
+  let httpServer: Server
   let webSocketService: WebSocketService
-  let clientSocket: any
+  let clientSocket: ClientSocket
   const port = 3001 // Use different port for testing
 
   beforeAll((done) => {

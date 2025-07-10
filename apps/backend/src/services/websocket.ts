@@ -1,4 +1,4 @@
-import { Server as SocketIOServer } from 'socket.io';
+import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import type { 
   ClientToServerEvents, 
@@ -131,7 +131,7 @@ export class WebSocketService {
     });
   }
 
-  private handleAuthentication(socket: any, data: AuthenticationData) {
+  private handleAuthentication(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: AuthenticationData) {
     // Basic authentication logic - can be enhanced with JWT validation
     // For now, we'll accept any authentication request with sessionId
     if (data.sessionId || data.userId) {
@@ -165,7 +165,7 @@ export class WebSocketService {
     }
   }
 
-  private handleMessageSend(socket: any, data: MessageSendEvent) {
+  private handleMessageSend(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: MessageSendEvent) {
     const messageData: MessageData = {
       id: this.generateMessageId(),
       content: data.content,
@@ -188,7 +188,7 @@ export class WebSocketService {
     socket.emit('message:received', messageData);
   }
 
-  private handleRoomJoin(socket: any, data: RoomData) {
+  private handleRoomJoin(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: RoomData) {
     const { roomId } = data;
     
     // Join the room
@@ -224,7 +224,7 @@ export class WebSocketService {
     console.log(`🏠 User ${socket.data.userId || socket.id} joined room: ${roomId}`);
   }
 
-  private handleRoomLeave(socket: any, data: RoomData) {
+  private handleRoomLeave(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: RoomData) {
     const { roomId } = data;
     
     // Leave the room
@@ -259,7 +259,7 @@ export class WebSocketService {
     console.log(`🏠 User ${socket.data.userId || socket.id} left room: ${roomId}`);
   }
 
-  private handleDisconnection(socket: any) {
+  private handleDisconnection(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
     // Remove from connected users
     this.connectedUsers.delete(socket.id);
     
@@ -281,7 +281,7 @@ export class WebSocketService {
     console.log(`🔌 Cleaned up connection: ${socket.id}`);
   }
 
-  private sendError(socket: any, code: string, message: string, details?: Record<string, any>) {
+  private sendError(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, code: string, message: string, details?: Record<string, unknown>) {
     const errorData: ErrorData = {
       code,
       message,
@@ -291,7 +291,7 @@ export class WebSocketService {
   }
 
   private generateMessageId(): string {
-    return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   // Public methods for external use
@@ -308,11 +308,11 @@ export class WebSocketService {
     return room ? Array.from(room) : [];
   }
 
-  public broadcastToRoom(roomId: string, event: string, data: any) {
+  public broadcastToRoom<K extends keyof ServerToClientEvents>(roomId: string, event: K, data: ServerToClientEvents[K]) {
     this.io.to(roomId).emit(event, data);
   }
 
-  public broadcastToAll(event: string, data: any) {
+  public broadcastToAll<K extends keyof ServerToClientEvents>(event: K, data: ServerToClientEvents[K]) {
     this.io.emit(event, data);
   }
 
