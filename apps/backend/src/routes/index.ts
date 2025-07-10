@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { Project } from '@quincy/shared'
+import { websocket } from './websocket.ts'
 
 const routes = new Hono()
 
@@ -19,5 +20,8 @@ routes.get('/projects', (c) => {
   ]
   return c.json(projects)
 })
+
+// WebSocket routes
+routes.route('/websocket', websocket)
 
 export { routes }

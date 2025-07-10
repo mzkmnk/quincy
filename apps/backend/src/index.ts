@@ -2,12 +2,14 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
+import { createServer } from 'http'
 import type { Project, Session } from '@quincy/shared'
 
 // Import middleware and utilities
 import { loggerMiddleware } from './utils/logger.ts'
 import { errorHandler, notFoundHandler } from './utils/errors.ts'
 import { routes } from './routes/index.ts'
+import { WebSocketService } from './services/websocket.ts'
 
 const app = new Hono()
 
@@ -54,12 +56,21 @@ app.get('/', (c) => {
 // Handle 404 errors
 app.notFound(notFoundHandler)
 
-// Start server
+// Create HTTP server
+const httpServer = createServer()
+
+// Initialize WebSocket service
+const webSocketService = new WebSocketService(httpServer)
+
+// Start server with WebSocket support
 serve({
   fetch: app.fetch,
-  port: 3000
+  port: 3000,
+  createServer: () => httpServer
 }, (info) => {
   console.log(`🚀 Server is running on http://localhost:${info.port}`)
   console.log(`📡 CORS enabled for http://localhost:4200`)
   console.log(`🔗 Health check: http://localhost:${info.port}/api/health`)
+  console.log(`🔌 WebSocket server ready for connections`)
+  console.log(`📊 Connected users: ${webSocketService.getUserCount()}`)
 })

@@ -2,5 +2,6 @@
  * すべての型定義をエクスポート
  */
 
-export * from './project.js';
-export * from './session.js';
+export * from './project';
+export * from './session';
+export * from './websocket';
