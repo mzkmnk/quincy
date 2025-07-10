@@ -10,191 +10,63 @@ import type { Project } from '@quincy/shared';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="projects">
-      <header class="header">
-        <h1>Projects</h1>
-        <button class="btn-primary" (click)="createProject()">
+    <div class="p-8 max-w-screen-xl mx-auto">
+      <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
+        <h1 class="m-0 text-gray-800">Projects</h1>
+        <button class="py-2 px-4 border border-blue-500 rounded bg-blue-500 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-blue-600" 
+                (click)="createProject()">
           Create New Project
         </button>
       </header>
 
       @if (appStore.loading()) {
-        <div class="loading">Loading projects...</div>
+        <div class="text-center py-8 text-lg">Loading projects...</div>
       }
 
       @if (appStore.error()) {
-        <div class="error">{{ appStore.error() }}</div>
+        <div class="text-center py-8 text-lg text-red-600 bg-red-50 border border-red-200 rounded p-4">{{ appStore.error() }}</div>
       }
 
-      <div class="projects-grid">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         @for (project of appStore.projects(); track project.id) {
-          <div class="project-card" [class.selected]="isSelected(project)">
-            <h3>{{ project.name }}</h3>
-            <div class="project-actions">
-              <button class="btn-secondary" (click)="selectProject(project)">
+          <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm transition-all duration-200 hover:shadow-md"
+               [class.border-blue-500]="isSelected(project)"
+               [class.bg-blue-50]="isSelected(project)">
+            <h3 class="m-0 mb-4 text-gray-800">{{ project.name }}</h3>
+            <div class="flex gap-2 flex-wrap">
+              <button class="py-2 px-4 border border-green-500 rounded bg-green-500 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-green-600" 
+                      (click)="selectProject(project)">
                 {{ isSelected(project) ? 'Selected' : 'Select' }}
               </button>
-              <button class="btn-outline" (click)="editProject(project)">
+              <button class="py-2 px-4 border border-gray-200 rounded bg-white text-gray-800 cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-gray-50" 
+                      (click)="editProject(project)">
                 Edit
               </button>
-              <button class="btn-danger" (click)="deleteProject(project)">
+              <button class="py-2 px-4 border border-red-500 rounded bg-red-500 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-red-600" 
+                      (click)="deleteProject(project)">
                 Delete
               </button>
             </div>
           </div>
         } @empty {
-          <div class="empty-state">
-            <p>No projects found. Create your first project to get started!</p>
-            <button class="btn-primary" (click)="createProject()">
+          <div class="col-span-full text-center py-12 text-gray-600">
+            <p class="mb-4">No projects found. Create your first project to get started!</p>
+            <button class="py-2 px-4 border border-blue-500 rounded bg-blue-500 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-blue-600" 
+                    (click)="createProject()">
               Create Project
             </button>
           </div>
         }
       </div>
 
-      <div class="actions">
-        <button class="btn-outline" (click)="goBack()">
+      <div class="flex gap-4">
+        <button class="py-2 px-4 border border-gray-200 rounded bg-white text-gray-800 cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-gray-50" 
+                (click)="goBack()">
           Back to Dashboard
         </button>
       </div>
     </div>
   `,
-  styles: [`
-    .projects {
-      padding: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .header h1 {
-      margin: 0;
-      color: #333;
-    }
-
-    .loading, .error {
-      text-align: center;
-      padding: 2rem;
-      font-size: 1.125rem;
-    }
-
-    .error {
-      color: #d32f2f;
-      background: #ffebee;
-      border: 1px solid #ffcdd2;
-      border-radius: 0.25rem;
-    }
-
-    .projects-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .project-card {
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 0.5rem;
-      padding: 1.5rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      transition: all 0.2s;
-    }
-
-    .project-card:hover {
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-
-    .project-card.selected {
-      border-color: #2196f3;
-      background: #f3f9ff;
-    }
-
-    .project-card h3 {
-      margin: 0 0 1rem 0;
-      color: #333;
-    }
-
-    .project-actions {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .empty-state {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 3rem;
-      color: #666;
-    }
-
-    .empty-state p {
-      margin-bottom: 1rem;
-    }
-
-    .actions {
-      display: flex;
-      gap: 1rem;
-    }
-
-    .btn-primary, .btn-secondary, .btn-outline, .btn-danger {
-      padding: 0.5rem 1rem;
-      border: 1px solid;
-      border-radius: 0.25rem;
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: #2196f3;
-      color: white;
-      border-color: #2196f3;
-    }
-
-    .btn-primary:hover {
-      background: #1976d2;
-    }
-
-    .btn-secondary {
-      background: #4caf50;
-      color: white;
-      border-color: #4caf50;
-    }
-
-    .btn-secondary:hover {
-      background: #388e3c;
-    }
-
-    .btn-outline {
-      background: white;
-      color: #333;
-      border-color: #e0e0e0;
-    }
-
-    .btn-outline:hover {
-      background: #f5f5f5;
-    }
-
-    .btn-danger {
-      background: #f44336;
-      color: white;
-      border-color: #f44336;
-    }
-
-    .btn-danger:hover {
-      background: #d32f2f;
-    }
-  `]
 })
 export class ProjectsComponent implements OnInit {
   protected appStore = inject(AppStore);
