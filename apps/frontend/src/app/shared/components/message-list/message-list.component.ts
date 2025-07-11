@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppStore } from '../../../core/store/app.state';
 import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.component';
@@ -13,8 +13,8 @@ interface Message {
 
 @Component({
   selector: 'app-message-list',
-  standalone: true,
   imports: [CommonModule, TypingIndicatorComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="p-4 space-y-4">
       @if (messages().length === 0) {

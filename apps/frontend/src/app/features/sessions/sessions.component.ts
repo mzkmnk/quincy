@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AppStore } from '../../core/store/app.state';
@@ -7,8 +7,8 @@ import type { Session } from '@quincy/shared';
 
 @Component({
   selector: 'app-sessions',
-  standalone: true,
   imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="p-8 max-w-screen-xl mx-auto">
       <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">

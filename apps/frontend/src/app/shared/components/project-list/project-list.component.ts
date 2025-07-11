@@ -1,4 +1,4 @@
-import { Component, input, inject } from '@angular/core';
+import { Component, input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
@@ -6,8 +6,8 @@ import { Project, Session } from '@quincy/shared';
 
 @Component({
   selector: 'app-project-list',
-  standalone: true,
   imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="p-4" [class.p-2]="collapsed()">
       <!-- Projects Section Header -->
