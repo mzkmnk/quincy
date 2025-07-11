@@ -1,7 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import type { Project, Session } from '@quincy/shared';
+import type { 
+  Project, 
+  Session, 
+  ProjectCreateRequest, 
+  ProjectUpdateRequest, 
+  ProjectScanResult 
+} from '@quincy/shared';
 
 @Injectable({
   providedIn: 'root'
@@ -19,12 +25,20 @@ export class ApiService {
     return this.http.get<Project>(`${this.baseUrl}/projects/${id}`);
   }
 
-  createProject(project: Omit<Project, 'id'>): Observable<Project> {
+  createProject(project: ProjectCreateRequest): Observable<Project> {
     return this.http.post<Project>(`${this.baseUrl}/projects`, project);
   }
 
-  updateProject(id: string, project: Partial<Project>): Observable<Project> {
+  updateProject(id: string, project: ProjectUpdateRequest): Observable<Project> {
     return this.http.put<Project>(`${this.baseUrl}/projects/${id}`, project);
+  }
+
+  scanProjects(): Observable<ProjectScanResult> {
+    return this.http.post<ProjectScanResult>(`${this.baseUrl}/projects/scan`, {});
+  }
+
+  refreshProject(id: string): Observable<Project> {
+    return this.http.post<Project>(`${this.baseUrl}/projects/${id}/refresh`, {});
   }
 
   deleteProject(id: string): Observable<void> {

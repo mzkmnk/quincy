@@ -10,6 +10,7 @@ import { loggerMiddleware } from './utils/logger.ts'
 import { errorHandler, notFoundHandler } from './utils/errors.ts'
 import { routes } from './routes/index.ts'
 import { WebSocketService } from './services/websocket.ts'
+import { setWebSocketService } from './routes/projects.ts'
 
 const app = new Hono()
 
@@ -38,7 +39,11 @@ app.get('/', (c) => {
   // sharedパッケージの型を使用するテスト
   const testProject: Project = {
     id: '1',
-    name: 'Test Project'
+    name: 'Test Project',
+    path: '/tmp/test-project',
+    isManual: false,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   }
   
   const testSession: Session = {
@@ -61,6 +66,9 @@ const httpServer = createServer()
 
 // Initialize WebSocket service
 const webSocketService = new WebSocketService(httpServer)
+
+// Inject WebSocket service into projects routes
+setWebSocketService(webSocketService)
 
 // Start server with WebSocket support
 serve({
