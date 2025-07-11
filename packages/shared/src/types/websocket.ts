@@ -2,7 +2,7 @@
  * WebSocketイベント関連の型定義
  */
 
-import type { Project, ProjectEvent, ProjectScanResult } from './project';
+import type { Project, ProjectScanResult } from './project';
 
 // クライアント → サーバーのイベント
 export interface ClientToServerEvents {
