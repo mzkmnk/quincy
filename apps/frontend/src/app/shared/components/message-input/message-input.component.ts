@@ -197,7 +197,8 @@ export class MessageInputComponent {
 
   onDragLeave(event: DragEvent): void {
     event.preventDefault();
-    if (!event.relatedTarget || !event.currentTarget?.contains(event.relatedTarget as Node)) {
+    const currentTarget = event.currentTarget as HTMLElement;
+    if (!event.relatedTarget || !currentTarget?.contains(event.relatedTarget as Node)) {
       this.isDragging.set(false);
     }
   }
