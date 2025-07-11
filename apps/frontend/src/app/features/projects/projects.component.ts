@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AppStore } from '../../core/store/app.state';
 import { ApiService } from '../../core/services/api.service';
-import type { Project } from '@quincy/shared';
+import type { Project, ProjectScanResult } from '@quincy/shared';
+import { WebSocketService } from '../../core/services/websocket.service';
 
 @Component({
   selector: 'app-projects',
@@ -13,10 +14,13 @@ import type { Project } from '@quincy/shared';
     <div class="p-8 max-w-screen-xl mx-auto">
       <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
         <h1 class="m-0 text-gray-800">Projects</h1>
-        <button class="py-2 px-4 border border-blue-500 rounded bg-blue-500 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-blue-600" 
-                (click)="createProject()">
-          Create New Project
-        </button>
+        <div class="flex gap-2">
+          <button class="py-2 px-4 border border-gray-500 rounded bg-gray-500 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-gray-600" 
+                  (click)="scanProjects()"
+                  [disabled]="appStore.loading()">
+            {{ appStore.loading() ? 'Scanning...' : 'Scan Projects' }}
+          </button>
+        </div>
       </header>
 
       @if (appStore.loading()) {
@@ -32,29 +36,23 @@ import type { Project } from '@quincy/shared';
           <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm transition-all duration-200 hover:shadow-md"
                [class.border-blue-500]="isSelected(project)"
                [class.bg-blue-50]="isSelected(project)">
-            <h3 class="m-0 mb-4 text-gray-800">{{ project.name }}</h3>
+            <div class="mb-4">
+              <h3 class="m-0 mb-2 text-gray-800">{{ project.name }}</h3>
+              <div class="text-xs text-gray-500 space-y-1">
+                <div>📁 {{ project.path }}</div>
+                <div class="text-green-600">🔍 Detected Project</div>
+              </div>
+            </div>
             <div class="flex gap-2 flex-wrap">
               <button class="py-2 px-4 border border-green-500 rounded bg-green-500 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-green-600" 
                       (click)="selectProject(project)">
                 {{ isSelected(project) ? 'Selected' : 'Select' }}
               </button>
-              <button class="py-2 px-4 border border-gray-200 rounded bg-white text-gray-800 cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-gray-50" 
-                      (click)="editProject(project)">
-                Edit
-              </button>
-              <button class="py-2 px-4 border border-red-500 rounded bg-red-500 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-red-600" 
-                      (click)="deleteProject(project)">
-                Delete
-              </button>
             </div>
           </div>
         } @empty {
           <div class="col-span-full text-center py-12 text-gray-600">
-            <p class="mb-4">No projects found. Create your first project to get started!</p>
-            <button class="py-2 px-4 border border-blue-500 rounded bg-blue-500 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-blue-600" 
-                    (click)="createProject()">
-              Create Project
-            </button>
+            <p class="mb-4">No projects found. Try scanning for projects!</p>
           </div>
         }
       </div>
@@ -71,10 +69,12 @@ import type { Project } from '@quincy/shared';
 export class ProjectsComponent implements OnInit {
   protected appStore = inject(AppStore);
   private apiService = inject(ApiService);
+  private webSocketService = inject(WebSocketService);
   private router = inject(Router);
 
   ngOnInit(): void {
     this.loadProjects();
+    this.setupWebSocketListeners();
   }
 
   private loadProjects(): void {
@@ -93,25 +93,49 @@ export class ProjectsComponent implements OnInit {
     return this.appStore.currentProject()?.id === project.id;
   }
 
-  createProject(): void {
-    // For now, create a mock project
-    const newProject: Project = {
-      id: Date.now().toString(),
-      name: `Project ${Date.now()}`
-    };
-    this.appStore.addProject(newProject);
+
+  scanProjects(): void {
+    this.appStore.setLoading(true);
+    this.apiService.scanProjects().subscribe({
+      next: (result: ProjectScanResult) => {
+        // スキャン結果から新しいプロジェクトを追加
+        result.projects.forEach(project => {
+          // 既存のプロジェクトかチェック
+          const existingProject = this.appStore.projects().find(p => p.id === project.id);
+          if (!existingProject) {
+            this.appStore.addProject(project);
+          } else {
+            this.appStore.updateProject(project);
+          }
+        });
+        
+        console.log(`プロジェクトスキャンが完了しました: ${result.projects.length}個のプロジェクトが見つかりました`);
+        this.appStore.setLoading(false);
+      },
+      error: (error) => {
+        console.error('プロジェクトスキャンに失敗しました:', error);
+        this.appStore.setError('プロジェクトスキャンに失敗しました');
+      }
+    });
   }
 
-  editProject(project: Project): void {
-    // TODO: Implement edit functionality
-    console.log('Edit project:', project);
-  }
 
-  deleteProject(project: Project): void {
-    if (confirm(`Are you sure you want to delete "${project.name}"?`)) {
-      // TODO: Implement delete functionality
-      console.log('Delete project:', project);
-    }
+  private setupWebSocketListeners(): void {
+    this.webSocketService.connect();
+
+
+    // プロジェクトスキャン完了イベント
+    this.webSocketService.on<{ result: ProjectScanResult }>('projects:scanned', (data) => {
+      data.result.projects.forEach(project => {
+        const existingProject = this.appStore.projects().find(p => p.id === project.id);
+        if (!existingProject) {
+          this.appStore.addProject(project);
+        } else {
+          this.appStore.updateProject(project);
+        }
+      });
+      this.appStore.setLoading(false);
+    });
   }
 
   goBack(): void {

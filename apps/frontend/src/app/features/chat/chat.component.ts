@@ -17,9 +17,6 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
           <div>
             @if (appStore.currentProject()) {
               <h1 class="text-xl font-semibold text-gray-900">{{ appStore.currentProject()?.name }}</h1>
-              @if (appStore.currentProject()?.description) {
-                <p class="text-sm text-gray-500 mt-1">{{ appStore.currentProject()?.description }}</p>
-              }
             } @else {
               <h1 class="text-xl font-semibold text-gray-900">Welcome to Quincy</h1>
               <p class="text-sm text-gray-500 mt-1">Select a project from the sidebar to start chatting</p>

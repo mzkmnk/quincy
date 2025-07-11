@@ -2,7 +2,7 @@
  * WebSocketイベント関連の型定義
  */
 
-import type { Project } from './project';
+import type { Project, ProjectScanResult } from './project';
 
 // クライアント → サーバーのイベント
 export interface ClientToServerEvents {
@@ -16,6 +16,8 @@ export interface ClientToServerEvents {
   'room:join': (data: RoomData) => void;
   'room:leave': (data: RoomData) => void;
   'ping': () => void;
+  'projects:scan': () => void;
+  'project:refresh': (data: { projectId: string }) => void;
 }
 
 // サーバー → クライアントのイベント
@@ -23,7 +25,10 @@ export interface ServerToClientEvents {
   'q:response': (data: QResponseEvent) => void;
   'q:error': (data: QErrorEvent) => void;
   'q:complete': (data: QCompleteEvent) => void;
-  'project:update': (data: ProjectUpdateEvent) => void;
+  'project:created': (data: { project: Project }) => void;
+  'project:updated': (data: { project: Project }) => void;
+  'project:deleted': (data: { projectId: string }) => void;
+  'projects:scanned': (data: { result: ProjectScanResult }) => void;
   'shell:output': (data: ShellOutputEvent) => void;
   'shell:exit': (data: ShellExitEvent) => void;
   'session:created': (data: SessionCreatedEvent) => void;
@@ -67,10 +72,6 @@ export interface QCompleteEvent {
   exitCode: number;
 }
 
-export interface ProjectUpdateEvent {
-  type: 'created' | 'updated' | 'deleted';
-  project: Project;
-}
 
 export interface ShellInitEvent {
   projectPath: string;

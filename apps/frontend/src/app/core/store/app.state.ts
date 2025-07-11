@@ -58,6 +58,26 @@ export const AppStore = signalStore(
         error: null 
       });
     },
+    updateProject: (updatedProject: Project) => {
+      patchState(store, {
+        projects: store.projects().map(p => 
+          p.id === updatedProject.id ? updatedProject : p
+        ),
+        currentProject: store.currentProject()?.id === updatedProject.id 
+          ? updatedProject 
+          : store.currentProject(),
+        error: null
+      });
+    },
+    removeProject: (projectId: string) => {
+      patchState(store, {
+        projects: store.projects().filter(p => p.id !== projectId),
+        currentProject: store.currentProject()?.id === projectId 
+          ? null 
+          : store.currentProject(),
+        error: null
+      });
+    },
     addSession: (session: Session) => {
       patchState(store, { 
         sessions: [...store.sessions(), session],

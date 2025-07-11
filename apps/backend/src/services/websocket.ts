@@ -112,6 +112,24 @@ export class WebSocketService {
         this.handleRoomLeave(socket, data);
       });
 
+      // Handle project scan request
+      socket.on('projects:scan', () => {
+        if (!socket.data.authenticated) {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        this.handleProjectScan(socket);
+      });
+
+      // Handle project refresh request
+      socket.on('project:refresh', (data: { projectId: string }) => {
+        if (!socket.data.authenticated) {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        this.handleProjectRefresh(socket, data);
+      });
+
       // Handle ping
       socket.on('ping', () => {
         socket.emit('pong');
@@ -292,6 +310,31 @@ export class WebSocketService {
 
   private generateMessageId(): string {
     return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+  }
+
+  private async handleProjectScan(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
+    try {
+      // この実装では、プロジェクトルートから直接スキャン機能を呼び出すのではなく、
+      // 適切なHTTP APIエンドポイントの使用を推奨するメッセージを送信
+      socket.emit('error', {
+        code: 'PROJECT_SCAN_VIA_API',
+        message: 'Project scanning should be initiated via HTTP API endpoint /api/projects/scan'
+      });
+    } catch (error) {
+      this.sendError(socket, 'PROJECT_SCAN_ERROR', 'Failed to initiate project scan');
+    }
+  }
+
+  private async handleProjectRefresh(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectId: string }) {
+    try {
+      // プロジェクトリフレッシュも同様にHTTP API経由を推奨
+      socket.emit('error', {
+        code: 'PROJECT_REFRESH_VIA_API',
+        message: `Project refresh should be initiated via HTTP API endpoint /api/projects/${data.projectId}/refresh`
+      });
+    } catch (error) {
+      this.sendError(socket, 'PROJECT_REFRESH_ERROR', 'Failed to refresh project');
+    }
   }
 
   // Public methods for external use

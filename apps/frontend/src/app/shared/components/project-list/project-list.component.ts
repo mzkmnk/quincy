@@ -33,11 +33,6 @@ import { Project, Session } from '@quincy/shared';
                       <h4 class="text-sm font-medium text-gray-900 truncate">
                         {{ project.name }}
                       </h4>
-                      @if (project.description) {
-                        <p class="text-xs text-gray-500 truncate mt-1">
-                          {{ project.description }}
-                        </p>
-                      }
                     </div>
                     <div class="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 

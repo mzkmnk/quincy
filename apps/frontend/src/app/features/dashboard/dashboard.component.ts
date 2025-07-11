@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AppStore } from '../../core/store/app.state';
 import { WebSocketService } from '../../core/services/websocket.service';
+import type { Project } from '@quincy/shared';
 
 @Component({
   selector: 'app-dashboard',
@@ -81,27 +82,21 @@ export class DashboardComponent implements OnInit {
 
   private setupMockData(): void {
     // Add some mock projects for testing the new UI
-    const mockProjects = [
+    const mockProjects: Project[] = [
       {
         id: '1',
         name: 'E-commerce Platform',
-        description: 'Building a modern online store with React and Node.js',
-        createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-20')
+        path: '/home/user/projects/ecommerce-platform'
       },
       {
         id: '2', 
         name: 'Mobile App Development',
-        description: 'Cross-platform mobile app using React Native',
-        createdAt: new Date('2024-01-10'),
-        updatedAt: new Date('2024-01-18')
+        path: '/home/user/projects/mobile-app'
       },
       {
         id: '3',
         name: 'AI Chatbot Integration',
-        description: 'Implementing AI assistant features',
-        createdAt: new Date('2024-01-05'),
-        updatedAt: new Date('2024-01-22')
+        path: '/home/user/projects/ai-chatbot'
       }
     ];
 
