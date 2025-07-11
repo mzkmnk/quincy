@@ -85,14 +85,14 @@ ng generate component component-name
 
 ### Test-Driven Development (TDD)
 
-- 原則としてテスト駆動開発（TDD）で進める
-- 期待される入出力に基づき、まずテストを作成する
-- 実装コードは書かず、テストのみを用意する
-- テストを実行し、失敗を確認する
-- テストが正しいことを確認できた段階でコミットする
-- その後、テストをパスさせる実装を進める
-- 実装中はテストを変更せず、コードを修正し続ける
-- すべてのテストが通過するまで繰り返す
+- Follow Test-Driven Development (TDD) as a principle
+- Create tests first based on expected inputs and outputs
+- Write only tests without implementation code
+- Run tests and confirm they fail
+- Commit once tests are verified to be correct
+- Then proceed with implementation to make tests pass
+- Do not modify tests during implementation, only fix code
+- Repeat until all tests pass
 
 You are an expert in TypeScript, Angular, and scalable web application development. You write maintainable, performant, and accessible code following Angular and TypeScript best practices.
 ## TypeScript Best Practices
@@ -126,3 +126,16 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+
+## Language Settings / 言語設定
+
+**IMPORTANT / 重要**: In this project, Claude Code must ALWAYS respond in Japanese. Technical terms can remain in English.
+
+このプロジェクトでは、Claude Codeは**必ず**日本語で返答してください。技術用語は英語のままで問題ありません。
+
+### Examples / 例:
+- ✅ 「componentを作成しました」
+- ✅ 「TypeScriptの型定義を追加しました」
+- ❌ "I've created a new component"
+- ❌ "Added TypeScript type definitions"
