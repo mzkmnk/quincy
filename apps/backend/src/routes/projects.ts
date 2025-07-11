@@ -4,14 +4,12 @@ import type {
   ProjectScanResult 
 } from '@quincy/shared';
 import { ProjectManager } from '../services/project-manager';
-import { ProjectDetectionService } from '../services/project-detection';
 import { WebSocketService } from '../services/websocket';
 
 const projects = new Hono();
 
 // サービスのインスタンスを作成
-const projectDetection = new ProjectDetectionService();
-const projectManager = new ProjectManager(projectDetection);
+const projectManager = new ProjectManager();
 
 // WebSocketサービスのインスタンスは後で注入される
 let webSocketService: WebSocketService | null = null;

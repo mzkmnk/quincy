@@ -41,16 +41,12 @@ export class ProjectDetectionService {
       const entries = await fs.readdir(dir, { withFileTypes: true });
       scannedDirs.count++;
 
-      // プロジェクトの可能性があるディレクトリかチェック
-      // .gitディレクトリまたは設定ファイルの存在でプロジェクトと判定
+      // .gitディレクトリの存在でプロジェクトと判定（最小限の検出）
       const hasGit = entries.some(entry => 
         entry.isDirectory() && entry.name === '.git'
       );
-      const hasConfigFiles = entries.some(entry => 
-        entry.isFile() && this.isProjectConfigFile(entry.name)
-      );
 
-      if (hasGit || hasConfigFiles) {
+      if (hasGit) {
         try {
           const project = await this.createProjectFromDirectory(dir);
           projects.push(project);
@@ -75,29 +71,6 @@ export class ProjectDetectionService {
     }
   }
 
-  /**
-   * プロジェクト設定ファイルかどうかを判定
-   */
-  private isProjectConfigFile(fileName: string): boolean {
-    const configFiles = [
-      'package.json',      // Node.js
-      'Cargo.toml',        // Rust
-      'go.mod',            // Go
-      'requirements.txt',  // Python
-      'pyproject.toml',    // Python
-      'pom.xml',          // Java (Maven)
-      'build.gradle',     // Java (Gradle)
-      'Gemfile',          // Ruby
-      'composer.json',    // PHP
-      'CMakeLists.txt',   // C/C++
-      'Makefile',         // C/C++
-      '.gitignore',       // Git
-      'README.md',        // Documentation
-      'README.txt'        // Documentation
-    ];
-
-    return configFiles.includes(fileName);
-  }
 
   /**
    * スキップすべきディレクトリかどうかを判定

@@ -4,51 +4,50 @@ import type {
   Project, 
   ProjectScanResult
 } from '@quincy/shared';
-import { ProjectDetectionService } from './project-detection';
-
 export class ProjectManager {
   constructor(
-    private projectDetection: ProjectDetectionService,
     private basePath: string = process.env.HOME || '/tmp'
   ) {}
 
   /**
-   * Amazon Q CLIのプロジェクトディレクトリをスキャン
+   * Amazon Q CLIのセッション情報からプロジェクトを取得
+   * 注: 実際の実装ではAmazon Q CLIの設定ディレクトリからセッション情報を読み取る
    */
   async scanProjects(): Promise<ProjectScanResult> {
-    // 一般的なプロジェクトディレクトリをスキャン
-    const commonPaths = [
-      path.join(this.basePath, 'Projects'),
-      path.join(this.basePath, 'workspace'),
-      path.join(this.basePath, 'src'),
-      path.join(this.basePath, 'dev'),
-      path.join(this.basePath, 'code')
-    ];
-
-    const allProjects: Project[] = [];
-    const errors: string[] = [];
-    let totalScannedDirectories = 0;
     const startTime = Date.now();
+    const projects: Project[] = [];
+    const errors: string[] = [];
 
-    for (const scanPath of commonPaths) {
+    try {
+      // Amazon Q CLIの設定ディレクトリを確認
+      const amazonQDir = path.join(this.basePath, '.amazon-q');
+      const sessionsDir = path.join(amazonQDir, 'sessions');
+      
       try {
-        const stats = await fs.stat(scanPath);
-        if (stats.isDirectory()) {
-          const result = await this.projectDetection.scanForProjects(scanPath);
-          allProjects.push(...result.projects);
-          totalScannedDirectories += result.scannedDirectories;
-          errors.push(...result.errors);
-        }
+        await fs.access(sessionsDir);
+        // TODO: Amazon Q CLIのセッションディレクトリからセッション情報を読み取り
+        // 現在はモックデータを返す
+        
+        // モック: 現在のワーキングディレクトリをプロジェクトとして返す
+        const currentDir = process.cwd();
+        projects.push({
+          id: this.generateProjectId(currentDir),
+          name: path.basename(currentDir),
+          path: currentDir
+        });
       } catch {
-        // ディレクトリが存在しない場合はスキップ
+        // Amazon Q CLIのセッションディレクトリが存在しない
+        errors.push('Amazon Q CLI sessions directory not found');
       }
+    } catch (error) {
+      errors.push(`Failed to access Amazon Q CLI directory: ${error}`);
     }
 
     const scanDuration = Date.now() - startTime;
 
     return {
-      projects: allProjects,
-      scannedDirectories: totalScannedDirectories,
+      projects,
+      scannedDirectories: 1,
       errors,
       scanDuration
     };
@@ -56,7 +55,7 @@ export class ProjectManager {
 
 
   /**
-   * 全プロジェクト一覧を取得（スキャン結果から直接取得）
+   * 全プロジェクト一覧を取得（Amazon Q CLIセッション情報から）
    */
   async getProjects(): Promise<Project[]> {
     const scanResult = await this.scanProjects();
@@ -69,6 +68,16 @@ export class ProjectManager {
   async getProject(id: string): Promise<Project | null> {
     const projects = await this.getProjects();
     return projects.find(p => p.id === id) || null;
+  }
+
+  /**
+   * プロジェクトパスからユニークなIDを生成
+   */
+  private generateProjectId(projectPath: string): string {
+    // パスをbase64エンコードしてIDとして使用
+    const pathHash = Buffer.from(projectPath).toString('base64')
+      .replace(/[^a-zA-Z0-9]/g, '');
+    return `project_${pathHash}`;
   }
 
 }
