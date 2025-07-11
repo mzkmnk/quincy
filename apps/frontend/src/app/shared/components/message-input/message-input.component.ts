@@ -1,12 +1,12 @@
-import { Component, signal, ViewChild, ElementRef, inject } from '@angular/core';
+import { Component, signal, ViewChild, ElementRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppStore } from '../../../core/store/app.state';
 
 @Component({
   selector: 'app-message-input',
-  standalone: true,
   imports: [CommonModule, FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="p-4">
       <!-- File Upload Area (when dragging) -->

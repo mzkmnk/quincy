@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppStore } from '../../core/store/app.state';
 import { WebSocketService } from '../../core/services/websocket.service';
@@ -7,8 +7,8 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
 
 @Component({
   selector: 'app-chat',
-  standalone: true,
   imports: [CommonModule, MessageListComponent, MessageInputComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="h-full flex flex-col bg-white">
       <!-- Chat Header -->
