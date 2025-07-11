@@ -1,0 +1,169 @@
+import { Component, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { AppStore } from '../../../core/store/app.state';
+import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.component';
+
+interface Message {
+  id: string;
+  content: string;
+  sender: 'user' | 'assistant';
+  timestamp: Date;
+  isTyping?: boolean;
+}
+
+@Component({
+  selector: 'app-message-list',
+  standalone: true,
+  imports: [CommonModule, TypingIndicatorComponent],
+  template: `
+    <div class="p-4 space-y-4">
+      @if (messages().length === 0) {
+        <!-- Empty conversation state -->
+        <div class="text-center py-12">
+          <div class="mb-4">
+            <svg class="w-16 h-16 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-1.5l-4 4z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Start the conversation</h3>
+          <p class="text-gray-500 text-sm">Send a message to begin chatting with your AI assistant.</p>
+        </div>
+      } @else {
+        @for (message of messages(); track message.id) {
+          <div 
+            class="flex gap-3"
+            [class.justify-end]="message.sender === 'user'"
+          >
+            <!-- Avatar -->
+            @if (message.sender === 'assistant') {
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+              </div>
+            }
+
+            <!-- Message Content -->
+            <div class="flex-1 max-w-3xl">
+              <div 
+                class="rounded-lg px-4 py-3"
+                [class.bg-blue-500]="message.sender === 'user'"
+                [class.text-white]="message.sender === 'user'"
+                [class.bg-gray-100]="message.sender === 'assistant'"
+                [class.text-gray-900]="message.sender === 'assistant'"
+              >
+                @if (message.isTyping) {
+                  <app-typing-indicator></app-typing-indicator>
+                } @else {
+                  <div class="whitespace-pre-wrap break-words">{{ message.content }}</div>
+                }
+              </div>
+              
+              <!-- Message Meta -->
+              <div class="flex items-center justify-between mt-1 px-1">
+                <span class="text-xs text-gray-500">
+                  {{ formatTime(message.timestamp) }}
+                </span>
+                
+                @if (message.sender === 'assistant' && !message.isTyping) {
+                  <button 
+                    class="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                    (click)="copyMessage(message.content)"
+                    title="Copy message"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- User Avatar -->
+            @if (message.sender === 'user') {
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  `
+})
+export class MessageListComponent {
+  protected appStore = inject(AppStore);
+  
+  // Mock messages for demonstration
+  messages = signal<Message[]>([
+    {
+      id: '1',
+      content: 'Hello! How can I help you with your project today?',
+      sender: 'assistant',
+      timestamp: new Date(Date.now() - 300000) // 5 minutes ago
+    },
+    {
+      id: '2',
+      content: 'I need help setting up a new feature for my application.',
+      sender: 'user',
+      timestamp: new Date(Date.now() - 240000) // 4 minutes ago
+    },
+    {
+      id: '3',
+      content: 'I\'d be happy to help you with that! Could you tell me more details about the feature you want to implement?',
+      sender: 'assistant',
+      timestamp: new Date(Date.now() - 180000) // 3 minutes ago
+    }
+  ]);
+
+  formatTime(timestamp: Date): string {
+    return timestamp.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  }
+
+  copyMessage(content: string): void {
+    navigator.clipboard.writeText(content).then(() => {
+      // TODO: Show toast notification
+      console.log('Message copied to clipboard');
+    }).catch(err => {
+      console.error('Failed to copy message:', err);
+    });
+  }
+
+  addMessage(content: string, sender: 'user' | 'assistant'): void {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      content,
+      sender,
+      timestamp: new Date()
+    };
+    
+    this.messages.update(messages => [...messages, newMessage]);
+  }
+
+  addTypingIndicator(): void {
+    const typingMessage: Message = {
+      id: 'typing',
+      content: '',
+      sender: 'assistant',
+      timestamp: new Date(),
+      isTyping: true
+    };
+    
+    this.messages.update(messages => [...messages, typingMessage]);
+  }
+
+  removeTypingIndicator(): void {
+    this.messages.update(messages => 
+      messages.filter(m => m.id !== 'typing')
+    );
+  }
+}

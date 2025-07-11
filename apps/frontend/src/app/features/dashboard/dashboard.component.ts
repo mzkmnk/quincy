@@ -76,6 +76,64 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.websocket.connect();
+    this.setupMockData();
+  }
+
+  private setupMockData(): void {
+    // Add some mock projects for testing the new UI
+    const mockProjects = [
+      {
+        id: '1',
+        name: 'E-commerce Platform',
+        description: 'Building a modern online store with React and Node.js',
+        createdAt: new Date('2024-01-15'),
+        updatedAt: new Date('2024-01-20')
+      },
+      {
+        id: '2', 
+        name: 'Mobile App Development',
+        description: 'Cross-platform mobile app using React Native',
+        createdAt: new Date('2024-01-10'),
+        updatedAt: new Date('2024-01-18')
+      },
+      {
+        id: '3',
+        name: 'AI Chatbot Integration',
+        description: 'Implementing AI assistant features',
+        createdAt: new Date('2024-01-05'),
+        updatedAt: new Date('2024-01-22')
+      }
+    ];
+
+    const mockSessions = [
+      {
+        id: 'session-1',
+        projectId: '1',
+        title: 'Initial setup discussion',
+        createdAt: new Date('2024-01-15'),
+        lastActivity: new Date('2024-01-20')
+      },
+      {
+        id: 'session-2',
+        projectId: '1',
+        title: 'Database schema planning',
+        createdAt: new Date('2024-01-16'),
+        lastActivity: new Date('2024-01-19')
+      },
+      {
+        id: 'session-3',
+        projectId: '2',
+        title: 'UI/UX design review',
+        createdAt: new Date('2024-01-12'),
+        lastActivity: new Date('2024-01-18')
+      }
+    ];
+
+    this.appStore.setProjects(mockProjects);
+    this.appStore.setSessions(mockSessions);
+    
+    // Set the first project as current for demo
+    this.appStore.setCurrentProject(mockProjects[0]);
   }
 
   navigateToProjects(): void {

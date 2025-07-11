@@ -3,8 +3,12 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/dashboard',
+    redirectTo: '/chat',
     pathMatch: 'full'
+  },
+  {
+    path: 'chat',
+    loadComponent: () => import('./features/chat/chat.component').then(m => m.ChatComponent)
   },
   {
     path: 'dashboard',
@@ -20,6 +24,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: '/dashboard'
+    redirectTo: '/chat'
   }
 ];
