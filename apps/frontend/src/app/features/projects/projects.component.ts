@@ -48,10 +48,10 @@ import { WebSocketService } from '../../core/services/websocket.service';
               <div class="text-xs text-gray-500 space-y-1">
                 <div>📁 {{ project.path }}</div>
                 @if (project.metadata?.type) {
-                  <div>🏷️ {{ project.metadata.type }}</div>
+                  <div>🏷️ {{ project.metadata?.type }}</div>
                 }
                 @if (project.metadata?.packageJson?.version) {
-                  <div>📦 v{{ project.metadata.packageJson.version }}</div>
+                  <div>📦 v{{ project.metadata?.packageJson?.version }}</div>
                 }
                 @if (project.isManual) {
                   <div class="text-blue-600">✋ Manual Project</div>
