@@ -10,44 +10,28 @@ export class ProjectManager {
   ) {}
 
   /**
-   * Amazon Q CLIのセッション情報からプロジェクトを取得
-   * 注: 実際の実装ではAmazon Q CLIの設定ディレクトリからセッション情報を読み取る
+   * Amazon Q CLIセッション情報からプロジェクトを取得
+   * 注: ユーザーが指定したパスのみを扱い、独自の判定ロジックは使用しない
    */
   async scanProjects(): Promise<ProjectScanResult> {
     const startTime = Date.now();
     const projects: Project[] = [];
     const errors: string[] = [];
 
-    try {
-      // Amazon Q CLIの設定ディレクトリを確認
-      const amazonQDir = path.join(this.basePath, '.amazon-q');
-      const sessionsDir = path.join(amazonQDir, 'sessions');
-      
-      try {
-        await fs.access(sessionsDir);
-        // TODO: Amazon Q CLIのセッションディレクトリからセッション情報を読み取り
-        // 現在はモックデータを返す
-        
-        // モック: 現在のワーキングディレクトリをプロジェクトとして返す
-        const currentDir = process.cwd();
-        projects.push({
-          id: this.generateProjectId(currentDir),
-          name: path.basename(currentDir),
-          path: currentDir
-        });
-      } catch {
-        // Amazon Q CLIのセッションディレクトリが存在しない
-        errors.push('Amazon Q CLI sessions directory not found');
-      }
-    } catch (error) {
-      errors.push(`Failed to access Amazon Q CLI directory: ${error}`);
-    }
+    // モック実装: 実際はAmazon Q CLIが管理するセッション情報から取得
+    // 現在のワーキングディレクトリをサンプルとして返す
+    const currentDir = process.cwd();
+    projects.push({
+      id: this.generateProjectId(currentDir),
+      name: path.basename(currentDir),
+      path: currentDir
+    });
 
     const scanDuration = Date.now() - startTime;
 
     return {
       projects,
-      scannedDirectories: 1,
+      scannedDirectories: 0, // スキャンは行わない
       errors,
       scanDuration
     };
