@@ -2,6 +2,7 @@ import { Component, input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
+import { Project, Session } from '@quincy/shared';
 
 @Component({
   selector: 'app-project-list',
@@ -105,17 +106,17 @@ export class ProjectListComponent {
   protected appStore = inject(AppStore);
   private router = inject(Router);
 
-  selectProject(project: any): void {
+  selectProject(project: Project): void {
     this.appStore.setCurrentProject(project);
     this.router.navigate(['/chat']);
   }
 
-  selectSession(session: any): void {
+  selectSession(session: Session): void {
     this.appStore.setCurrentSession(session);
     this.router.navigate(['/chat']);
   }
 
-  openProjectMenu(project: any): void {
+  openProjectMenu(project: Project): void {
     // TODO: Implement project menu (edit, delete, etc.)
     console.log('Open project menu for:', project.name);
   }
