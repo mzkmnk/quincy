@@ -1,8 +1,6 @@
 import { Hono } from 'hono';
 import type { 
   Project, 
-  ProjectCreateRequest, 
-  ProjectUpdateRequest,
   ProjectScanResult 
 } from '@quincy/shared';
 import { ProjectManager } from '../services/project-manager';
@@ -42,9 +40,6 @@ projects.get('/:id', async (c) => {
     if (!project) {
       return c.json({ error: 'Project not found' }, 404);
     }
-
-    // 最終アクセス時間を更新
-    await projectManager.updateLastAccessed(id);
     
     return c.json(project);
   } catch (error) {
@@ -53,87 +48,6 @@ projects.get('/:id', async (c) => {
   }
 });
 
-// 新しいプロジェクト作成
-projects.post('/', async (c) => {
-  try {
-    const createRequest: ProjectCreateRequest = await c.req.json();
-    
-    // バリデーション
-    if (!createRequest.name || !createRequest.path) {
-      return c.json({ error: 'Name and path are required' }, 400);
-    }
-
-    const project = await projectManager.createProject(createRequest);
-    
-    // WebSocket経由で通知
-    if (webSocketService) {
-      webSocketService.broadcastToAll('project:created', { project });
-    }
-    
-    return c.json(project, 201);
-  } catch (error) {
-    console.error('Failed to create project:', error);
-    
-    if (error instanceof Error && error.message.includes('already exists')) {
-      return c.json({ error: error.message }, 409);
-    }
-    
-    return c.json({ error: 'Failed to create project' }, 500);
-  }
-});
-
-// プロジェクト更新
-projects.put('/:id', async (c) => {
-  try {
-    const id = c.req.param('id');
-    const updateRequest: ProjectUpdateRequest = await c.req.json();
-    
-    const project = await projectManager.updateProject(id, updateRequest);
-    
-    // WebSocket経由で通知
-    if (webSocketService) {
-      webSocketService.broadcastToAll('project:updated', { project });
-    }
-    
-    return c.json(project);
-  } catch (error) {
-    console.error('Failed to update project:', error);
-    
-    if (error instanceof Error && error.message.includes('not found')) {
-      return c.json({ error: error.message }, 404);
-    }
-    
-    return c.json({ error: 'Failed to update project' }, 500);
-  }
-});
-
-// プロジェクト削除
-projects.delete('/:id', async (c) => {
-  try {
-    const id = c.req.param('id');
-    
-    await projectManager.deleteProject(id);
-    
-    // WebSocket経由で通知
-    if (webSocketService) {
-      webSocketService.broadcastToAll('project:deleted', { projectId: id });
-    }
-    
-    return c.json({ message: 'Project deleted successfully' });
-  } catch (error) {
-    console.error('Failed to delete project:', error);
-    
-    if (error instanceof Error && error.message.includes('not found')) {
-      return c.json({ error: error.message }, 404);
-    }
-    
-    if (error instanceof Error && error.message.includes('Cannot delete detected project')) {
-      return c.json({ error: error.message }, 403);
-    }
-    
-    return c.json({ error: 'Failed to delete project' }, 500);
-  }
-});
 
 // プロジェクトスキャン実行
 projects.post('/scan', async (c) => {
@@ -152,39 +66,5 @@ projects.post('/scan', async (c) => {
   }
 });
 
-// プロジェクトのメタデータリフレッシュ
-projects.post('/:id/refresh', async (c) => {
-  try {
-    const id = c.req.param('id');
-    
-    const project = await projectManager.refreshProject(id);
-    
-    // WebSocket経由で通知
-    if (webSocketService) {
-      webSocketService.broadcastToAll('project:updated', { project });
-    }
-    
-    return c.json(project);
-  } catch (error) {
-    console.error('Failed to refresh project:', error);
-    
-    if (error instanceof Error && error.message.includes('not found')) {
-      return c.json({ error: error.message }, 404);
-    }
-    
-    return c.json({ error: 'Failed to refresh project' }, 500);
-  }
-});
-
-// プロジェクトキャッシュクリア（開発/デバッグ用）
-projects.delete('/cache/clear', async (c) => {
-  try {
-    await projectManager.clearCache();
-    return c.json({ message: 'Project cache cleared successfully' });
-  } catch (error) {
-    console.error('Failed to clear project cache:', error);
-    return c.json({ error: 'Failed to clear project cache' }, 500);
-  }
-});
 
 export { projects };

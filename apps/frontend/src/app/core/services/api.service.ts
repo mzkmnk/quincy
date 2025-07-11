@@ -4,8 +4,6 @@ import { Observable } from 'rxjs';
 import type { 
   Project, 
   Session, 
-  ProjectCreateRequest, 
-  ProjectUpdateRequest, 
   ProjectScanResult 
 } from '@quincy/shared';
 
@@ -25,24 +23,8 @@ export class ApiService {
     return this.http.get<Project>(`${this.baseUrl}/projects/${id}`);
   }
 
-  createProject(project: ProjectCreateRequest): Observable<Project> {
-    return this.http.post<Project>(`${this.baseUrl}/projects`, project);
-  }
-
-  updateProject(id: string, project: ProjectUpdateRequest): Observable<Project> {
-    return this.http.put<Project>(`${this.baseUrl}/projects/${id}`, project);
-  }
-
   scanProjects(): Observable<ProjectScanResult> {
     return this.http.post<ProjectScanResult>(`${this.baseUrl}/projects/scan`, {});
-  }
-
-  refreshProject(id: string): Observable<Project> {
-    return this.http.post<Project>(`${this.baseUrl}/projects/${id}/refresh`, {});
-  }
-
-  deleteProject(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/projects/${id}`);
   }
 
   // Session endpoints

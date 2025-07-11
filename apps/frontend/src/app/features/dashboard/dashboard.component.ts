@@ -86,29 +86,17 @@ export class DashboardComponent implements OnInit {
       {
         id: '1',
         name: 'E-commerce Platform',
-        description: 'Building a modern online store with React and Node.js',
-        path: '/home/user/projects/ecommerce-platform',
-        isManual: true,
-        createdAt: new Date('2024-01-15').getTime(),
-        updatedAt: new Date('2024-01-20').getTime()
+        path: '/home/user/projects/ecommerce-platform'
       },
       {
         id: '2', 
         name: 'Mobile App Development',
-        description: 'Cross-platform mobile app using React Native',
-        path: '/home/user/projects/mobile-app',
-        isManual: true,
-        createdAt: new Date('2024-01-10').getTime(),
-        updatedAt: new Date('2024-01-18').getTime()
+        path: '/home/user/projects/mobile-app'
       },
       {
         id: '3',
         name: 'AI Chatbot Integration',
-        description: 'Implementing AI assistant features',
-        path: '/home/user/projects/ai-chatbot',
-        isManual: true,
-        createdAt: new Date('2024-01-05').getTime(),
-        updatedAt: new Date('2024-01-22').getTime()
+        path: '/home/user/projects/ai-chatbot'
       }
     ];
 
