@@ -1,10 +1,10 @@
-import { Hono } from 'hono'
+import { Router, Request, Response } from 'express'
 
-const websocket = new Hono()
+const websocket = Router()
 
 // WebSocket server status endpoint
-websocket.get('/status', (c) => {
-  return c.json({
+websocket.get('/status', (_req: Request, res: Response) => {
+  res.json({
     status: 'running',
     message: 'WebSocket server is operational',
     timestamp: new Date().toISOString(),
@@ -34,8 +34,8 @@ websocket.get('/status', (c) => {
 })
 
 // WebSocket connection info endpoint
-websocket.get('/info', (c) => {
-  return c.json({
+websocket.get('/info', (_req: Request, res: Response) => {
+  res.json({
     cors: {
       origin: ['http://localhost:4200'],
       methods: ['GET', 'POST'],

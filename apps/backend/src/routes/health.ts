@@ -1,11 +1,11 @@
-import { Hono } from 'hono'
+import { Router, Request, Response } from 'express'
 import { getHealthStatus } from '../services/health.js'
 
-const healthRoute = new Hono()
+const healthRoute = Router()
 
-healthRoute.get('/', (c) => {
+healthRoute.get('/', (_req: Request, res: Response) => {
   const healthStatus = getHealthStatus()
-  return c.json(healthStatus, 200)
+  res.status(200).json(healthStatus)
 })
 
 export { healthRoute }

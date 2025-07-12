@@ -1,21 +1,21 @@
-import { Hono } from 'hono'
-import { websocket } from './websocket.ts'
-import { projects } from './projects.ts'
+import { Router } from 'express'
+import { websocket } from './websocket.js'
+import { projects } from './projects.js'
 
-const routes = new Hono()
+const routes = Router()
 
 // Health check endpoint
-routes.get('/health', (c) => {
-  return c.json({
+routes.get('/health', (_req, res) => {
+  res.json({
     status: 'ok',
     timestamp: new Date().toISOString()
   })
 })
 
 // Projects routes
-routes.route('/projects', projects)
+routes.use('/projects', projects)
 
 // WebSocket routes
-routes.route('/websocket', websocket)
+routes.use('/websocket', websocket)
 
 export { routes }
