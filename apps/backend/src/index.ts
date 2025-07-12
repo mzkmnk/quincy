@@ -1,8 +1,7 @@
-import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
-import { createServer } from 'http'
+import { createServer, Server as HttpServer } from 'http'
 
 // Import middleware and utilities
 import { loggerMiddleware } from './utils/logger'
@@ -35,7 +34,7 @@ app.route('/api', routes)
 
 // Health check route
 app.get('/', (c) => {
-  return c.json({ 
+  return c.json({
     message: 'Quincy Backend API',
     status: 'healthy',
     timestamp: new Date().toISOString()
@@ -45,8 +44,40 @@ app.get('/', (c) => {
 // Handle 404 errors
 app.notFound(notFoundHandler)
 
-// Create HTTP server
-const httpServer = createServer()
+// Create HTTP server with Hono app integration
+const httpServer = createServer(async (req, res) => {
+  try {
+    // Get request body for non-GET/HEAD requests
+    let body: string | undefined = undefined
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      const chunks: Buffer[] = []
+      for await (const chunk of req) {
+        chunks.push(chunk)
+      }
+      body = Buffer.concat(chunks).toString()
+    }
+
+    const request = new Request(`http://localhost:3000${req.url}`, {
+      method: req.method,
+      headers: req.headers as HeadersInit,
+      body: body,
+    })
+    
+    const response = await app.fetch(request)
+    
+    res.statusCode = response.status
+    response.headers.forEach((value, key) => {
+      res.setHeader(key, value)
+    })
+    
+    const responseBody = await response.text()
+    res.end(responseBody)
+  } catch (error) {
+    console.error('Server error:', error)
+    res.statusCode = 500
+    res.end('Internal Server Error')
+  }
+})
 
 // Initialize WebSocket service
 const webSocketService = new WebSocketService(httpServer)
@@ -54,15 +85,11 @@ const webSocketService = new WebSocketService(httpServer)
 // Inject WebSocket service into projects routes
 setWebSocketService(webSocketService)
 
-// Start server with WebSocket support
-serve({
-  fetch: app.fetch,
-  port: 3000,
-  createServer: () => httpServer
-}, (info) => {
-  console.log(`🚀 Server is running on http://localhost:${info.port}`)
+// Start the server
+httpServer.listen(3000, () => {
+  console.log(`🚀 Server is running on http://localhost:3000`)
   console.log(`📡 CORS enabled for http://localhost:4200`)
-  console.log(`🔗 Health check: http://localhost:${info.port}/api/health`)
+  console.log(`🔗 Health check: http://localhost:3000/api/health`)
   console.log(`🔌 WebSocket server ready for connections`)
   console.log(`📊 Connected users: ${webSocketService.getUserCount()}`)
 })
