@@ -1,59 +1,87 @@
-import fs from 'fs/promises';
+import Database from 'better-sqlite3';
 import path from 'path';
 import { EventEmitter } from 'events';
 import os from 'os';
 
 /**
- * Amazon Q CLI履歴ファイルの型定義
- * LokiJSデータベース形式
+ * Amazon Q CLI SQLiteデータベースの型定義
  */
-export interface QHistoryDatabase {
-  filename: string;
-  collections: QHistoryCollection[];
-  databaseVersion: number;
-  engineVersion: number;
-  autosave: boolean;
-  autosaveInterval: number;
-  options: Record<string, any>;
-  persistenceMethod: string;
-  ENV: string;
-  isIncremental: boolean;
+
+// SQLite conversationsテーブルの会話データ構造
+export interface QConversationData {
+  conversation_id: string;
+  next_message: null;
+  history: QHistoryEntry[][];
+  valid_history_range: [number, number];
+  transcript: string[];
+  tools: Record<string, any[]>;
 }
 
-export interface QHistoryCollection {
-  name: string;
-  data: QHistoryTab[];
-  idIndex: any;
-  binaryIndices: Record<string, any>;
-  constraints: any;
-  uniqueNames: string[];
-  transforms: Record<string, any>;
-  objType: string;
-  dirty: boolean;
-  maxId: number;
-  DynamicViews: any[];
-  events: Record<string, any>;
-  changes: any[];
-  dirtyIds: any[];
-  isIncremental: boolean;
-}
-
-export interface QHistoryTab {
-  $loki?: number;
-  meta?: {
-    revision: number;
-    created: number;
-    version: number;
-    updated?: number;
+export interface QHistoryEntry {
+  additional_context?: string;
+  env_context?: {
+    env_state: {
+      operating_system: string;
+      current_working_directory: string;
+      environment_variables: string[];
+    };
   };
-  historyId: string;
-  workspaceId?: string;
-  projectPath?: string;
+  content?: {
+    Prompt?: {
+      prompt: string;
+    };
+    ToolUseResults?: {
+      tool_use_results: any[];
+    };
+    CancelledToolUses?: {
+      prompt: string;
+      tool_use_results: any[];
+    };
+  };
+  images?: any;
+  ToolUse?: {
+    message_id: string;
+    content: string;
+    tool_uses: ToolUse[];
+  };
+  Response?: {
+    message_id: string;
+    content: string;
+  };
+}
+
+export interface ToolUse {
+  id: string;
+  name: string;
+  orig_name?: string;
+  args: Record<string, any>;
+  orig_args?: Record<string, any>;
+}
+
+// SQLite historyテーブルの構造
+export interface QCommandHistory {
+  id: number;
+  command: string;
+  shell: string;
+  pid: number;
+  session_id: string;
+  cwd: string;
+  start_time: number;
+  hostname: string;
+  exit_code: number;
+  end_time: number;
+  duration: number;
+}
+
+// 互換性のための既存インターフェース（内部的に変換）
+export interface QHistorySession {
+  conversationId: string;
+  projectPath: string;
   messages: QHistoryMessage[];
   title?: string;
-  isOpen: boolean;
   createdAt: number;
   updatedAt: number;
+  isActive: boolean;
 }
 
 export interface QHistoryMessage {
@@ -65,6 +93,7 @@ export interface QHistoryMessage {
     model?: string;
     tokens?: number;
     duration?: number;
+    tools?: string[];
   };
 }
 
@@ -88,62 +117,82 @@ export interface QHistoryStats {
 
 /**
  * Amazon Q CLI履歴管理サービス
- * LokiJS JSONファイル形式で保存された会話履歴の読み込み・管理
+ * SQLiteデータベースから会話履歴とコマンド履歴を管理
  */
 export class AmazonQHistoryService extends EventEmitter {
-  private readonly historyDir: string;
-  private historyCache: Map<string, QHistoryDatabase> = new Map();
+  private db: Database.Database;
+  private readonly dbPath: string;
+  private sessionCache: Map<string, QHistorySession> = new Map();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5分
   private readonly MAX_CACHE_SIZE = 50;
 
-  constructor(customHistoryDir?: string) {
+  constructor(customDbPath?: string) {
     super();
-    this.historyDir = customHistoryDir || path.join(os.homedir(), '.aws', 'amazonq', 'history');
+    this.dbPath = customDbPath || path.join(os.homedir(), 'Library', 'Application Support', 'amazon-q', 'data.sqlite3');
+
+    // SQLiteデータベースに接続
+    try {
+      this.db = new Database(this.dbPath, { readonly: true, fileMustExist: true });
+      console.log(`✅ Connected to Amazon Q SQLite database: ${this.dbPath}`);
+      this.emit('db:connected', { path: this.dbPath });
+    } catch (error) {
+      console.error(`❌ Failed to connect to Amazon Q database: ${error}`);
+      // 読み取り専用でメモリDBを作成（フォールバック）
+      this.db = new Database(':memory:', { readonly: false });
+      this.emit('db:error', { error: error instanceof Error ? error.message : String(error) });
+    }
+
     this.setupCacheCleanup();
   }
 
   /**
-   * 利用可能な履歴ファイル一覧を取得
+   * 利用可能なプロジェクト一覧を取得
    */
-  async getAvailableHistoryFiles(): Promise<string[]> {
+  async getAvailableProjects(): Promise<string[]> {
     try {
-      const files = await fs.readdir(this.historyDir);
-      return files
-        .filter(file => file.startsWith('chat-history-') && file.endsWith('.json'))
-        .sort((a, b) => {
-          // ファイル名でソート（最新が先）
-          return b.localeCompare(a);
-        });
+      const stmt = this.db.prepare('SELECT DISTINCT key FROM conversations ORDER BY key');
+      const rows = stmt.all() as { key: string }[];
+
+      const projects = rows.map(row => row.key);
+      this.emit('projects:loaded', { count: projects.length });
+      return projects;
     } catch (error) {
-      console.warn(`Amazon Q history directory not found: ${this.historyDir}`);
+      console.error('Failed to get available projects:', error);
+      this.emit('projects:error', { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
 
   /**
-   * 指定履歴ファイルの読み込み
+   * 指定プロジェクトの会話データを読み込み
    */
-  async loadHistoryFile(filename: string): Promise<QHistoryDatabase | null> {
+  async loadProjectConversation(projectPath: string): Promise<QHistorySession | null> {
     // キャッシュチェック
-    if (this.historyCache.has(filename)) {
-      const cached = this.historyCache.get(filename)!;
-      this.emit('history:cache_hit', { filename });
+    if (this.sessionCache.has(projectPath)) {
+      const cached = this.sessionCache.get(projectPath)!;
+      this.emit('session:cache_hit', { projectPath });
       return cached;
     }
 
     try {
-      const filePath = path.join(this.historyDir, filename);
-      const content = await fs.readFile(filePath, 'utf8');
-      const historyData: QHistoryDatabase = JSON.parse(content);
-      
+      const stmt = this.db.prepare('SELECT value FROM conversations WHERE key = ?');
+      const row = stmt.get(projectPath) as { value: string } | undefined;
+
+      if (!row) {
+        return null;
+      }
+
+      const conversationData: QConversationData = JSON.parse(row.value);
+      const session = this.convertToHistorySession(projectPath, conversationData);
+
       // キャッシュに保存
-      this.cacheHistoryData(filename, historyData);
-      
-      this.emit('history:loaded', { filename, tabCount: historyData.collections[0]?.data?.length || 0 });
-      return historyData;
+      this.cacheSession(projectPath, session);
+
+      this.emit('session:loaded', { projectPath, messageCount: session.messages.length });
+      return session;
     } catch (error) {
-      console.error(`Failed to load history file ${filename}:`, error);
-      this.emit('history:error', { filename, error: error instanceof Error ? error.message : String(error) });
+      console.error(`Failed to load conversation for ${projectPath}:`, error);
+      this.emit('session:error', { projectPath, error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -151,156 +200,214 @@ export class AmazonQHistoryService extends EventEmitter {
   /**
    * ワークスペース固有の履歴を取得
    */
-  async getWorkspaceHistory(workspaceId: string): Promise<QHistoryTab[]> {
-    const files = await this.getAvailableHistoryFiles();
-    const allTabs: QHistoryTab[] = [];
+  async getWorkspaceHistory(workspaceId: string): Promise<QHistorySession[]> {
+    try {
+      // ワークスペースIDを含むプロジェクトパスを検索
+      const stmt = this.db.prepare(`
+        SELECT key, value FROM conversations 
+        WHERE key LIKE ? OR key LIKE ?
+        ORDER BY key
+      `);
 
-    for (const filename of files) {
-      const historyData = await this.loadHistoryFile(filename);
-      if (!historyData) continue;
+      const rows = stmt.all(`%${workspaceId}%`, `${workspaceId}%`) as { key: string; value: string }[];
+      const sessions: QHistorySession[] = [];
 
-      const tabsCollection = historyData.collections.find(c => c.name === 'tabs');
-      if (!tabsCollection) continue;
+      for (const row of rows) {
+        try {
+          const conversationData: QConversationData = JSON.parse(row.value);
+          const session = this.convertToHistorySession(row.key, conversationData);
+          sessions.push(session);
+        } catch (error) {
+          console.warn(`Failed to parse conversation for ${row.key}:`, error);
+        }
+      }
 
-      const workspaceTabs = tabsCollection.data.filter(tab => 
-        tab.workspaceId === workspaceId || 
-        (tab.projectPath && tab.projectPath.includes(workspaceId))
-      );
-      
-      allTabs.push(...workspaceTabs);
+      return sessions.sort((a, b) => b.updatedAt - a.updatedAt);
+    } catch (error) {
+      console.error('Failed to get workspace history:', error);
+      return [];
     }
-
-    return allTabs.sort((a, b) => b.updatedAt - a.updatedAt);
   }
 
   /**
    * プロジェクトパス固有の履歴を取得
    */
-  async getProjectHistory(projectPath: string): Promise<QHistoryTab[]> {
-    const files = await this.getAvailableHistoryFiles();
-    const allTabs: QHistoryTab[] = [];
+  async getProjectHistory(projectPath: string): Promise<QHistorySession[]> {
+    const session = await this.loadProjectConversation(projectPath);
+    return session ? [session] : [];
+  }
 
-    for (const filename of files) {
-      const historyData = await this.loadHistoryFile(filename);
-      if (!historyData) continue;
+  /**
+   * コマンド実行履歴を取得
+   */
+  async getCommandHistory(options: { cwd?: string; limit?: number } = {}): Promise<QCommandHistory[]> {
+    try {
+      let query = 'SELECT * FROM history';
+      const params: any[] = [];
 
-      const tabsCollection = historyData.collections.find(c => c.name === 'tabs');
-      if (!tabsCollection) continue;
+      if (options.cwd) {
+        query += ' WHERE cwd = ?';
+        params.push(options.cwd);
+      }
 
-      const projectTabs = tabsCollection.data.filter(tab => 
-        tab.projectPath === projectPath ||
-        (tab.projectPath && tab.projectPath.startsWith(projectPath))
-      );
-      
-      allTabs.push(...projectTabs);
+      query += ' ORDER BY start_time DESC';
+
+      if (options.limit) {
+        query += ' LIMIT ?';
+        params.push(options.limit);
+      }
+
+      const stmt = this.db.prepare(query);
+      const rows = stmt.all(...params) as QCommandHistory[];
+
+      this.emit('commands:loaded', { count: rows.length });
+      return rows;
+    } catch (error) {
+      console.error('Failed to get command history:', error);
+      return [];
     }
-
-    return allTabs.sort((a, b) => b.updatedAt - a.updatedAt);
   }
 
   /**
    * 履歴検索
    */
-  async searchHistory(options: QHistorySearchOptions): Promise<QHistoryTab[]> {
-    const files = await this.getAvailableHistoryFiles();
-    const results: QHistoryTab[] = [];
+  async searchHistory(options: QHistorySearchOptions): Promise<QHistorySession[]> {
+    try {
+      let query = 'SELECT key, value FROM conversations WHERE 1=1';
+      const params: any[] = [];
 
-    for (const filename of files) {
-      const historyData = await this.loadHistoryFile(filename);
-      if (!historyData) continue;
+      if (options.projectPath) {
+        query += ' AND key = ?';
+        params.push(options.projectPath);
+      } else if (options.workspaceId) {
+        query += ' AND (key LIKE ? OR key LIKE ?)';
+        params.push(`%${options.workspaceId}%`, `${options.workspaceId}%`);
+      }
 
-      const tabsCollection = historyData.collections.find(c => c.name === 'tabs');
-      if (!tabsCollection) continue;
+      const stmt = this.db.prepare(query);
+      const rows = stmt.all(...params) as { key: string; value: string }[];
+      const results: QHistorySession[] = [];
 
-      for (const tab of tabsCollection.data) {
-        if (this.matchesSearchCriteria(tab, options)) {
-          results.push(tab);
+      for (const row of rows) {
+        try {
+          const conversationData: QConversationData = JSON.parse(row.value);
+          const session = this.convertToHistorySession(row.key, conversationData);
+
+          // メッセージテキスト検索
+          if (options.messageText) {
+            const hasMatch = session.messages.some(msg =>
+              msg.content.toLowerCase().includes(options.messageText!.toLowerCase())
+            );
+            if (!hasMatch) continue;
+          }
+
+          // 日付フィルタ
+          if (options.fromDate && session.createdAt < options.fromDate.getTime()) continue;
+          if (options.toDate && session.updatedAt > options.toDate.getTime()) continue;
+
+          results.push(session);
+        } catch (error) {
+          console.warn(`Failed to parse conversation for ${row.key}:`, error);
         }
       }
-    }
 
-    return results
-      .sort((a, b) => b.updatedAt - a.updatedAt)
-      .slice(0, options.limit || 100);
+      return results
+        .sort((a, b) => b.updatedAt - a.updatedAt)
+        .slice(0, options.limit || 100);
+    } catch (error) {
+      console.error('Failed to search history:', error);
+      return [];
+    }
   }
 
   /**
-   * 特定の履歴セッションを取得
+   * 特定の履歴セッションを取得（会話IDまたはプロジェクトパスから）
    */
-  async getHistorySession(historyId: string): Promise<QHistoryTab | null> {
-    const files = await this.getAvailableHistoryFiles();
-
-    for (const filename of files) {
-      const historyData = await this.loadHistoryFile(filename);
-      if (!historyData) continue;
-
-      const tabsCollection = historyData.collections.find(c => c.name === 'tabs');
-      if (!tabsCollection) continue;
-
-      const session = tabsCollection.data.find(tab => tab.historyId === historyId);
+  async getHistorySession(identifier: string): Promise<QHistorySession | null> {
+    try {
+      // まずプロジェクトパスとして検索
+      let session = await this.loadProjectConversation(identifier);
       if (session) {
-        this.emit('history:session_found', { historyId, filename });
         return session;
       }
-    }
 
-    return null;
+      // 会話IDとして全プロジェクトから検索
+      const stmt = this.db.prepare('SELECT key, value FROM conversations');
+      const rows = stmt.all() as { key: string; value: string }[];
+
+      for (const row of rows) {
+        try {
+          const conversationData: QConversationData = JSON.parse(row.value);
+          if (conversationData.conversation_id === identifier) {
+            return this.convertToHistorySession(row.key, conversationData);
+          }
+        } catch (error) {
+          console.warn(`Failed to parse conversation for ${row.key}:`, error);
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Failed to get history session:', error);
+      return null;
+    }
   }
 
   /**
    * 履歴統計を取得
    */
   async getHistoryStats(): Promise<QHistoryStats> {
-    const files = await this.getAvailableHistoryFiles();
-    let totalSessions = 0;
-    let totalMessages = 0;
-    let oldestSession: Date | undefined;
-    let newestSession: Date | undefined;
-    const workspaces = new Set<string>();
+    try {
+      // 会話統計
+      const conversationStmt = this.db.prepare('SELECT COUNT(*) as count FROM conversations');
+      const conversationCount = (conversationStmt.get() as { count: number }).count;
 
-    for (const filename of files) {
-      const historyData = await this.loadHistoryFile(filename);
-      if (!historyData) continue;
+      // コマンド履歴統計
+      const commandStmt = this.db.prepare('SELECT COUNT(*) as count, MIN(start_time) as oldest, MAX(start_time) as newest FROM history');
+      const commandStats = commandStmt.get() as { count: number; oldest: number | null; newest: number | null };
 
-      const tabsCollection = historyData.collections.find(c => c.name === 'tabs');
-      if (!tabsCollection) continue;
+      // プロジェクト一覧
+      const projects = await this.getAvailableProjects();
 
-      for (const tab of tabsCollection.data) {
-        totalSessions++;
-        totalMessages += tab.messages?.length || 0;
+      // 全会話のメッセージ数を計算
+      let totalMessages = 0;
+      const projectStmt = this.db.prepare('SELECT value FROM conversations');
+      const rows = projectStmt.all() as { value: string }[];
 
-        const sessionDate = new Date(tab.createdAt);
-        if (!oldestSession || sessionDate < oldestSession) {
-          oldestSession = sessionDate;
-        }
-        if (!newestSession || sessionDate > newestSession) {
-          newestSession = sessionDate;
-        }
-
-        if (tab.workspaceId) {
-          workspaces.add(tab.workspaceId);
-        }
-        if (tab.projectPath) {
-          workspaces.add(tab.projectPath);
+      for (const row of rows) {
+        try {
+          const data: QConversationData = JSON.parse(row.value);
+          // history配列の各要素は1ターンの会話（user + assistant）
+          totalMessages += data.history.length * 2;
+        } catch (error) {
+          console.warn('Failed to parse conversation:', error);
         }
       }
-    }
 
-    return {
-      totalSessions,
-      totalMessages,
-      avgMessagesPerSession: totalSessions > 0 ? totalMessages / totalSessions : 0,
-      oldestSession,
-      newestSession,
-      workspaces: Array.from(workspaces)
-    };
+      return {
+        totalSessions: conversationCount,
+        totalMessages,
+        avgMessagesPerSession: conversationCount > 0 ? totalMessages / conversationCount : 0,
+        oldestSession: commandStats.oldest ? new Date(commandStats.oldest * 1000) : undefined,
+        newestSession: commandStats.newest ? new Date(commandStats.newest * 1000) : undefined,
+        workspaces: projects
+      };
+    } catch (error) {
+      console.error('Failed to get history stats:', error);
+      return {
+        totalSessions: 0,
+        totalMessages: 0,
+        avgMessagesPerSession: 0,
+        workspaces: []
+      };
+    }
   }
 
   /**
    * Amazon Q CLI用のコンテキスト形式でエクスポート
    */
-  async exportForAmazonQ(historyId: string): Promise<string | null> {
-    const session = await this.getHistorySession(historyId);
+  async exportForAmazonQ(identifier: string): Promise<string | null> {
+    const session = await this.getHistorySession(identifier);
     if (!session || !session.messages) {
       return null;
     }
@@ -320,8 +427,8 @@ export class AmazonQHistoryService extends EventEmitter {
    * キャッシュクリーンアップ
    */
   clearCache(): void {
-    this.historyCache.clear();
-    this.emit('history:cache_cleared');
+    this.sessionCache.clear();
+    this.emit('cache:cleared');
   }
 
   /**
@@ -331,61 +438,97 @@ export class AmazonQHistoryService extends EventEmitter {
     this.emit('shutdown');
     this.clearCache();
     this.removeAllListeners();
+    this.db.close();
   }
 
-  private cacheHistoryData(filename: string, data: QHistoryDatabase): void {
-    // キャッシュサイズ制限
-    if (this.historyCache.size >= this.MAX_CACHE_SIZE) {
-      const oldestKey = this.historyCache.keys().next().value;
-      if (oldestKey) {
-        this.historyCache.delete(oldestKey);
+  /**
+   * QConversationDataをQHistorySessionに変換
+   */
+  private convertToHistorySession(projectPath: string, data: QConversationData): QHistorySession {
+    const messages: QHistoryMessage[] = [];
+    let createdAt = Date.now();
+    let updatedAt = Date.now();
+
+    // history配列から会話メッセージを抽出
+    for (const turn of data.history) {
+      for (const entry of turn) {
+        if (entry.content?.Prompt?.prompt) {
+          // ユーザーメッセージ
+          messages.push({
+            id: `msg_${messages.length}`,
+            role: 'user',
+            content: entry.content.Prompt.prompt,
+            timestamp: createdAt + messages.length * 1000,
+            metadata: {}
+          });
+        } else if (entry.ToolUse) {
+          // アシスタントメッセージ
+          const tools = entry.ToolUse.tool_uses?.map(t => t.name) || [];
+          messages.push({
+            id: entry.ToolUse.message_id,
+            role: 'assistant',
+            content: entry.ToolUse.content,
+            timestamp: createdAt + messages.length * 1000,
+            metadata: { tools }
+          });
+        } else if (entry.Response) {
+          // アシスタントレスポンス
+          messages.push({
+            id: entry.Response.message_id,
+            role: 'assistant',
+            content: entry.Response.content,
+            timestamp: createdAt + messages.length * 1000,
+            metadata: {}
+          });
+        }
       }
     }
 
-    this.historyCache.set(filename, data);
-    
+    if (messages.length > 0) {
+      updatedAt = messages[messages.length - 1].timestamp;
+    }
+
+    // タイトルを最初のユーザーメッセージから生成
+    const firstUserMessage = messages.find(m => m.role === 'user');
+    const title = firstUserMessage ?
+      firstUserMessage.content.substring(0, 50) + (firstUserMessage.content.length > 50 ? '...' : '') :
+      'Amazon Q Session';
+
+    return {
+      conversationId: data.conversation_id,
+      projectPath,
+      messages,
+      title,
+      createdAt,
+      updatedAt,
+      isActive: data.next_message === null
+    };
+  }
+
+  private cacheSession(projectPath: string, session: QHistorySession): void {
+    // キャッシュサイズ制限
+    if (this.sessionCache.size >= this.MAX_CACHE_SIZE) {
+      const oldestKey = this.sessionCache.keys().next().value;
+      if (oldestKey) {
+        this.sessionCache.delete(oldestKey);
+      }
+    }
+
+    this.sessionCache.set(projectPath, session);
+
     // TTL後に自動削除
     setTimeout(() => {
-      this.historyCache.delete(filename);
+      this.sessionCache.delete(projectPath);
     }, this.CACHE_TTL);
-  }
-
-  private matchesSearchCriteria(tab: QHistoryTab, options: QHistorySearchOptions): boolean {
-    if (options.workspaceId && tab.workspaceId !== options.workspaceId) {
-      return false;
-    }
-
-    if (options.projectPath && tab.projectPath !== options.projectPath) {
-      return false;
-    }
-
-    if (options.fromDate && tab.createdAt < options.fromDate.getTime()) {
-      return false;
-    }
-
-    if (options.toDate && tab.createdAt > options.toDate.getTime()) {
-      return false;
-    }
-
-    if (options.messageText && tab.messages) {
-      const hasMatchingMessage = tab.messages.some(msg =>
-        msg.content.toLowerCase().includes(options.messageText!.toLowerCase())
-      );
-      if (!hasMatchingMessage) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   private setupCacheCleanup(): void {
     // 定期的なキャッシュクリーンアップ
     const cleanupInterval = setInterval(() => {
-      if (this.historyCache.size > this.MAX_CACHE_SIZE / 2) {
-        const keysToRemove = Array.from(this.historyCache.keys()).slice(0, 10);
-        keysToRemove.forEach(key => this.historyCache.delete(key));
-        this.emit('history:cache_pruned', { removedCount: keysToRemove.length });
+      if (this.sessionCache.size > this.MAX_CACHE_SIZE / 2) {
+        const keysToRemove = Array.from(this.sessionCache.keys()).slice(0, 10);
+        keysToRemove.forEach(key => this.sessionCache.delete(key));
+        this.emit('cache:pruned', { removedCount: keysToRemove.length });
       }
     }, 60000); // 1分毎
 
