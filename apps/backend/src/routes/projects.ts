@@ -54,7 +54,7 @@ projects.post('/scan', async (c) => {
     
     // WebSocket経由で通知
     if (webSocketService) {
-      webSocketService.broadcastToAll('projects:scanned', result);
+      webSocketService.broadcastToAll('projects:scanned', { result });
     }
     
     return c.json(result);

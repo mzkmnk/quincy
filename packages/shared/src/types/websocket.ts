@@ -8,6 +8,11 @@ import type { Project, ProjectScanResult } from './project';
 export interface ClientToServerEvents {
   'q:command': (data: QCommandEvent) => void;
   'q:abort': (data: QAbortEvent) => void;
+  'q:history:list': (data: QHistoryListEvent) => void;
+  'q:history:get': (data: QHistoryGetEvent) => void;
+  'q:history:search': (data: QHistorySearchEvent) => void;
+  'q:history:export': (data: QHistoryExportEvent) => void;
+  'q:history:stats': () => void;
   'shell:init': (data: ShellInitEvent) => void;
   'shell:input': (data: ShellInputEvent) => void;
   'shell:resize': (data: ShellResizeEvent) => void;
@@ -25,6 +30,12 @@ export interface ServerToClientEvents {
   'q:response': (data: QResponseEvent) => void;
   'q:error': (data: QErrorEvent) => void;
   'q:complete': (data: QCompleteEvent) => void;
+  'q:history:list': (data: QHistoryListResponse) => void;
+  'q:history:data': (data: QHistoryDataResponse) => void;
+  'q:history:search_results': (data: QHistorySearchResponse) => void;
+  'q:history:export_ready': (data: QHistoryExportResponse) => void;
+  'q:history:stats': (data: QHistoryStatsResponse) => void;
+  'q:history:error': (data: QHistoryErrorResponse) => void;
   'project:created': (data: { project: Project }) => void;
   'project:updated': (data: { project: Project }) => void;
   'project:deleted': (data: { projectId: string }) => void;
@@ -165,6 +176,106 @@ export interface SocketData {
   sessionId?: string;
   authenticated: boolean;
   rooms: string[];
+}
+
+// Amazon Q 履歴管理イベント型定義
+export interface QHistoryListEvent {
+  workspaceId?: string;
+  projectPath?: string;
+  limit?: number;
+}
+
+export interface QHistoryGetEvent {
+  historyId: string;
+}
+
+export interface QHistorySearchEvent {
+  workspaceId?: string;
+  projectPath?: string;
+  messageText?: string;
+  fromDate?: string;
+  toDate?: string;
+  limit?: number;
+}
+
+export interface QHistoryExportEvent {
+  historyId: string;
+  format?: 'amazonq' | 'json' | 'markdown';
+}
+
+export interface QHistoryListResponse {
+  sessions: QHistorySessionSummary[];
+  total: number;
+  hasMore: boolean;
+}
+
+export interface QHistoryDataResponse {
+  session: QHistorySessionDetail | null;
+  found: boolean;
+}
+
+export interface QHistorySearchResponse {
+  results: QHistorySessionSummary[];
+  total: number;
+  query: string;
+}
+
+export interface QHistoryExportResponse {
+  historyId: string;
+  format: string;
+  content: string;
+  filename?: string;
+}
+
+export interface QHistoryStatsResponse {
+  totalSessions: number;
+  totalMessages: number;
+  avgMessagesPerSession: number;
+  oldestSession?: string;
+  newestSession?: string;
+  workspaces: string[];
+}
+
+export interface QHistoryErrorResponse {
+  code: string;
+  message: string;
+  operation: string;
+}
+
+export interface QHistorySessionSummary {
+  historyId: string;
+  title?: string;
+  workspaceId?: string;
+  projectPath?: string;
+  messageCount: number;
+  createdAt: number;
+  updatedAt: number;
+  isOpen: boolean;
+  preview?: string;
+}
+
+export interface QHistorySessionDetail {
+  historyId: string;
+  title?: string;
+  workspaceId?: string;
+  projectPath?: string;
+  messages: QHistoryMessage[];
+  createdAt: number;
+  updatedAt: number;
+  isOpen: boolean;
+  metadata?: Record<string, any>;
+}
+
+export interface QHistoryMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: number;
+  metadata?: {
+    model?: string;
+    tokens?: number;
+    duration?: number;
+  };
 }
 
 // サーバー間通信用のイベント

@@ -14,15 +14,29 @@ import type {
   RoomJoinedEvent,
   RoomLeftEvent,
   QCommandEvent,
-  QAbortEvent
+  QAbortEvent,
+  QHistoryListEvent,
+  QHistoryGetEvent,
+  QHistorySearchEvent,
+  QHistoryExportEvent,
+  QHistoryListResponse,
+  QHistoryDataResponse,
+  QHistorySearchResponse,
+  QHistoryExportResponse,
+  QHistoryStatsResponse,
+  QHistoryErrorResponse,
+  QHistorySessionSummary,
+  QHistorySessionDetail
 } from '@quincy/shared';
 import { AmazonQCLIService } from './amazon-q-cli';
+import { AmazonQHistoryService } from './amazon-q-history';
 
 export class WebSocketService {
   private io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
   private connectedUsers: Map<string, ConnectionInfo> = new Map();
   private userRooms: Map<string, Set<string>> = new Map();
   private qCliService: AmazonQCLIService;
+  private qHistoryService: AmazonQHistoryService;
 
   constructor(httpServer: HTTPServer) {
     this.io = new SocketIOServer(httpServer, {
@@ -45,7 +59,9 @@ export class WebSocketService {
     });
 
     this.qCliService = new AmazonQCLIService();
+    this.qHistoryService = new AmazonQHistoryService();
     this.setupQCLIEventHandlers();
+    this.setupHistoryEventHandlers();
     this.setupEventHandlers();
   }
 
@@ -152,6 +168,47 @@ export class WebSocketService {
           return;
         }
         this.handleQAbort(socket, data);
+      });
+
+      // Handle Amazon Q history events
+      socket.on('q:history:list', (data: QHistoryListEvent) => {
+        if (!socket.data.authenticated) {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        this.handleQHistoryList(socket, data);
+      });
+
+      socket.on('q:history:get', (data: QHistoryGetEvent) => {
+        if (!socket.data.authenticated) {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        this.handleQHistoryGet(socket, data);
+      });
+
+      socket.on('q:history:search', (data: QHistorySearchEvent) => {
+        if (!socket.data.authenticated) {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        this.handleQHistorySearch(socket, data);
+      });
+
+      socket.on('q:history:export', (data: QHistoryExportEvent) => {
+        if (!socket.data.authenticated) {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        this.handleQHistoryExport(socket, data);
+      });
+
+      socket.on('q:history:stats', () => {
+        if (!socket.data.authenticated) {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        this.handleQHistoryStats(socket);
       });
 
       // Handle ping
@@ -459,5 +516,204 @@ export class WebSocketService {
 
   public async terminateAllQSessions(): Promise<void> {
     await this.qCliService.terminateAllSessions();
+  }
+
+  // Amazon Q 履歴管理メソッド
+  public getQHistoryService(): AmazonQHistoryService {
+    return this.qHistoryService;
+  }
+
+  private setupHistoryEventHandlers(): void {
+    // Amazon Q履歴サービスからのイベントをログ出力
+    this.qHistoryService.on('history:loaded', (data) => {
+      console.log(`📚 History file loaded: ${data.filename} (${data.tabCount} tabs)`);
+    });
+
+    this.qHistoryService.on('history:error', (data) => {
+      console.error(`📚 History error for ${data.filename}: ${data.error}`);
+    });
+
+    this.qHistoryService.on('history:cache_hit', (data) => {
+      console.log(`📚 History cache hit: ${data.filename}`);
+    });
+
+    this.qHistoryService.on('history:session_found', (data) => {
+      console.log(`📚 History session found: ${data.historyId} in ${data.filename}`);
+    });
+  }
+
+  private async handleQHistoryList(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QHistoryListEvent): Promise<void> {
+    try {
+      let sessions: QHistorySessionSummary[] = [];
+
+      if (data.workspaceId) {
+        // ワークスペース固有の履歴を取得
+        const tabs = await this.qHistoryService.getWorkspaceHistory(data.workspaceId);
+        sessions = tabs.map(tab => this.convertTabToSummary(tab));
+      } else if (data.projectPath) {
+        // プロジェクト固有の履歴を取得
+        const tabs = await this.qHistoryService.getProjectHistory(data.projectPath);
+        sessions = tabs.map(tab => this.convertTabToSummary(tab));
+      } else {
+        // 全履歴を検索
+        const searchResults = await this.qHistoryService.searchHistory({
+          limit: data.limit || 50
+        });
+        sessions = searchResults.map(tab => this.convertTabToSummary(tab));
+      }
+
+      const response: QHistoryListResponse = {
+        sessions: sessions.slice(0, data.limit || 50),
+        total: sessions.length,
+        hasMore: sessions.length > (data.limit || 50)
+      };
+
+      (socket as any).emit('q:history:list', response);
+      console.log(`📚 History list sent to ${socket.data.userId}: ${sessions.length} sessions`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.sendHistoryError(socket, 'HISTORY_LIST_ERROR', errorMessage, 'list');
+    }
+  }
+
+  private async handleQHistoryGet(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QHistoryGetEvent): Promise<void> {
+    try {
+      const session = await this.qHistoryService.getHistorySession(data.historyId);
+      
+      const response: QHistoryDataResponse = {
+        session: session ? this.convertTabToDetail(session) : null,
+        found: session !== null
+      };
+
+      (socket as any).emit('q:history:data', response);
+      console.log(`📚 History session ${data.historyId} sent to ${socket.data.userId}: ${session ? 'found' : 'not found'}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.sendHistoryError(socket, 'HISTORY_GET_ERROR', errorMessage, 'get');
+    }
+  }
+
+  private async handleQHistorySearch(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QHistorySearchEvent): Promise<void> {
+    try {
+      const searchOptions = {
+        workspaceId: data.workspaceId,
+        projectPath: data.projectPath,
+        messageText: data.messageText,
+        fromDate: data.fromDate ? new Date(data.fromDate) : undefined,
+        toDate: data.toDate ? new Date(data.toDate) : undefined,
+        limit: data.limit || 50
+      };
+
+      const results = await this.qHistoryService.searchHistory(searchOptions);
+      const sessions = results.map(tab => this.convertTabToSummary(tab));
+
+      const response: QHistorySearchResponse = {
+        results: sessions,
+        total: sessions.length,
+        query: data.messageText || ''
+      };
+
+      (socket as any).emit('q:history:search_results', response);
+      console.log(`📚 History search results sent to ${socket.data.userId}: ${sessions.length} matches`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.sendHistoryError(socket, 'HISTORY_SEARCH_ERROR', errorMessage, 'search');
+    }
+  }
+
+  private async handleQHistoryExport(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QHistoryExportEvent): Promise<void> {
+    try {
+      const format = data.format || 'amazonq';
+      let content: string | null = null;
+      let filename: string | undefined;
+
+      if (format === 'amazonq') {
+        content = await this.qHistoryService.exportForAmazonQ(data.historyId);
+        filename = `amazonq-context-${data.historyId}.txt`;
+      } else if (format === 'json') {
+        const session = await this.qHistoryService.getHistorySession(data.historyId);
+        content = session ? JSON.stringify(session, null, 2) : null;
+        filename = `amazonq-session-${data.historyId}.json`;
+      } else if (format === 'markdown') {
+        const session = await this.qHistoryService.getHistorySession(data.historyId);
+        if (session && session.messages) {
+          content = session.messages
+            .map(msg => `## ${msg.role === 'user' ? 'User' : 'Assistant'}\n\n${msg.content}\n`)
+            .join('\n');
+        }
+        filename = `amazonq-session-${data.historyId}.md`;
+      }
+
+      const response: QHistoryExportResponse = {
+        historyId: data.historyId,
+        format,
+        content: content || '',
+        filename
+      };
+
+      (socket as any).emit('q:history:export_ready', response);
+      console.log(`📚 History export ready for ${socket.data.userId}: ${data.historyId} (${format})`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.sendHistoryError(socket, 'HISTORY_EXPORT_ERROR', errorMessage, 'export');
+    }
+  }
+
+  private async handleQHistoryStats(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>): Promise<void> {
+    try {
+      const stats = await this.qHistoryService.getHistoryStats();
+      
+      const response: QHistoryStatsResponse = {
+        totalSessions: stats.totalSessions,
+        totalMessages: stats.totalMessages,
+        avgMessagesPerSession: stats.avgMessagesPerSession,
+        oldestSession: stats.oldestSession?.toISOString(),
+        newestSession: stats.newestSession?.toISOString(),
+        workspaces: stats.workspaces
+      };
+
+      (socket as any).emit('q:history:stats', response);
+      console.log(`📚 History stats sent to ${socket.data.userId}: ${stats.totalSessions} sessions`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.sendHistoryError(socket, 'HISTORY_STATS_ERROR', errorMessage, 'stats');
+    }
+  }
+
+  private sendHistoryError(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, code: string, message: string, operation: string): void {
+    const errorResponse: QHistoryErrorResponse = {
+      code,
+      message,
+      operation
+    };
+    (socket as any).emit('q:history:error', errorResponse);
+  }
+
+  private convertTabToSummary(tab: any): QHistorySessionSummary {
+    return {
+      historyId: tab.historyId,
+      title: tab.title,
+      workspaceId: tab.workspaceId,
+      projectPath: tab.projectPath,
+      messageCount: tab.messages?.length || 0,
+      createdAt: tab.createdAt,
+      updatedAt: tab.updatedAt,
+      isOpen: tab.isOpen,
+      preview: tab.messages?.[0]?.content?.substring(0, 100)
+    };
+  }
+
+  private convertTabToDetail(tab: any): QHistorySessionDetail {
+    return {
+      historyId: tab.historyId,
+      title: tab.title,
+      workspaceId: tab.workspaceId,
+      projectPath: tab.projectPath,
+      messages: tab.messages || [],
+      createdAt: tab.createdAt,
+      updatedAt: tab.updatedAt,
+      isOpen: tab.isOpen,
+      metadata: tab.meta
+    };
   }
 }
