@@ -12,13 +12,17 @@ import type {
   ConnectionInfo,
   ErrorData,
   RoomJoinedEvent,
-  RoomLeftEvent
+  RoomLeftEvent,
+  QCommandEvent,
+  QAbortEvent
 } from '@quincy/shared';
+import { AmazonQCLIService } from './amazon-q-cli';
 
 export class WebSocketService {
   private io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
   private connectedUsers: Map<string, ConnectionInfo> = new Map();
   private userRooms: Map<string, Set<string>> = new Map();
+  private qCliService: AmazonQCLIService;
 
   constructor(httpServer: HTTPServer) {
     this.io = new SocketIOServer(httpServer, {
@@ -40,6 +44,8 @@ export class WebSocketService {
       }
     });
 
+    this.qCliService = new AmazonQCLIService();
+    this.setupQCLIEventHandlers();
     this.setupEventHandlers();
   }
 
@@ -128,6 +134,24 @@ export class WebSocketService {
           return;
         }
         this.handleProjectRefresh(socket, data);
+      });
+
+      // Handle Amazon Q CLI command
+      socket.on('q:command', (data: QCommandEvent) => {
+        if (!socket.data.authenticated) {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        this.handleQCommand(socket, data);
+      });
+
+      // Handle Amazon Q CLI abort
+      socket.on('q:abort', (data: QAbortEvent) => {
+        if (!socket.data.authenticated) {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        this.handleQAbort(socket, data);
       });
 
       // Handle ping
@@ -351,15 +375,89 @@ export class WebSocketService {
     return room ? Array.from(room) : [];
   }
 
-  public broadcastToRoom<K extends keyof ServerToClientEvents>(roomId: string, event: K, data: ServerToClientEvents[K]) {
-    this.io.to(roomId).emit(event, data);
+  public broadcastToRoom<K extends keyof ServerToClientEvents>(
+    roomId: string, 
+    event: K, 
+    data: Parameters<ServerToClientEvents[K]>[0]
+  ): void {
+    (this.io.to(roomId) as any).emit(event, data);
   }
 
-  public broadcastToAll<K extends keyof ServerToClientEvents>(event: K, data: ServerToClientEvents[K]) {
-    this.io.emit(event, data);
+  public broadcastToAll<K extends keyof ServerToClientEvents>(
+    event: K, 
+    data: Parameters<ServerToClientEvents[K]>[0]
+  ): void {
+    (this.io as any).emit(event, data);
   }
 
   public getSocketIOServer(): SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData> {
     return this.io;
+  }
+
+  private setupQCLIEventHandlers(): void {
+    // Amazon Q CLIサービスからのイベントをWebSocketクライアントに転送
+    this.qCliService.on('q:response', (data) => {
+      this.io.emit('q:response', data);
+    });
+
+    this.qCliService.on('q:error', (data) => {
+      this.io.emit('q:error', data);
+    });
+
+    this.qCliService.on('q:complete', (data) => {
+      this.io.emit('q:complete', data);
+    });
+
+    this.qCliService.on('session:aborted', (data) => {
+      this.io.emit('q:complete', {
+        sessionId: data.sessionId,
+        exitCode: data.exitCode || 0
+      });
+    });
+  }
+
+  private async handleQCommand(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QCommandEvent): Promise<void> {
+    try {
+      const sessionId = await this.qCliService.startSession(data.command, {
+        workingDir: data.workingDir,
+        model: data.model,
+        resume: data.resume
+      });
+
+      // セッション作成の通知
+      socket.emit('session:created', {
+        sessionId,
+        projectId: socket.data.sessionId || 'unknown'
+      });
+
+      console.log(`🤖 Amazon Q CLI session started: ${sessionId} for user ${socket.data.userId}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.sendError(socket, 'Q_COMMAND_ERROR', `Failed to start Amazon Q CLI: ${errorMessage}`);
+    }
+  }
+
+  private async handleQAbort(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QAbortEvent): Promise<void> {
+    try {
+      const success = await this.qCliService.abortSession(data.sessionId, 'user_request');
+      
+      if (success) {
+        console.log(`🛑 Amazon Q CLI session aborted: ${data.sessionId} by user ${socket.data.userId}`);
+      } else {
+        this.sendError(socket, 'Q_ABORT_ERROR', `Session ${data.sessionId} not found or already terminated`);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.sendError(socket, 'Q_ABORT_ERROR', `Failed to abort session: ${errorMessage}`);
+    }
+  }
+
+  // Amazon Q CLIサービスの公開メソッド
+  public getQCLIService(): AmazonQCLIService {
+    return this.qCliService;
+  }
+
+  public async terminateAllQSessions(): Promise<void> {
+    await this.qCliService.terminateAllSessions();
   }
 }
