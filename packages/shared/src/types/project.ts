@@ -7,6 +7,12 @@ export interface Project {
   name: string;
   /** プロジェクトのフルパス */
   path: string;
+  /** 手動で追加されたプロジェクトかどうか */
+  isManual?: boolean;
+  /** プロジェクト作成日時 */
+  createdAt?: number;
+  /** プロジェクト更新日時 */
+  updatedAt?: number;
 }
 
 export interface ProjectScanResult {

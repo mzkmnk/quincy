@@ -3,7 +3,6 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { createServer } from 'http'
-import type { Project, Session } from '@quincy/shared'
 
 // Import middleware and utilities
 import { loggerMiddleware } from './utils/logger.ts'
@@ -34,27 +33,12 @@ app.use('*', errorHandler)
 // API routes
 app.route('/api', routes)
 
-// Test route to verify shared types
+// Health check route
 app.get('/', (c) => {
-  // sharedパッケージの型を使用するテスト
-  const testProject: Project = {
-    id: '1',
-    name: 'Test Project',
-    path: '/tmp/test-project',
-    isManual: false,
-    createdAt: Date.now(),
-    updatedAt: Date.now()
-  }
-  
-  const testSession: Session = {
-    id: 'session-1',
-    projectId: testProject.id
-  }
-  
   return c.json({ 
-    message: 'Hono Backend Server is running!',
-    project: testProject,
-    session: testSession
+    message: 'Quincy Backend API',
+    status: 'healthy',
+    timestamp: new Date().toISOString()
   })
 })
 
