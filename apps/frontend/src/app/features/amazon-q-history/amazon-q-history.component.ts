@@ -102,23 +102,30 @@ import type { ConversationMetadata, AmazonQConversation } from '@quincy/shared';
             </div>
           </div>
 
-          <div class="conversation-transcript max-h-96 overflow-y-auto border border-gray-200 rounded p-4">
-            @if (appStore.currentQConversation()?.transcript) {
-              @for (message of appStore.currentQConversation()!.transcript; track $index; let isEven = $even) {
-                <div class="mb-3 p-3 rounded" 
-                     [class]="isEven ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-green-50 border-l-4 border-green-500'">
-                  <div class="text-xs text-gray-500 mb-1">
-                    {{ isEven ? '👤 User' : '🤖 Amazon Q' }}
+          @if (appStore.qHistoryLoading()) {
+            <div class="text-center py-8">
+              <div class="text-lg text-gray-600">Loading conversation details...</div>
+            </div>
+          } @else {
+            <div class="conversation-transcript max-h-96 overflow-y-auto border border-gray-200 rounded p-4">
+              @if (appStore.currentQConversation()?.transcript) {
+                @for (message of appStore.currentQConversation()!.transcript; track $index; let isEven = $even) {
+                  <div class="mb-3 p-3 rounded" 
+                       [class]="isEven ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-green-50 border-l-4 border-green-500'">
+                    <div class="text-xs text-gray-500 mb-1">
+                      {{ isEven ? '👤 User' : '🤖 Amazon Q' }}
+                    </div>
+                    <div class="text-sm text-gray-800 whitespace-pre-wrap">{{ message }}</div>
                   </div>
-                  <div class="text-sm text-gray-800 whitespace-pre-wrap">{{ message }}</div>
+                }
+              } @else {
+                <div class="text-center text-gray-500 py-8">
+                  <div class="text-lg mb-2">📭 No conversation transcript available</div>
+                  <div class="text-sm">This project may not have any Amazon Q conversation history, or the data could not be loaded.</div>
                 </div>
               }
-            } @else {
-              <div class="text-center text-gray-500 py-4">
-                No conversation transcript available.
-              </div>
-            }
-          </div>
+            </div>
+          }
         </div>
       }
 
@@ -174,15 +181,17 @@ export class AmazonQHistoryComponent implements OnInit, OnDestroy {
     this.webSocketService.setupQHistoryListeners(
       // q:history:data イベント
       (data) => {
+        console.log('📋 Received history data:', data);
         this.appStore.setCurrentQConversation(data.conversation);
+        this.appStore.setQHistoryLoading(false); // ローディング状態を解除
         if (!data.conversation && data.message) {
-          console.log('History message:', data.message);
+          console.log('💬 History message:', data.message);
         }
       },
       // q:history:list イベント
       (data) => {
+        console.log(`📋 Loaded ${data.count} Amazon Q conversations:`, data);
         this.appStore.setAmazonQHistory(data.projects);
-        console.log(`Loaded ${data.count} Amazon Q conversations`);
       }
     );
   }
@@ -193,11 +202,13 @@ export class AmazonQHistoryComponent implements OnInit, OnDestroy {
   }
 
   loadProjectHistory(projectPath: string): void {
+    console.log('🔍 Loading project history for:', projectPath);
     this.appStore.setQHistoryLoading(true);
     this.webSocketService.getProjectHistory(projectPath);
   }
 
   viewHistory(project: ConversationMetadata): void {
+    console.log('👁️ View history clicked for project:', project);
     this.loadProjectHistory(project.projectPath);
   }
 
