@@ -1,5 +1,6 @@
 import { Injectable, Signal, WritableSignal, signal, computed } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
+import type { ConversationMetadata, AmazonQConversation } from '@quincy/shared';
 
 export interface ConnectionState {
   connected: boolean;
@@ -77,5 +78,33 @@ export class WebSocketService {
     if (this.socket) {
       this.socket.off(event, callback);
     }
+  }
+
+  // Amazon Q履歴関連のメソッド
+  getProjectHistory(projectPath: string): void {
+    this.emit('q:history', { projectPath });
+  }
+
+  getAllProjectsHistory(): void {
+    this.emit('q:projects');
+  }
+
+  resumeSession(projectPath: string, conversationId?: string): void {
+    this.emit('q:resume', { projectPath, conversationId });
+  }
+
+  // Amazon Q履歴イベントリスナーのセットアップ
+  setupQHistoryListeners(
+    onHistoryData: (data: { projectPath: string; conversation: AmazonQConversation | null; message?: string }) => void,
+    onHistoryList: (data: { projects: ConversationMetadata[]; count: number }) => void
+  ): void {
+    this.on('q:history:data', onHistoryData);
+    this.on('q:history:list', onHistoryList);
+  }
+
+  // Amazon Q履歴イベントリスナーの削除
+  removeQHistoryListeners(): void {
+    this.off('q:history:data');
+    this.off('q:history:list');
   }
 }

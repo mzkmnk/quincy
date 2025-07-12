@@ -14,15 +14,21 @@ import type {
   RoomJoinedEvent,
   RoomLeftEvent,
   QCommandEvent,
-  QAbortEvent
+  QAbortEvent,
+  QHistoryDataResponse,
+  QHistoryListResponse,
+  AmazonQConversation,
+  ConversationMetadata
 } from '@quincy/shared';
 import { AmazonQCLIService } from './amazon-q-cli';
+import { AmazonQHistoryService } from './amazon-q-history';
 
 export class WebSocketService {
   private io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
   private connectedUsers: Map<string, ConnectionInfo> = new Map();
   private userRooms: Map<string, Set<string>> = new Map();
   private qCliService: AmazonQCLIService;
+  private qHistoryService: AmazonQHistoryService;
 
   constructor(httpServer: HTTPServer) {
     this.io = new SocketIOServer(httpServer, {
@@ -45,6 +51,7 @@ export class WebSocketService {
     });
 
     this.qCliService = new AmazonQCLIService();
+    this.qHistoryService = new AmazonQHistoryService();
     this.setupQCLIEventHandlers();
     this.setupEventHandlers();
   }
@@ -118,23 +125,6 @@ export class WebSocketService {
         this.handleRoomLeave(socket, data);
       });
 
-      // Handle project scan request
-      socket.on('projects:scan', () => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
-        this.handleProjectScan(socket);
-      });
-
-      // Handle project refresh request
-      socket.on('project:refresh', (data: { projectId: string }) => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
-        this.handleProjectRefresh(socket, data);
-      });
 
       // Handle Amazon Q CLI command
       socket.on('q:command', (data: QCommandEvent) => {
@@ -152,6 +142,33 @@ export class WebSocketService {
           return;
         }
         this.handleQAbort(socket, data);
+      });
+
+      // Handle Amazon Q history requests
+      socket.on('q:history', async (data: { projectPath: string }) => {
+        if (!socket.data.authenticated) {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        await this.handleQHistory(socket, data);
+      });
+
+      // Handle Amazon Q projects history list
+      socket.on('q:projects', async () => {
+        if (!socket.data.authenticated) {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        await this.handleQProjects(socket);
+      });
+
+      // Handle Amazon Q session resume
+      socket.on('q:resume', async (data: { projectPath: string; conversationId?: string }) => {
+        if (!socket.data.authenticated) {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        await this.handleQResume(socket, data);
       });
 
       // Handle ping
@@ -336,30 +353,6 @@ export class WebSocketService {
     return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
-  private async handleProjectScan(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
-    try {
-      // この実装では、プロジェクトルートから直接スキャン機能を呼び出すのではなく、
-      // 適切なHTTP APIエンドポイントの使用を推奨するメッセージを送信
-      socket.emit('error', {
-        code: 'PROJECT_SCAN_VIA_API',
-        message: 'Project scanning should be initiated via HTTP API endpoint /api/projects/scan'
-      });
-    } catch (error) {
-      this.sendError(socket, 'PROJECT_SCAN_ERROR', 'Failed to initiate project scan');
-    }
-  }
-
-  private async handleProjectRefresh(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectId: string }) {
-    try {
-      // プロジェクトリフレッシュも同様にHTTP API経由を推奨
-      socket.emit('error', {
-        code: 'PROJECT_REFRESH_VIA_API',
-        message: `Project refresh should be initiated via HTTP API endpoint /api/projects/${data.projectId}/refresh`
-      });
-    } catch (error) {
-      this.sendError(socket, 'PROJECT_REFRESH_ERROR', 'Failed to refresh project');
-    }
-  }
 
   // Public methods for external use
   public getConnectedUsers(): ConnectionInfo[] {
@@ -449,6 +442,92 @@ export class WebSocketService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.sendError(socket, 'Q_ABORT_ERROR', `Failed to abort session: ${errorMessage}`);
+    }
+  }
+
+  // Amazon Q履歴関連のハンドラー
+  private async handleQHistory(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectPath: string }): Promise<void> {
+    try {
+      console.log(`📚 Request for Q history: ${data.projectPath}`);
+      
+      if (!this.qHistoryService.isDatabaseAvailable()) {
+        console.log('❌ Amazon Q database not available');
+        this.sendError(socket, 'Q_HISTORY_UNAVAILABLE', 'Amazon Q database is not available');
+        return;
+      }
+
+      const conversation = await this.qHistoryService.getProjectHistory(data.projectPath);
+      
+      if (!conversation) {
+        console.log(`⚠️ No conversation found for: ${data.projectPath}`);
+        socket.emit('q:history:data', {
+          projectPath: data.projectPath,
+          conversation: null,
+          message: 'No conversation history found for this project'
+        });
+        return;
+      }
+
+      console.log(`✅ Retrieved Q history for project: ${data.projectPath}, messages: ${conversation.transcript?.length || 0}`);
+      socket.emit('q:history:data', {
+        projectPath: data.projectPath,
+        conversation
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Error getting Q history for ${data.projectPath}:`, error);
+      this.sendError(socket, 'Q_HISTORY_ERROR', `Failed to get project history: ${errorMessage}`);
+    }
+  }
+
+  private async handleQProjects(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>): Promise<void> {
+    try {
+      if (!this.qHistoryService.isDatabaseAvailable()) {
+        this.sendError(socket, 'Q_PROJECTS_UNAVAILABLE', 'Amazon Q database is not available');
+        return;
+      }
+
+      const projects = await this.qHistoryService.getAllProjectsHistory();
+      
+      socket.emit('q:history:list', {
+        projects,
+        count: projects.length
+      });
+
+      console.log(`📋 Retrieved Q projects list: ${projects.length} projects`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.sendError(socket, 'Q_PROJECTS_ERROR', `Failed to get projects list: ${errorMessage}`);
+    }
+  }
+
+  private async handleQResume(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectPath: string; conversationId?: string }): Promise<void> {
+    try {
+      if (!this.qHistoryService.isDatabaseAvailable()) {
+        this.sendError(socket, 'Q_RESUME_UNAVAILABLE', 'Amazon Q database is not available');
+        return;
+      }
+
+      // Check if conversation exists
+      const conversation = await this.qHistoryService.getProjectHistory(data.projectPath);
+      if (!conversation) {
+        this.sendError(socket, 'Q_RESUME_NO_HISTORY', 'No conversation history found for this project');
+        return;
+      }
+
+      // Start Amazon Q CLI with resume option
+      const commandData: QCommandEvent = {
+        command: 'chat',
+        workingDir: data.projectPath,
+        resume: true
+      };
+
+      await this.handleQCommand(socket, commandData);
+      
+      console.log(`🔄 Amazon Q CLI session resumed for project: ${data.projectPath}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.sendError(socket, 'Q_RESUME_ERROR', `Failed to resume session: ${errorMessage}`);
     }
   }
 
