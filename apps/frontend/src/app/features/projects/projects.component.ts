@@ -48,6 +48,10 @@ import { WebSocketService } from '../../core/services/websocket.service';
                       (click)="selectProject(project)">
                 {{ isSelected(project) ? 'Selected' : 'Select' }}
               </button>
+              <button class="py-2 px-4 border border-purple-500 rounded bg-purple-500 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-purple-600" 
+                      (click)="viewQHistory(project)">
+                Q History
+              </button>
             </div>
           </div>
         } @empty {
@@ -58,6 +62,10 @@ import { WebSocketService } from '../../core/services/websocket.service';
       </div>
 
       <div class="flex gap-4">
+        <button class="py-2 px-4 border border-purple-400 rounded bg-purple-400 text-white cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-purple-500" 
+                (click)="viewAllQHistory()">
+          View All Q History
+        </button>
         <button class="py-2 px-4 border border-gray-200 rounded bg-white text-gray-800 cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-gray-50" 
                 (click)="goBack()">
           Back to Dashboard
@@ -136,6 +144,18 @@ export class ProjectsComponent implements OnInit {
       });
       this.appStore.setLoading(false);
     });
+  }
+
+  viewQHistory(project: Project): void {
+    // 特定のプロジェクトの履歴を表示
+    this.router.navigate(['/amazon-q-history'], { 
+      queryParams: { projectPath: encodeURIComponent(project.path) } 
+    });
+  }
+
+  viewAllQHistory(): void {
+    // 全プロジェクトの履歴を表示
+    this.router.navigate(['/amazon-q-history']);
   }
 
   goBack(): void {

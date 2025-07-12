@@ -1,12 +1,15 @@
 import { signal, computed } from '@angular/core';
 import { signalStore, withState, withComputed, withMethods, patchState } from '@ngrx/signals';
-import type { Project, Session } from '@quincy/shared';
+import type { Project, Session, ConversationMetadata, AmazonQConversation } from '@quincy/shared';
 
 export interface AppState {
   projects: Project[];
   currentProject: Project | null;
   sessions: Session[];
   currentSession: Session | null;
+  amazonQHistory: ConversationMetadata[];
+  currentQConversation: AmazonQConversation | null;
+  qHistoryLoading: boolean;
   loading: boolean;
   error: string | null;
 }
@@ -16,6 +19,9 @@ const initialState: AppState = {
   currentProject: null,
   sessions: [],
   currentSession: null,
+  amazonQHistory: [],
+  currentQConversation: null,
+  qHistoryLoading: false,
   loading: false,
   error: null
 };
@@ -23,15 +29,21 @@ const initialState: AppState = {
 export const AppStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withComputed(({ projects, currentProject, sessions, currentSession }) => ({
+  withComputed(({ projects, currentProject, sessions, currentSession, amazonQHistory, currentQConversation, qHistoryLoading }) => ({
     hasProjects: computed(() => projects().length > 0),
     hasSessions: computed(() => sessions().length > 0),
+    hasAmazonQHistory: computed(() => amazonQHistory().length > 0),
     currentProjectSessions: computed(() => {
       const projectId = currentProject()?.id;
       return projectId ? sessions().filter(s => s.projectId === projectId) : [];
     }),
+    currentProjectQHistory: computed(() => {
+      const projectPath = currentProject()?.path;
+      return projectPath ? amazonQHistory().filter(h => h.projectPath === projectPath) : [];
+    }),
     isProjectSelected: computed(() => currentProject() !== null),
     isSessionSelected: computed(() => currentSession() !== null),
+    isQConversationSelected: computed(() => currentQConversation() !== null),
   })),
   withMethods((store) => ({
     setProjects: (projects: Project[]) => {
@@ -82,6 +94,21 @@ export const AppStore = signalStore(
       patchState(store, { 
         sessions: [...store.sessions(), session],
         error: null 
+      });
+    },
+    setAmazonQHistory: (amazonQHistory: ConversationMetadata[]) => {
+      patchState(store, { amazonQHistory, qHistoryLoading: false, error: null });
+    },
+    setCurrentQConversation: (currentQConversation: AmazonQConversation | null) => {
+      patchState(store, { currentQConversation });
+    },
+    setQHistoryLoading: (qHistoryLoading: boolean) => {
+      patchState(store, { qHistoryLoading });
+    },
+    addQHistoryItem: (item: ConversationMetadata) => {
+      patchState(store, {
+        amazonQHistory: [...store.amazonQHistory(), item],
+        error: null
       });
     },
     clearError: () => {

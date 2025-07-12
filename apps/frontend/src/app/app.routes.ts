@@ -23,6 +23,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/sessions/sessions.component').then(m => m.SessionsComponent)
   },
   {
+    path: 'amazon-q-history',
+    loadComponent: () => import('./features/amazon-q-history/amazon-q-history.component').then(m => m.AmazonQHistoryComponent)
+  },
+  {
+    path: 'amazon-q-history/:projectPath',
+    loadComponent: () => import('./features/amazon-q-history/amazon-q-history.component').then(m => m.AmazonQHistoryComponent)
+  },
+  {
     path: '**',
     redirectTo: '/chat'
   }
