@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
-import type { 
-  Project, 
-  ProjectScanResult 
+import type {
+  Project,
+  ProjectScanResult
 } from '@quincy/shared';
-import { ProjectManager } from '../services/project-manager.js';
-import { WebSocketService } from '../services/websocket.js';
+import { ProjectManager } from '../services/project-manager';
+import { WebSocketService } from '../services/websocket';
 
 const projects = Router();
 
@@ -34,11 +34,11 @@ projects.get('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     const project = await projectManager.getProject(id);
-    
+
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    
+
     res.json(project);
   } catch (error) {
     console.error('Failed to get project:', error);
@@ -50,12 +50,12 @@ projects.get('/:id', async (req: Request, res: Response) => {
 projects.post('/scan', async (_req: Request, res: Response) => {
   try {
     const result: ProjectScanResult = await projectManager.scanProjects();
-    
+
     // WebSocket経由で通知
     if (webSocketService) {
       webSocketService.broadcastToAll('projects:scanned', { result });
     }
-    
+
     res.json(result);
   } catch (error) {
     console.error('Failed to scan projects:', error);
