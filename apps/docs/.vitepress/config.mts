@@ -7,7 +7,15 @@ export default defineConfig({
   // GitHub Pages設定 - リポジトリ名に基づいてbaseを設定
   base: '/quincy/',
   
+  // ファビコン設定
+  head: [
+    ['link', { rel: 'icon', href: '/quincy/icon.png' }]
+  ],
+  
   themeConfig: {
+    // ナビゲーションロゴ
+    logo: '/quincy/icon.png',
+    
     // ナビゲーション
     nav: [
       { text: 'Home', link: '/' },
