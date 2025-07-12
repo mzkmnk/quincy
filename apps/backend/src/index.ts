@@ -5,11 +5,11 @@ import { logger } from 'hono/logger'
 import { createServer } from 'http'
 
 // Import middleware and utilities
-import { loggerMiddleware } from './utils/logger.ts'
-import { errorHandler, notFoundHandler } from './utils/errors.ts'
-import { routes } from './routes/index.ts'
-import { WebSocketService } from './services/websocket.ts'
-import { setWebSocketService } from './routes/projects.ts'
+import { loggerMiddleware } from './utils/logger'
+import { errorHandler, notFoundHandler } from './utils/errors'
+import { routes } from './routes/index'
+import { WebSocketService } from './services/websocket'
+import { setWebSocketService } from './routes/projects'
 
 const app = new Hono()
 

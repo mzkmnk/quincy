@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import { websocket } from './websocket.ts'
-import { projects } from './projects.ts'
+import { websocket } from './websocket'
+import { projects } from './projects'
 
 const routes = new Hono()
 
