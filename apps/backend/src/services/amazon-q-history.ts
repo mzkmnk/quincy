@@ -2,23 +2,7 @@ import Database from 'better-sqlite3'
 import path from 'path'
 import { homedir } from 'os'
 import { logger } from '../utils/logger'
-
-export interface AmazonQConversation {
-  conversation_id: string
-  model: string
-  transcript: string[]
-  tools: string[]
-  context_manager: Record<string, unknown>
-  latest_summary: string | null
-}
-
-export interface ConversationMetadata {
-  projectPath: string
-  conversation_id: string
-  messageCount: number
-  lastUpdated: Date
-  model: string
-}
+import type { AmazonQConversation, ConversationMetadata } from '@quincy/shared'
 
 export class AmazonQHistoryService {
   private dbPath: string

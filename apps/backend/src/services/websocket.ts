@@ -14,7 +14,11 @@ import type {
   RoomJoinedEvent,
   RoomLeftEvent,
   QCommandEvent,
-  QAbortEvent
+  QAbortEvent,
+  QHistoryDataResponse,
+  QHistoryListResponse,
+  AmazonQConversation,
+  ConversationMetadata
 } from '@quincy/shared';
 import { AmazonQCLIService } from './amazon-q-cli';
 import { AmazonQHistoryService } from './amazon-q-history';
