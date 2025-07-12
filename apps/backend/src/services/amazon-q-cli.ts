@@ -304,7 +304,7 @@ export class AmazonQCLIService extends EventEmitter {
       
       const completeEvent: QCompleteEvent = {
         sessionId,
-        exitCode: code || -1
+        exitCode: code !== null ? code : -1
       };
       
       this.emit('q:complete', completeEvent);

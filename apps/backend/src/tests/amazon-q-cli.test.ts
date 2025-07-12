@@ -279,16 +279,42 @@ describe('AmazonQCLIService', () => {
     it('プロセス終了をq:completeイベントとして発行すること', (done) => {
       const options: QProcessOptions = { workingDir: '/test/path' };
 
-      service.on('q:complete', (data) => {
+      const handler = (data: any) => {
         expect(data.exitCode).toBe(0);
         expect(data.sessionId).toMatch(/^q_session_/);
+        service.removeListener('q:complete', handler);
         done();
-      });
+      };
+
+      service.on('q:complete', handler);
 
       service.startSession('help', options).then(() => {
-        mockChildProcess.emit('exit', 0, null);
+        // 少し遅延してからexitイベントを発火
+        setTimeout(() => {
+          mockChildProcess.emit('exit', 0, null);
+        }, 100);
       });
-    });
+    }, 40000);
+
+    it('プロセスがnull終了コードで終了した場合-1を返すこと', (done) => {
+      const options: QProcessOptions = { workingDir: '/test/path' };
+
+      const handler = (data: any) => {
+        expect(data.exitCode).toBe(-1);
+        expect(data.sessionId).toMatch(/^q_session_/);
+        service.removeListener('q:complete', handler);
+        done();
+      };
+
+      service.on('q:complete', handler);
+
+      service.startSession('help', options).then(() => {
+        // 少し遅延してからexitイベントを発火
+        setTimeout(() => {
+          mockChildProcess.emit('exit', null, null);
+        }, 100);
+      });
+    }, 40000);
   });
 
   describe('リソース管理', () => {
