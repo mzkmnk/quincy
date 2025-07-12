@@ -33,12 +33,16 @@ app.use(loggerMiddleware)
 // API routes
 app.use('/api', routes)
 
-// Health check route
+// Root endpoint - API info
 app.get('/', (_req, res) => {
   res.json({
-    message: 'Quincy Backend API',
-    status: 'healthy',
-    timestamp: new Date().toISOString()
+    name: 'Quincy Backend API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      projects: '/api/projects',
+      websocket: '/api/websocket'
+    }
   })
 })
 
