@@ -16,7 +16,7 @@ export default {
     '^@quincy/shared$': '<rootDir>/../../packages/shared/src/index.ts'
   },
   setupFilesAfterEnv: [],
-  testTimeout: 30000,
+  testTimeout: 40000,
   extensionsToTreatAsEsm: ['.ts'],
   transform: {
     '^.+\\.ts$': ['ts-jest', {

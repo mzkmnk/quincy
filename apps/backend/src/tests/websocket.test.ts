@@ -3,7 +3,7 @@
  * Basic test to verify WebSocket server functionality
  */
 
-import { WebSocketService } from '../services/websocket.ts'
+import { WebSocketService } from '../services/websocket'
 import { createServer, Server } from 'http'
 import { io as Client, Socket as ClientSocket } from 'socket.io-client'
 import type { 
@@ -12,6 +12,18 @@ import type {
   MessageSendEvent, 
   MessageData 
 } from '@quincy/shared'
+
+// better-sqlite3をモック（AmazonQHistoryServiceが使用するため）
+jest.mock('better-sqlite3', () => {
+  return jest.fn(() => ({
+    prepare: jest.fn(() => ({
+      all: jest.fn(() => []),
+      get: jest.fn(() => undefined),
+      run: jest.fn()
+    })),
+    close: jest.fn()
+  }))
+})
 
 describe('WebSocket Server', () => {
   let httpServer: Server
@@ -31,8 +43,12 @@ describe('WebSocket Server', () => {
     })
   })
 
-  afterAll(() => {
-    httpServer?.close()
+  afterAll((done) => {
+    if (httpServer) {
+      httpServer.close(done)
+    } else {
+      done()
+    }
   })
 
   beforeEach((done) => {
@@ -41,8 +57,11 @@ describe('WebSocket Server', () => {
     clientSocket.on('connect', done)
   })
 
-  afterEach(() => {
-    clientSocket?.close()
+  afterEach((done) => {
+    if (clientSocket && clientSocket.connected) {
+      clientSocket.close()
+    }
+    setTimeout(done, 100) // 少し待ってから次のテストへ
   })
 
   it('should accept client connections', (done) => {
