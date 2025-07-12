@@ -8,6 +8,9 @@ import type { Project, ProjectScanResult } from './project';
 export interface ClientToServerEvents {
   'q:command': (data: QCommandEvent) => void;
   'q:abort': (data: QAbortEvent) => void;
+  'q:history': (data: { projectPath: string }) => void;
+  'q:projects': () => void;
+  'q:resume': (data: { projectPath: string; conversationId?: string }) => void;
   'shell:init': (data: ShellInitEvent) => void;
   'shell:input': (data: ShellInputEvent) => void;
   'shell:resize': (data: ShellResizeEvent) => void;
@@ -25,6 +28,8 @@ export interface ServerToClientEvents {
   'q:response': (data: QResponseEvent) => void;
   'q:error': (data: QErrorEvent) => void;
   'q:complete': (data: QCompleteEvent) => void;
+  'q:history:data': (data: QHistoryDataResponse) => void;
+  'q:history:list': (data: QHistoryListResponse) => void;
   'project:created': (data: { project: Project }) => void;
   'project:updated': (data: { project: Project }) => void;
   'project:deleted': (data: { projectId: string }) => void;
@@ -70,6 +75,35 @@ export interface QErrorEvent {
 export interface QCompleteEvent {
   sessionId: string;
   exitCode: number;
+}
+
+// Amazon Q履歴関連の型定義
+export interface AmazonQConversation {
+  conversation_id: string;
+  model: string;
+  transcript: string[];
+  tools: string[];
+  context_manager: Record<string, unknown>;
+  latest_summary: string | null;
+}
+
+export interface ConversationMetadata {
+  projectPath: string;
+  conversation_id: string;
+  messageCount: number;
+  lastUpdated: Date;
+  model: string;
+}
+
+export interface QHistoryDataResponse {
+  projectPath: string;
+  conversation: AmazonQConversation | null;
+  message?: string;
+}
+
+export interface QHistoryListResponse {
+  projects: ConversationMetadata[];
+  count: number;
 }
 
 
