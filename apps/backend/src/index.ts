@@ -1,41 +1,41 @@
-import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import { logger } from 'hono/logger'
+import express from 'express'
+import cors from 'cors'
+import helmet from 'helmet'
 import { createServer } from 'http'
 
 // Import middleware and utilities
-import { loggerMiddleware } from './utils/logger.ts'
-import { errorHandler, notFoundHandler } from './utils/errors.ts'
-import { routes } from './routes/index.ts'
-import { WebSocketService } from './services/websocket.ts'
-import { setWebSocketService } from './routes/projects.ts'
+import { loggerMiddleware } from './utils/logger.js'
+import { errorHandler, notFoundHandler } from './utils/errors.js'
+import { routes } from './routes/index.js'
+import { WebSocketService } from './services/websocket.js'
+import { setWebSocketService } from './routes/projects.js'
 
-const app = new Hono()
+const app = express()
 
-// Configure CORS middleware for frontend communication (localhost:4200)
-app.use('*', cors({
+// Security middleware
+app.use(helmet())
+
+// CORS middleware for frontend communication (localhost:4200)
+app.use(cors({
   origin: ['http://localhost:4200'],
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }))
 
-// Add built-in Hono logger middleware
-app.use('*', logger())
+// Body parsing middleware
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
-// Add custom request logging middleware
-app.use('*', loggerMiddleware)
-
-// Add error handling middleware
-app.use('*', errorHandler)
+// Custom request logging middleware
+app.use(loggerMiddleware)
 
 // API routes
-app.route('/api', routes)
+app.use('/api', routes)
 
 // Health check route
-app.get('/', (c) => {
-  return c.json({ 
+app.get('/', (_req, res) => {
+  res.json({
     message: 'Quincy Backend API',
     status: 'healthy',
     timestamp: new Date().toISOString()
@@ -43,10 +43,13 @@ app.get('/', (c) => {
 })
 
 // Handle 404 errors
-app.notFound(notFoundHandler)
+app.use(notFoundHandler)
+
+// Handle errors
+app.use(errorHandler)
 
 // Create HTTP server
-const httpServer = createServer()
+const httpServer = createServer(app)
 
 // Initialize WebSocket service
 const webSocketService = new WebSocketService(httpServer)
@@ -54,15 +57,12 @@ const webSocketService = new WebSocketService(httpServer)
 // Inject WebSocket service into projects routes
 setWebSocketService(webSocketService)
 
-// Start server with WebSocket support
-serve({
-  fetch: app.fetch,
-  port: 3000,
-  createServer: () => httpServer
-}, (info) => {
-  console.log(`🚀 Server is running on http://localhost:${info.port}`)
+// Start the server
+const PORT = process.env.PORT || 3000
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Server is running on http://localhost:${PORT}`)
   console.log(`📡 CORS enabled for http://localhost:4200`)
-  console.log(`🔗 Health check: http://localhost:${info.port}/api/health`)
+  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`)
   console.log(`🔌 WebSocket server ready for connections`)
   console.log(`📊 Connected users: ${webSocketService.getUserCount()}`)
 })
