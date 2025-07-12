@@ -3,11 +3,15 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=esm --outdir=dist --external:express --external:@quincy/shared --external:socket.io",
+    "build": "npm run typecheck && npm run build:bundle",
+    "build:bundle": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=esm --outdir=dist --external:express --external:cors --external:helmet --external:socket.io --external:@quincy/shared --external:better-sqlite3",
     "build:tsc": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
     "start": "node dist/index.js",
+    "start:prod": "NODE_ENV=production node dist/index.js",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "lint": "echo 'Lint not configured yet'"
   },
   "dependencies": {
     "@quincy/shared": "workspace:*",
