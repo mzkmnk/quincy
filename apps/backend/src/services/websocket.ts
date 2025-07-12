@@ -689,31 +689,33 @@ export class WebSocketService {
     (socket as any).emit('q:history:error', errorResponse);
   }
 
-  private convertTabToSummary(tab: any): QHistorySessionSummary {
+  private convertTabToSummary(session: any): QHistorySessionSummary {
     return {
-      historyId: tab.historyId,
-      title: tab.title,
-      workspaceId: tab.workspaceId,
-      projectPath: tab.projectPath,
-      messageCount: tab.messages?.length || 0,
-      createdAt: tab.createdAt,
-      updatedAt: tab.updatedAt,
-      isOpen: tab.isOpen,
-      preview: tab.messages?.[0]?.content?.substring(0, 100)
+      historyId: session.conversationId,
+      title: session.title,
+      workspaceId: session.projectPath, // SQLiteではprojectPathをworkspaceIdとして扱う
+      projectPath: session.projectPath,
+      messageCount: session.messages?.length || 0,
+      createdAt: session.createdAt,
+      updatedAt: session.updatedAt,
+      isOpen: session.isActive,
+      preview: session.messages?.[0]?.content?.substring(0, 100)
     };
   }
 
-  private convertTabToDetail(tab: any): QHistorySessionDetail {
+  private convertTabToDetail(session: any): QHistorySessionDetail {
     return {
-      historyId: tab.historyId,
-      title: tab.title,
-      workspaceId: tab.workspaceId,
-      projectPath: tab.projectPath,
-      messages: tab.messages || [],
-      createdAt: tab.createdAt,
-      updatedAt: tab.updatedAt,
-      isOpen: tab.isOpen,
-      metadata: tab.meta
+      historyId: session.conversationId,
+      title: session.title,
+      workspaceId: session.projectPath, // SQLiteではprojectPathをworkspaceIdとして扱う
+      projectPath: session.projectPath,
+      messages: session.messages || [],
+      createdAt: session.createdAt,
+      updatedAt: session.updatedAt,
+      isOpen: session.isActive,
+      metadata: {
+        conversationId: session.conversationId
+      }
     };
   }
 }
