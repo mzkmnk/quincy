@@ -4,7 +4,7 @@ Quincyは、Amazon Q CLIプロセスの管理とプロジェクト管理のた�
 
 ## 前提条件
 
-- Node.js 18+ 
+- Node.js 20+ 
 - pnpm 8+
 - Git
 
