@@ -125,23 +125,6 @@ export class WebSocketService {
         this.handleRoomLeave(socket, data);
       });
 
-      // Handle project scan request
-      socket.on('projects:scan', () => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
-        this.handleProjectScan(socket);
-      });
-
-      // Handle project refresh request
-      socket.on('project:refresh', (data: { projectId: string }) => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
-        this.handleProjectRefresh(socket, data);
-      });
 
       // Handle Amazon Q CLI command
       socket.on('q:command', (data: QCommandEvent) => {
@@ -370,30 +353,6 @@ export class WebSocketService {
     return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
-  private async handleProjectScan(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
-    try {
-      // この実装では、プロジェクトルートから直接スキャン機能を呼び出すのではなく、
-      // 適切なHTTP APIエンドポイントの使用を推奨するメッセージを送信
-      socket.emit('error', {
-        code: 'PROJECT_SCAN_VIA_API',
-        message: 'Project scanning should be initiated via HTTP API endpoint /api/projects/scan'
-      });
-    } catch (error) {
-      this.sendError(socket, 'PROJECT_SCAN_ERROR', 'Failed to initiate project scan');
-    }
-  }
-
-  private async handleProjectRefresh(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectId: string }) {
-    try {
-      // プロジェクトリフレッシュも同様にHTTP API経由を推奨
-      socket.emit('error', {
-        code: 'PROJECT_REFRESH_VIA_API',
-        message: `Project refresh should be initiated via HTTP API endpoint /api/projects/${data.projectId}/refresh`
-      });
-    } catch (error) {
-      this.sendError(socket, 'PROJECT_REFRESH_ERROR', 'Failed to refresh project');
-    }
-  }
 
   // Public methods for external use
   public getConnectedUsers(): ConnectionInfo[] {
@@ -489,7 +448,10 @@ export class WebSocketService {
   // Amazon Q履歴関連のハンドラー
   private async handleQHistory(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectPath: string }): Promise<void> {
     try {
+      console.log(`📚 Request for Q history: ${data.projectPath}`);
+      
       if (!this.qHistoryService.isDatabaseAvailable()) {
+        console.log('❌ Amazon Q database not available');
         this.sendError(socket, 'Q_HISTORY_UNAVAILABLE', 'Amazon Q database is not available');
         return;
       }
@@ -497,6 +459,7 @@ export class WebSocketService {
       const conversation = await this.qHistoryService.getProjectHistory(data.projectPath);
       
       if (!conversation) {
+        console.log(`⚠️ No conversation found for: ${data.projectPath}`);
         socket.emit('q:history:data', {
           projectPath: data.projectPath,
           conversation: null,
@@ -505,14 +468,14 @@ export class WebSocketService {
         return;
       }
 
+      console.log(`✅ Retrieved Q history for project: ${data.projectPath}, messages: ${conversation.transcript?.length || 0}`);
       socket.emit('q:history:data', {
         projectPath: data.projectPath,
         conversation
       });
-
-      console.log(`📚 Retrieved Q history for project: ${data.projectPath}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Error getting Q history for ${data.projectPath}:`, error);
       this.sendError(socket, 'Q_HISTORY_ERROR', `Failed to get project history: ${errorMessage}`);
     }
   }

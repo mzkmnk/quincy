@@ -1,3 +1,4 @@
+
 import Database from 'better-sqlite3'
 import path from 'path'
 import { homedir } from 'os'
@@ -17,6 +18,13 @@ export class AmazonQHistoryService {
    */
   async getProjectHistory(projectPath: string): Promise<AmazonQConversation | null> {
     try {
+      logger.info(`Getting project history for: ${projectPath}`)
+      
+      if (!this.isDatabaseAvailable()) {
+        logger.warn('Amazon Q database not available')
+        return null
+      }
+
       const db = new Database(this.dbPath, { readonly: true })
       
       const stmt = db.prepare('SELECT value FROM conversations WHERE key = ?')
@@ -25,13 +33,15 @@ export class AmazonQHistoryService {
       db.close()
 
       if (!result) {
+        logger.info(`No conversation found for project: ${projectPath}`)
         return null
       }
 
       const conversation: AmazonQConversation = JSON.parse(result.value)
+      logger.info(`Found conversation for project: ${projectPath}, ID: ${conversation.conversation_id}`)
       return conversation
     } catch (error) {
-      logger.error('Failed to get project history', error)
+      logger.error('Failed to get project history', { projectPath, error })
       return null
     }
   }

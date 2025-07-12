@@ -9,7 +9,6 @@ import { loggerMiddleware } from './utils/logger.js'
 import { errorHandler, notFoundHandler } from './utils/errors.js'
 import { routes } from './routes/index.js'
 import { WebSocketService } from './services/websocket.js'
-import { setWebSocketService } from './routes/projects.js'
 
 const app = express()
 
@@ -78,8 +77,6 @@ const httpServer = createServer(app)
 // Initialize WebSocket service
 const webSocketService = new WebSocketService(httpServer)
 
-// Inject WebSocket service into projects routes
-setWebSocketService(webSocketService)
 
 // Start the server
 const PORT = process.env.PORT || 3000
