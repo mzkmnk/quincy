@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
+import compression from 'compression'
 import { createServer } from 'http'
 
 // Import middleware and utilities
@@ -12,20 +13,39 @@ import { setWebSocketService } from './routes/projects.js'
 
 const app = express()
 
-// Security middleware
-app.use(helmet())
+// Environment variables with defaults
+const NODE_ENV = process.env.NODE_ENV || 'development'
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:4200'
 
-// CORS middleware for frontend communication (localhost:4200)
+// Compression middleware (for better performance)
+app.use(compression())
+
+// Enhanced security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      connectSrc: ["'self'", "ws:", "wss:"]
+    }
+  },
+  crossOriginEmbedderPolicy: false // Socket.io compatibility
+}))
+
+// CORS middleware with environment-based configuration
 app.use(cors({
-  origin: ['http://localhost:4200'],
+  origin: NODE_ENV === 'production' 
+    ? [FRONTEND_URL] 
+    : ['http://localhost:4200', 'http://localhost:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }))
 
-// Body parsing middleware
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+// Body parsing middleware with size limits
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 // Custom request logging middleware
 app.use(loggerMiddleware)
