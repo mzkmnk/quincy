@@ -10,9 +10,12 @@
   "scripts": {
     "dev:backend": "pnpm --filter backend dev",
     "dev:frontend": "pnpm --filter frontend start",
+    "dev:docs": "pnpm --filter docs dev",
     "build:backend": "pnpm --filter backend build",
     "build:frontend": "pnpm --filter frontend build",
+    "build:docs": "pnpm --filter docs build",
     "build": "pnpm build:backend && pnpm build:frontend",
+    "preview:docs": "pnpm --filter docs preview",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

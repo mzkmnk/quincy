@@ -41,9 +41,13 @@ jobs:
     - name: Build frontend
       run: pnpm --filter frontend build
 
+    - name: Build docs
+      run: pnpm --filter docs build
+
     - name: Check build artifacts
       run: |
         echo "Checking build outputs..."
         ls -la packages/shared/dist/
         ls -la apps/backend/dist/
         ls -la apps/frontend/dist/
+        ls -la apps/docs/.vitepress/dist/
