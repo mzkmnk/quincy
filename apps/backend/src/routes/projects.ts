@@ -1,12 +1,12 @@
-import { Hono } from 'hono';
-import type { 
-  Project, 
-  ProjectScanResult 
+import { Router, Request, Response } from 'express';
+import type {
+  Project,
+  ProjectScanResult
 } from '@quincy/shared';
 import { ProjectManager } from '../services/project-manager';
 import { WebSocketService } from '../services/websocket';
 
-const projects = new Hono();
+const projects = Router();
 
 // サービスのインスタンスを作成
 const projectManager = new ProjectManager();
@@ -19,50 +19,48 @@ export function setWebSocketService(ws: WebSocketService) {
 }
 
 // プロジェクト一覧取得
-projects.get('/', async (c) => {
+projects.get('/', async (_req: Request, res: Response) => {
   try {
     const projectList = await projectManager.getProjects();
-    return c.json(projectList);
+    res.json(projectList);
   } catch (error) {
     console.error('Failed to get projects:', error);
-    return c.json({ error: 'Failed to get projects' }, 500);
+    res.status(500).json({ error: 'Failed to get projects' });
   }
 });
 
 // 特定のプロジェクト取得
-projects.get('/:id', async (c) => {
+projects.get('/:id', async (req: Request, res: Response) => {
   try {
-    const id = c.req.param('id');
+    const id = req.params.id;
     const project = await projectManager.getProject(id);
-    
+
     if (!project) {
-      return c.json({ error: 'Project not found' }, 404);
+      return res.status(404).json({ error: 'Project not found' });
     }
-    
-    return c.json(project);
+
+    res.json(project);
   } catch (error) {
     console.error('Failed to get project:', error);
-    return c.json({ error: 'Failed to get project' }, 500);
+    res.status(500).json({ error: 'Failed to get project' });
   }
 });
-
 
 // プロジェクトスキャン実行
-projects.post('/scan', async (c) => {
+projects.post('/scan', async (_req: Request, res: Response) => {
   try {
     const result: ProjectScanResult = await projectManager.scanProjects();
-    
+
     // WebSocket経由で通知
     if (webSocketService) {
-      webSocketService.broadcastToAll('projects:scanned', result);
+      webSocketService.broadcastToAll('projects:scanned', { result });
     }
-    
-    return c.json(result);
+
+    res.json(result);
   } catch (error) {
     console.error('Failed to scan projects:', error);
-    return c.json({ error: 'Failed to scan projects' }, 500);
+    res.status(500).json({ error: 'Failed to scan projects' });
   }
 });
-
 
 export { projects };

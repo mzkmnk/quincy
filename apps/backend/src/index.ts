@@ -1,52 +1,79 @@
-import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import { logger } from 'hono/logger'
+import express from 'express'
+import cors from 'cors'
+import helmet from 'helmet'
+import compression from 'compression'
 import { createServer } from 'http'
 
 // Import middleware and utilities
-import { loggerMiddleware } from './utils/logger.ts'
-import { errorHandler, notFoundHandler } from './utils/errors.ts'
-import { routes } from './routes/index.ts'
-import { WebSocketService } from './services/websocket.ts'
-import { setWebSocketService } from './routes/projects.ts'
+import { loggerMiddleware } from './utils/logger.js'
+import { errorHandler, notFoundHandler } from './utils/errors.js'
+import { routes } from './routes/index.js'
+import { WebSocketService } from './services/websocket.js'
+import { setWebSocketService } from './routes/projects.js'
 
-const app = new Hono()
+const app = express()
 
-// Configure CORS middleware for frontend communication (localhost:4200)
-app.use('*', cors({
-  origin: ['http://localhost:4200'],
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
+// Environment variables with defaults
+const NODE_ENV = process.env.NODE_ENV || 'development'
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:4200'
+
+// Compression middleware (for better performance)
+app.use(compression())
+
+// Enhanced security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      connectSrc: ["'self'", "ws:", "wss:"]
+    }
+  },
+  crossOriginEmbedderPolicy: false // Socket.io compatibility
+}))
+
+// CORS middleware with environment-based configuration
+app.use(cors({
+  origin: NODE_ENV === 'production' 
+    ? [FRONTEND_URL] 
+    : ['http://localhost:4200', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }))
 
-// Add built-in Hono logger middleware
-app.use('*', logger())
+// Body parsing middleware with size limits
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
-// Add custom request logging middleware
-app.use('*', loggerMiddleware)
-
-// Add error handling middleware
-app.use('*', errorHandler)
+// Custom request logging middleware
+app.use(loggerMiddleware)
 
 // API routes
-app.route('/api', routes)
+app.use('/api', routes)
 
-// Health check route
-app.get('/', (c) => {
-  return c.json({ 
-    message: 'Quincy Backend API',
-    status: 'healthy',
-    timestamp: new Date().toISOString()
+// Root endpoint - API info
+app.get('/', (_req, res) => {
+  res.json({
+    name: 'Quincy Backend API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      projects: '/api/projects',
+      websocket: '/api/websocket'
+    }
   })
 })
 
 // Handle 404 errors
-app.notFound(notFoundHandler)
+app.use(notFoundHandler)
+
+// Handle errors
+app.use(errorHandler)
 
 // Create HTTP server
-const httpServer = createServer()
+const httpServer = createServer(app)
 
 // Initialize WebSocket service
 const webSocketService = new WebSocketService(httpServer)
@@ -54,15 +81,12 @@ const webSocketService = new WebSocketService(httpServer)
 // Inject WebSocket service into projects routes
 setWebSocketService(webSocketService)
 
-// Start server with WebSocket support
-serve({
-  fetch: app.fetch,
-  port: 3000,
-  createServer: () => httpServer
-}, (info) => {
-  console.log(`🚀 Server is running on http://localhost:${info.port}`)
+// Start the server
+const PORT = process.env.PORT || 3000
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Server is running on http://localhost:${PORT}`)
   console.log(`📡 CORS enabled for http://localhost:4200`)
-  console.log(`🔗 Health check: http://localhost:${info.port}/api/health`)
+  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`)
   console.log(`🔌 WebSocket server ready for connections`)
   console.log(`📊 Connected users: ${webSocketService.getUserCount()}`)
 })

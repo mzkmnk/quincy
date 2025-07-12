@@ -3,19 +3,28 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=esm --outdir=dist --external:@hono/node-server --external:hono --external:@quincy/shared --external:socket.io",
+    "build": "pnpm typecheck && pnpm build:bundle",
+    "build:bundle": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=esm --outdir=dist --external:express --external:cors --external:helmet --external:socket.io --external:@quincy/shared --external:better-sqlite3",
     "build:tsc": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
     "start": "node dist/index.js",
+    "start:prod": "NODE_ENV=production node dist/index.js",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "lint": "echo 'Lint not configured yet'"
   },
   "dependencies": {
-    "@hono/node-server": "^1.15.0",
     "@quincy/shared": "workspace:*",
-    "hono": "^4.8.4",
+    "compression": "^1.8.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
     "socket.io": "^4.7.5"
   },
   "devDependencies": {
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.11.17",
     "@types/socket.io": "^3.0.2",

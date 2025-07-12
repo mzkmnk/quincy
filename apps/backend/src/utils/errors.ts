@@ -1,6 +1,5 @@
-import type { Context, Next } from 'hono'
-import { HTTPException } from 'hono/http-exception'
-import { logger } from './logger.ts'
+import type { Request, Response, NextFunction } from 'express'
+import { logger } from './logger'
 
 export interface ErrorResponse {
   error: string
@@ -16,36 +15,25 @@ export const createErrorResponse = (error: string, message: string, path?: strin
   path
 })
 
-export const errorHandler = async (c: Context, next: Next) => {
-  try {
-    await next()
-  } catch (error) {
-    logger.error('Request error', error)
-    
-    if (error instanceof HTTPException) {
-      const response = createErrorResponse(
-        'HTTP_ERROR',
-        error.message,
-        c.req.url
-      )
-      return c.json(response, error.status)
-    }
-
-    // Handle generic errors
-    const response = createErrorResponse(
-      'INTERNAL_SERVER_ERROR',
-      'An unexpected error occurred',
-      c.req.url
-    )
-    return c.json(response, 500)
-  }
+// Error handling middleware
+export const errorHandler = (error: Error, req: Request, res: Response, _next: NextFunction) => {
+  logger.error('Request error', error)
+  
+  const response = createErrorResponse(
+    'INTERNAL_SERVER_ERROR',
+    error.message || 'An unexpected error occurred',
+    req.url
+  )
+  
+  res.status(500).json(response)
 }
 
-export const notFoundHandler = (c: Context) => {
+// 404 Not Found handler
+export const notFoundHandler = (req: Request, res: Response) => {
   const response = createErrorResponse(
     'NOT_FOUND',
     'The requested resource was not found',
-    c.req.url
+    req.url
   )
-  return c.json(response, 404)
+  res.status(404).json(response)
 }

@@ -1,4 +1,4 @@
-import type { Context, Next } from 'hono'
+import type { Request, Response, NextFunction } from 'express'
 
 // Simple logger utility
 export const logger = {
@@ -14,9 +14,14 @@ export const logger = {
 }
 
 // Middleware for request logging
-export const loggerMiddleware = async (c: Context, next: Next) => {
+export const loggerMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now()
-  await next()
-  const end = Date.now()
-  logger.info(`${c.req.method} ${c.req.url} - ${c.res.status} - ${end - start}ms`)
+  
+  // Log when response finishes
+  res.on('finish', () => {
+    const end = Date.now()
+    logger.info(`${req.method} ${req.url} - ${res.statusCode} - ${end - start}ms`)
+  })
+  
+  next()
 }

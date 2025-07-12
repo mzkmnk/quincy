@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a monorepo managed with pnpm workspaces containing:
 
-- **Backend**: Node.js/TypeScript API using Hono framework (`apps/backend/`)
+- **Backend**: Node.js/TypeScript API using Express framework (`apps/backend/`)
 - **Frontend**: Angular 20 application with standalone components (`apps/frontend/`)
 
 ## Development Commands
@@ -57,10 +57,11 @@ ng generate component component-name
 ## Architecture Notes
 
 ### Backend
-- Uses Hono framework for HTTP server
+- Uses Express framework for HTTP server with Socket.io for WebSocket support
 - Runs on port 3000 by default
 - Built with TypeScript and uses tsx for development
-- Simple REST API structure with minimal setup
+- REST API structure with Express Router
+- Includes middleware for CORS, Helmet security, and request logging
 
 ### Frontend
 - Angular 20 with standalone components (no NgModules)
