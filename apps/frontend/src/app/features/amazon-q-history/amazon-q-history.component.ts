@@ -140,7 +140,7 @@ export class AmazonQHistoryComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupWebSocketListeners();
-    this.loadAllProjectsHistory();
+    // loadAllProjectsHistory は認証成功後に自動実行される
     
     // URLパラメータまたはクエリパラメータで特定のプロジェクトが指定されている場合
     const projectPathParam = this.route.snapshot.paramMap.get('projectPath');
@@ -158,6 +158,18 @@ export class AmazonQHistoryComponent implements OnInit, OnDestroy {
 
   private setupWebSocketListeners(): void {
     this.webSocketService.connect();
+    
+    // WebSocket接続完了後に認証
+    this.webSocketService.on('connect', () => {
+      console.log('WebSocket connected, authenticating...');
+      this.webSocketService.emit('auth:request', { userId: 'amazon-q-user' });
+    });
+    
+    // 認証成功後にリスナー設定
+    this.webSocketService.on('auth:success', () => {
+      console.log('Authentication successful');
+      this.loadAllProjectsHistory();
+    });
     
     this.webSocketService.setupQHistoryListeners(
       // q:history:data イベント
