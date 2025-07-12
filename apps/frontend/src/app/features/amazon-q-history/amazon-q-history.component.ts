@@ -93,23 +93,29 @@ import type { ConversationMetadata, AmazonQConversation } from '@quincy/shared';
               </div>
               <div>
                 <span class="font-medium text-gray-600">Messages:</span>
-                <p class="text-gray-800">{{ appStore.currentQConversation()?.transcript.length }}</p>
+                <p class="text-gray-800">{{ appStore.currentQConversation()?.transcript?.length || 0 }}</p>
               </div>
               <div>
                 <span class="font-medium text-gray-600">Tools:</span>
-                <p class="text-gray-800">{{ appStore.currentQConversation()?.tools.join(', ') }}</p>
+                <p class="text-gray-800">{{ appStore.currentQConversation()?.tools?.join(', ') || 'None' }}</p>
               </div>
             </div>
           </div>
 
           <div class="conversation-transcript max-h-96 overflow-y-auto border border-gray-200 rounded p-4">
-            @for (message of appStore.currentQConversation()?.transcript; track $index; let isEven = $even) {
-              <div class="mb-3 p-3 rounded" 
-                   [class]="isEven ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-green-50 border-l-4 border-green-500'">
-                <div class="text-xs text-gray-500 mb-1">
-                  {{ isEven ? '👤 User' : '🤖 Amazon Q' }}
+            @if (appStore.currentQConversation()?.transcript) {
+              @for (message of appStore.currentQConversation()!.transcript; track $index; let isEven = $even) {
+                <div class="mb-3 p-3 rounded" 
+                     [class]="isEven ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-green-50 border-l-4 border-green-500'">
+                  <div class="text-xs text-gray-500 mb-1">
+                    {{ isEven ? '👤 User' : '🤖 Amazon Q' }}
+                  </div>
+                  <div class="text-sm text-gray-800 whitespace-pre-wrap">{{ message }}</div>
                 </div>
-                <div class="text-sm text-gray-800 whitespace-pre-wrap">{{ message }}</div>
+              }
+            } @else {
+              <div class="text-center text-gray-500 py-4">
+                No conversation transcript available.
               </div>
             }
           </div>
