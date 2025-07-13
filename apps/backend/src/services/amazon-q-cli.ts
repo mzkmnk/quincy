@@ -34,6 +34,9 @@ export interface QProcessSession {
   // 重複メッセージ防止用
   lastInfoMessage: string;
   lastInfoMessageTime: number;
+  // グローバルThinking状態管理
+  isThinkingActive: boolean;
+  lastThinkingTime: number;
 }
 
 export interface QProcessOptions {
@@ -321,7 +324,9 @@ export class AmazonQCLIService extends EventEmitter {
         incompleteOutputLine: '',
         incompleteErrorLine: '',
         lastInfoMessage: '',
-        lastInfoMessageTime: 0
+        lastInfoMessageTime: 0,
+        isThinkingActive: false,
+        lastThinkingTime: 0
       };
 
       this.sessions.set(sessionId, session);
@@ -554,6 +559,15 @@ export class AmazonQCLIService extends EventEmitter {
           continue;
         }
         
+        // 「Thinking」メッセージの特別処理
+        if (this.isThinkingMessage(cleanLine)) {
+          if (this.shouldSkipThinking(session)) {
+            continue;
+          }
+          // Thinking状態を更新
+          this.updateThinkingState(session);
+        }
+        
         // 直接レスポンスイベントを発行（行ベース）
         const responseEvent: QResponseEvent = {
           sessionId: session.sessionId,
@@ -602,9 +616,17 @@ export class AmazonQCLIService extends EventEmitter {
         }
         
         if (messageType === 'info') {
-          // 重複メッセージチェック
-          if (this.shouldSkipDuplicateInfo(session, cleanLine)) {
-            continue;
+          // Thinkingメッセージの特別処理
+          if (this.isThinkingMessage(cleanLine)) {
+            if (this.shouldSkipThinking(session)) {
+              continue;
+            }
+            this.updateThinkingState(session);
+          } else {
+            // 通常の重複メッセージチェック
+            if (this.shouldSkipDuplicateInfo(session, cleanLine)) {
+              continue;
+            }
           }
           
           // 情報メッセージとしてq:infoイベントを発行
@@ -850,10 +872,13 @@ export class AmazonQCLIService extends EventEmitter {
     cleanText = cleanText.replace(/(\d{2,})\s*(?=[\u2713\u2717✓✗])/g, ''); // チェックマーク前の数字
     cleanText = cleanText.replace(/^(\d+)\s*(\S)/g, '$2'); // 行の先頭の数字を除去
     
-    // 11. バックスペースとカリッジリターンを正規化
+    // 11. 重複するThinkingを統合（行内に複数のThinkingがある場合）
+    cleanText = cleanText.replace(/(thinking\.?\.?\.?\s*){2,}/gi, 'Thinking...');
+    
+    // 12. バックスペースとカリッジリターンを正規化
     cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     
-    // 12. 余分な空白を正規化（ただし、意味のある構造は保持）
+    // 13. 余分な空白を正規化（ただし、意味のある構造は保持）
     cleanText = cleanText.replace(/[ \t]+/g, ' ');
     cleanText = cleanText.replace(/\n\s+\n/g, '\n\n');
     cleanText = cleanText.replace(/^\s+|\s+$/g, '');
@@ -873,6 +898,17 @@ export class AmazonQCLIService extends EventEmitter {
     
     // 無意味な行はスキップ
     if (!this.shouldSkipOutput(cleanLine)) {
+      // Thinkingメッセージの重複チェック
+      if (this.isThinkingMessage(cleanLine) && this.shouldSkipThinking(session)) {
+        // 不完全な行をクリア
+        session.incompleteOutputLine = '';
+        return;
+      }
+      
+      if (this.isThinkingMessage(cleanLine)) {
+        this.updateThinkingState(session);
+      }
+      
       const responseEvent: QResponseEvent = {
         sessionId: session.sessionId,
         data: cleanLine,
@@ -898,15 +934,30 @@ export class AmazonQCLIService extends EventEmitter {
     const messageType = this.classifyStderrMessage(cleanLine);
     
     if (messageType === 'info') {
-      // 重複メッセージチェック
-      if (!this.shouldSkipDuplicateInfo(session, cleanLine)) {
-        const infoEvent: QInfoEvent = {
-          sessionId: session.sessionId,
-          message: cleanLine,
-          type: this.getInfoMessageType(cleanLine)
-        };
-        
-        this.emit('q:info', infoEvent);
+      // Thinkingメッセージの特別処理
+      if (this.isThinkingMessage(cleanLine)) {
+        if (!this.shouldSkipThinking(session)) {
+          this.updateThinkingState(session);
+          
+          const infoEvent: QInfoEvent = {
+            sessionId: session.sessionId,
+            message: cleanLine,
+            type: this.getInfoMessageType(cleanLine)
+          };
+          
+          this.emit('q:info', infoEvent);
+        }
+      } else {
+        // 通常の重複メッセージチェック
+        if (!this.shouldSkipDuplicateInfo(session, cleanLine)) {
+          const infoEvent: QInfoEvent = {
+            sessionId: session.sessionId,
+            message: cleanLine,
+            type: this.getInfoMessageType(cleanLine)
+          };
+          
+          this.emit('q:info', infoEvent);
+        }
       }
     } else if (messageType === 'error') {
       const errorEvent: QErrorEvent = {
@@ -1071,23 +1122,47 @@ export class AmazonQCLIService extends EventEmitter {
   }
 
   /**
-   * 重複する情報メッセージをチェック
+   * メッセージがThinkingかどうかを判定
+   */
+  private isThinkingMessage(message: string): boolean {
+    const trimmed = message.trim().toLowerCase();
+    return trimmed === 'thinking' || trimmed === 'thinking...' || 
+           trimmed === 'thinking....' || /^thinking\.{0,4}$/i.test(trimmed);
+  }
+
+  /**
+   * Thinkingメッセージをスキップすべきかチェック
+   */
+  private shouldSkipThinking(session: QProcessSession): boolean {
+    const now = Date.now();
+    
+    // 既にThinking状態がアクティブで、5秒以内の場合はスキップ
+    if (session.isThinkingActive && (now - session.lastThinkingTime) < 5000) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Thinking状態を更新
+   */
+  private updateThinkingState(session: QProcessSession): void {
+    session.isThinkingActive = true;
+    session.lastThinkingTime = Date.now();
+    
+    // 10秒後にThinking状態をリセット（次の思考プロセスのため）
+    setTimeout(() => {
+      session.isThinkingActive = false;
+    }, 10000);
+  }
+
+  /**
+   * 重複する情報メッセージをチェック（Thinking以外用）
    */
   private shouldSkipDuplicateInfo(session: QProcessSession, message: string): boolean {
     const trimmed = message.trim().toLowerCase();
     const now = Date.now();
-    
-    // "thinking"メッセージの特別処理
-    if (trimmed === 'thinking' || trimmed === 'thinking...') {
-      // 5秒以内の同じメッセージは重複とみなす
-      if (session.lastInfoMessage === trimmed && (now - session.lastInfoMessageTime) < 5000) {
-        return true;
-      }
-      // 初回または5秒以上経過していれば表示
-      session.lastInfoMessage = trimmed;
-      session.lastInfoMessageTime = now;
-      return false;
-    }
     
     // その他の繰り返しやすいメッセージの処理
     const duplicatePatterns = [
