@@ -34,9 +34,7 @@ import { ProjectListComponent } from '../project-list/project-list.component';
       </div>
 
       <!-- Projects List -->
-      <div class="flex-1 min-h-0">
-        <app-project-list [collapsed]="collapsed()"></app-project-list>
-      </div>
+      <app-project-list [collapsed]="collapsed()"></app-project-list>
 
       <!-- Navigation Links (Legacy) -->
       <div class="border-t border-gray-100 p-4 space-y-2" [class.hidden]="collapsed()">
