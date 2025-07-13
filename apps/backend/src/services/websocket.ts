@@ -15,6 +15,7 @@ import type {
   RoomLeftEvent,
   QCommandEvent,
   QAbortEvent,
+  QMessageEvent,
   QProjectStartEvent,
   QSessionStartedEvent,
   QHistoryDataResponse,
@@ -122,6 +123,15 @@ export class WebSocketService {
           return;
         }
         this.handleQCommand(socket, data);
+      });
+
+      // Handle Amazon Q message sending
+      socket.on('q:message', async (data: QMessageEvent) => {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        await this.handleQMessage(socket, data);
       });
 
       // Handle Amazon Q CLI abort
@@ -616,6 +626,34 @@ export class WebSocketService {
         originalError: errorMessage,
         projectPath: data.projectPath,
         cliCommand: 'q'
+      });
+    }
+  }
+
+  private async handleQMessage(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QMessageEvent): Promise<void> {
+    try {
+      console.log(`💬 Sending message to Amazon Q session ${data.sessionId}: ${data.message}`);
+      
+      // Amazon Q CLIセッションにメッセージを送信
+      const success = await this.qCliService.sendInput(data.sessionId, data.message + '\n');
+      
+      if (!success) {
+        this.sendError(socket, 'Q_MESSAGE_ERROR', `Session ${data.sessionId} not found or not active`, {
+          sessionId: data.sessionId,
+          message: data.message
+        });
+        return;
+      }
+      
+      console.log(`✅ Message sent to Amazon Q session: ${data.sessionId}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Failed to send message to Amazon Q session ${data.sessionId}:`, error);
+      
+      this.sendError(socket, 'Q_MESSAGE_ERROR', `Failed to send message: ${errorMessage}`, {
+        sessionId: data.sessionId,
+        message: data.message,
+        originalError: errorMessage
       });
     }
   }

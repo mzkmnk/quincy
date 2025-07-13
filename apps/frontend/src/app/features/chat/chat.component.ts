@@ -1,11 +1,13 @@
-import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectionStrategy, viewChild, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppStore } from '../../core/store/app.state';
 import { WebSocketService } from '../../core/services/websocket.service';
+import { MessageListComponent } from '../../shared/components/message-list/message-list.component';
+import { MessageInputComponent } from '../../shared/components/message-input/message-input.component';
 
 @Component({
   selector: 'app-chat',
-  imports: [CommonModule],
+  imports: [CommonModule, MessageListComponent, MessageInputComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="h-full flex flex-col bg-white">
@@ -48,29 +50,33 @@ import { WebSocketService } from '../../core/services/websocket.service';
       </div>
 
       <!-- Chat Messages Area -->
-      <div class="flex-1 overflow-y-auto">
-        @if (appStore.currentQSession()) {
-          <!-- New Amazon Q Session -->
-          <div class="h-full flex items-center justify-center">
-            <div class="text-center max-w-md">
-              <div class="mb-6">
-                <svg class="w-24 h-24 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <h2 class="text-2xl font-semibold text-gray-900 mb-4">Amazon Q Session Ready</h2>
-              <p class="text-gray-500 mb-4 leading-relaxed">
-                Your Amazon Q session for <strong>{{ getProjectName(appStore.currentQSession()!.projectPath) }}</strong> has been started successfully.
-              </p>
-              <div class="text-sm text-gray-500 bg-gray-50 rounded-lg p-4">
-                <p><strong>Session ID:</strong> {{ appStore.currentQSession()?.sessionId }}</p>
-                <p><strong>Project Path:</strong> {{ appStore.currentQSession()?.projectPath }}</p>
-                @if (appStore.currentQSession()?.model) {
-                  <p><strong>Model:</strong> {{ appStore.currentQSession()?.model }}</p>
+      <div class="flex-1 flex flex-col">
+        @if (appStore.currentQSession() || isActiveChat()) {
+          <!-- Active Chat Session -->
+          <div class="flex-1 overflow-y-auto">
+            <app-message-list></app-message-list>
+          </div>
+          
+          <!-- Message Input -->
+          @if (!isSessionDisabled()) {
+            <div class="border-t border-gray-200">
+              <app-message-input (messageSent)="onMessageSent($event)"></app-message-input>
+            </div>
+          } @else {
+            <div class="border-t border-gray-200 bg-gray-50 p-4 text-center">
+              <div class="max-w-md mx-auto">
+                <p class="text-gray-600 text-sm mb-3">{{ getDisabledReason() }}</p>
+                @if (appStore.sessionError()) {
+                  <button 
+                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                    (click)="clearSessionError()"
+                  >
+                    Start New Session
+                  </button>
                 }
               </div>
             </div>
-          </div>
+          }
         } @else if (appStore.sessionStarting()) {
           <!-- Session Starting -->
           <div class="h-full flex items-center justify-center">
@@ -122,48 +128,60 @@ import { WebSocketService } from '../../core/services/websocket.service';
             </div>
           </div>
         } @else if (appStore.currentQConversation()) {
-          <!-- Amazon Q Conversation History -->
-          <div class="p-4 space-y-4">
-            @if (appStore.qHistoryLoading()) {
-              <div class="text-center py-8">
-                <div class="text-lg text-gray-600">Loading conversation history...</div>
-              </div>
-            } @else if (appStore.currentQConversation()?.transcript) {
-              @for (message of appStore.currentQConversation()!.transcript; track $index; let isEven = $even) {
-                <div class="mb-4">
-                  <div class="flex items-start gap-3">
-                    <div class="flex-shrink-0">
-                      @if (isEven) {
-                        <!-- User Message -->
-                        <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                          </svg>
-                        </div>
-                      } @else {
-                        <!-- Amazon Q Message -->
-                        <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center">
-                          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                          </svg>
-                        </div>
-                      }
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <div class="text-sm font-medium text-gray-900 mb-1">
-                        {{ isEven ? 'You' : 'Amazon Q' }}
+          <!-- Amazon Q Conversation History (Read-Only) -->
+          <div class="flex-1 overflow-y-auto">
+            <div class="p-4 space-y-4">
+              @if (appStore.qHistoryLoading()) {
+                <div class="text-center py-8">
+                  <div class="text-lg text-gray-600">Loading conversation history...</div>
+                </div>
+              } @else if (appStore.currentQConversation()?.transcript) {
+                @for (message of appStore.currentQConversation()!.transcript; track $index; let isEven = $even) {
+                  <div class="mb-4">
+                    <div class="flex items-start gap-3">
+                      <div class="flex-shrink-0">
+                        @if (isEven) {
+                          <!-- User Message -->
+                          <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                          </div>
+                        } @else {
+                          <!-- Amazon Q Message -->
+                          <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                          </div>
+                        }
                       </div>
-                      <div class="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-3">{{ message }}</div>
+                      <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium text-gray-900 mb-1">
+                          {{ isEven ? 'You' : 'Amazon Q' }}
+                        </div>
+                        <div class="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-3">{{ message }}</div>
+                      </div>
                     </div>
                   </div>
+                }
+              } @else {
+                <div class="text-center text-gray-500 py-8">
+                  <div class="text-lg mb-2">📭 No conversation transcript available</div>
+                  <div class="text-sm">This project may not have any Amazon Q conversation history.</div>
                 </div>
               }
-            } @else {
-              <div class="text-center text-gray-500 py-8">
-                <div class="text-lg mb-2">📭 No conversation transcript available</div>
-                <div class="text-sm">This project may not have any Amazon Q conversation history.</div>
-              </div>
-            }
+            </div>
+          </div>
+          
+          <!-- Resume Session Button -->
+          <div class="border-t border-gray-200 bg-gray-50 p-4 text-center">
+            <button 
+              class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              (click)="resumeSession()"
+            >
+              Resume Session to Continue Chat
+            </button>
           </div>
         } @else {
           <!-- Welcome/Empty State -->
@@ -214,9 +232,37 @@ import { WebSocketService } from '../../core/services/websocket.service';
     </div>
   `
 })
-export class ChatComponent implements OnInit {
+export class ChatComponent implements OnInit, OnDestroy {
   protected appStore = inject(AppStore);
   protected websocket = inject(WebSocketService);
+  
+  // Child component references
+  messageList = viewChild(MessageListComponent);
+  messageInput = viewChild(MessageInputComponent);
+  
+  // Local state
+  isActiveChat = signal(false);
+  
+  constructor() {
+    // Monitor session changes to update chat state
+    effect(() => {
+      const currentSession = this.appStore.currentQSession();
+      const sessionError = this.appStore.sessionError();
+      
+      // Update active chat state
+      this.isActiveChat.set(!!currentSession && !sessionError);
+      
+      // Setup WebSocket listeners when session starts
+      if (currentSession) {
+        this.setupWebSocketListeners();
+      }
+    });
+  }
+  
+  ngOnDestroy(): void {
+    // Cleanup WebSocket listeners
+    this.websocket.removeChatListeners();
+  }
 
   ngOnInit(): void {
     // Connect to websocket if not already connected
@@ -257,5 +303,74 @@ export class ChatComponent implements OnInit {
 
   clearSessionError(): void {
     this.appStore.setSessionError(null);
+  }
+  
+  isSessionDisabled(): boolean {
+    return !!this.appStore.sessionError() || !this.appStore.currentQSession();
+  }
+  
+  canChat(): boolean {
+    return this.isActiveChat() && !this.isSessionDisabled();
+  }
+  
+  getDisabledReason(): string {
+    if (this.appStore.sessionError()) {
+      return this.appStore.sessionError()!;
+    }
+    if (!this.appStore.currentQSession()) {
+      return 'No active Amazon Q session. Please start a new project session.';
+    }
+    return 'Chat is temporarily unavailable.';
+  }
+  
+  resumeSession(): void {
+    const conversation = this.appStore.currentQConversation();
+    if (conversation) {
+      const projectPath = this.getProjectPathFromConversation();
+      if (projectPath) {
+        this.websocket.resumeSession(projectPath, conversation.conversation_id);
+      }
+    }
+  }
+  
+  onMessageSent(event: {content: string; files: File[]}): void {
+    if (!this.canChat()) {
+      console.warn('Cannot send message: chat is disabled');
+      return;
+    }
+    
+    // Add user message to chat immediately
+    this.messageList()?.addMessage(event.content, 'user');
+    
+    // Add typing indicator for Amazon Q response
+    this.messageList()?.addTypingIndicator();
+  }
+  
+  private setupWebSocketListeners(): void {
+    // Setup chat listeners for real-time message handling
+    this.websocket.setupChatListeners(
+      // On Q response
+      (data) => {
+        console.log('Received Q response:', data);
+        // Remove typing indicator
+        this.messageList()?.removeTypingIndicator();
+        // Add response message to chat
+        this.messageList()?.addMessage(data.data, 'assistant');
+      },
+      // On Q error
+      (data) => {
+        console.error('Received Q error:', data);
+        // Remove typing indicator
+        this.messageList()?.removeTypingIndicator();
+        // Add error message to chat
+        this.messageList()?.addMessage(`Error: ${data.error}`, 'assistant');
+      },
+      // On Q completion
+      (data) => {
+        console.log('Q session completed:', data);
+        // Remove typing indicator if present
+        this.messageList()?.removeTypingIndicator();
+      }
+    );
   }
 }

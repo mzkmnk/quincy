@@ -125,4 +125,47 @@ export class WebSocketService {
   removeProjectSessionListeners(): void {
     this.off('q:session:started');
   }
+
+  // Amazon Q チャット関連のメソッド
+  async sendQMessage(sessionId: string, message: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket?.connected) {
+        reject(new Error('WebSocket not connected'));
+        return;
+      }
+
+      // Send message to Amazon Q CLI session
+      this.emit('q:message', {
+        sessionId,
+        message
+      });
+
+      // Resolve immediately since this is fire-and-forget
+      // The response will come through q:response event
+      resolve();
+    });
+  }
+
+  // チャット関連イベントリスナーのセットアップ
+  setupChatListeners(
+    onResponse: (data: { sessionId: string; data: string; type: string }) => void,
+    onError: (data: { sessionId: string; error: string; code: string }) => void,
+    onComplete: (data: { sessionId: string; exitCode: number }) => void
+  ): void {
+    this.on('q:response', onResponse);
+    this.on('q:error', onError);
+    this.on('q:complete', onComplete);
+  }
+
+  // チャット関連イベントリスナーの削除
+  removeChatListeners(): void {
+    this.off('q:response');
+    this.off('q:error');
+    this.off('q:complete');
+  }
+
+  // セッション中止
+  abortQSession(sessionId: string): void {
+    this.emit('q:abort', { sessionId });
+  }
 }

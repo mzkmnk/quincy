@@ -1,22 +1,14 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AppStore } from '../../../core/store/app.state';
+import { AppStore, ChatMessage } from '../../../core/store/app.state';
 import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.component';
-
-interface Message {
-  id: string;
-  content: string;
-  sender: 'user' | 'assistant';
-  timestamp: Date;
-  isTyping?: boolean;
-}
 
 @Component({
   selector: 'app-message-list',
   imports: [CommonModule, TypingIndicatorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="p-4 space-y-4">
+    <div class="p-4 space-y-4" #messageContainer>
       @if (messages().length === 0) {
         <!-- Empty conversation state -->
         <div class="text-center py-12">
@@ -100,27 +92,23 @@ interface Message {
 export class MessageListComponent {
   protected appStore = inject(AppStore);
   
-  // Mock messages for demonstration
-  messages = signal<Message[]>([
-    {
-      id: '1',
-      content: 'Hello! How can I help you with your project today?',
+  private getWelcomeMessage(): ChatMessage[] {
+    return [{
+      id: 'welcome',
+      content: 'Hello! I\'m Amazon Q, your AI coding assistant. How can I help you with your project today?',
       sender: 'assistant',
-      timestamp: new Date(Date.now() - 300000) // 5 minutes ago
-    },
-    {
-      id: '2',
-      content: 'I need help setting up a new feature for my application.',
-      sender: 'user',
-      timestamp: new Date(Date.now() - 240000) // 4 minutes ago
-    },
-    {
-      id: '3',
-      content: 'I\'d be happy to help you with that! Could you tell me more details about the feature you want to implement?',
-      sender: 'assistant',
-      timestamp: new Date(Date.now() - 180000) // 3 minutes ago
-    }
-  ]);
+      timestamp: new Date()
+    }];
+  }
+  
+  // Chat messages from the store
+  messages = computed(() => {
+    const currentSession = this.appStore.currentQSession();
+    if (!currentSession) return this.getWelcomeMessage();
+    
+    const sessionMessages = this.appStore.currentSessionMessages();
+    return sessionMessages.length === 0 ? this.getWelcomeMessage() : sessionMessages;
+  });
 
   formatTime(timestamp: Date): string {
     return timestamp.toLocaleTimeString([], { 
@@ -139,31 +127,49 @@ export class MessageListComponent {
   }
 
   addMessage(content: string, sender: 'user' | 'assistant'): void {
-    const newMessage: Message = {
-      id: Date.now().toString(),
+    const currentSession = this.appStore.currentQSession();
+    const newMessage: ChatMessage = {
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       content,
       sender,
-      timestamp: new Date()
+      timestamp: new Date(),
+      sessionId: currentSession?.sessionId
     };
     
-    this.messages.update(messages => [...messages, newMessage]);
+    this.appStore.addChatMessage(newMessage);
+    
+    // Auto-scroll to bottom after adding message
+    setTimeout(() => this.scrollToBottom(), 100);
   }
 
   addTypingIndicator(): void {
-    const typingMessage: Message = {
+    const currentSession = this.appStore.currentQSession();
+    const typingMessage: ChatMessage = {
       id: 'typing',
       content: '',
       sender: 'assistant',
       timestamp: new Date(),
-      isTyping: true
+      isTyping: true,
+      sessionId: currentSession?.sessionId
     };
     
-    this.messages.update(messages => [...messages, typingMessage]);
+    this.appStore.addChatMessage(typingMessage);
   }
 
   removeTypingIndicator(): void {
-    this.messages.update(messages => 
-      messages.filter(m => m.id !== 'typing')
-    );
+    this.appStore.removeChatMessage('typing');
+  }
+  
+  clearMessages(): void {
+    this.appStore.clearChatMessages();
+  }
+  
+  private scrollToBottom(): void {
+    // This will be called by the parent component after view updates
+    // We could emit an event or use ViewChild to scroll
+  }
+  
+  getMessageCount(): number {
+    return this.messages().filter(m => !m.isTyping).length;
   }
 }
