@@ -64,7 +64,6 @@ export class WebSocketService {
         socket.data = {
           authenticated: false,
           rooms: [],
-          userId: undefined,
           sessionId: undefined
         };
         
@@ -80,27 +79,23 @@ export class WebSocketService {
     this.io.on('connection', (socket) => {
       console.log(`🔌 New client connected: ${socket.id}`);
       
-      // Set connection timeout for authentication
-      const authTimeout = setTimeout(() => {
-        if (!socket.data.authenticated) {
-          console.log(`⏰ Authentication timeout for ${socket.id}`);
-          socket.emit('auth:failure', {
-            code: 'AUTH_TIMEOUT',
-            message: 'Authentication timeout. Please reconnect.'
-          });
-          socket.disconnect(true);
-        }
-      }, 30000); // 30 second timeout
-
-      // Handle authentication
-      socket.on('auth:request', (data: AuthenticationData) => {
-        clearTimeout(authTimeout);
-        this.handleAuthentication(socket, data);
-      });
+      // Auto-authenticate all connections in development mode
+      const isDevelopment = process.env.NODE_ENV !== 'production';
+      socket.data.authenticated = isDevelopment;
+      
+      const connectionInfo: ConnectionInfo = {
+        socketId: socket.id,
+        sessionId: `session_${Date.now()}`,
+        connectedAt: Date.now(),
+        authenticated: isDevelopment
+      };
+      
+      this.connectedUsers.set(socket.id, connectionInfo);
+      console.log(`🔐 Auto-authenticated user: ${socket.id} (mode: ${process.env.NODE_ENV || 'development'})`);
 
       // Handle message sending
       socket.on('message:send', (data: MessageSendEvent) => {
-        if (!socket.data.authenticated) {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
           this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
           return;
         }
@@ -109,26 +104,18 @@ export class WebSocketService {
 
       // Handle room joining
       socket.on('room:join', (data: RoomData) => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
         this.handleRoomJoin(socket, data);
       });
 
       // Handle room leaving
       socket.on('room:leave', (data: RoomData) => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
         this.handleRoomLeave(socket, data);
       });
 
 
       // Handle Amazon Q CLI command
       socket.on('q:command', (data: QCommandEvent) => {
-        if (!socket.data.authenticated) {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
           this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
           return;
         }
@@ -137,16 +124,12 @@ export class WebSocketService {
 
       // Handle Amazon Q CLI abort
       socket.on('q:abort', (data: QAbortEvent) => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
         this.handleQAbort(socket, data);
       });
 
       // Handle Amazon Q history requests
       socket.on('q:history', async (data: { projectPath: string }) => {
-        if (!socket.data.authenticated) {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
           this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
           return;
         }
@@ -155,7 +138,7 @@ export class WebSocketService {
 
       // Handle Amazon Q projects history list
       socket.on('q:projects', async () => {
-        if (!socket.data.authenticated) {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
           this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
           return;
         }
@@ -164,7 +147,7 @@ export class WebSocketService {
 
       // Handle Amazon Q session resume
       socket.on('q:resume', async (data: { projectPath: string; conversationId?: string }) => {
-        if (!socket.data.authenticated) {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
           this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
           return;
         }
@@ -190,39 +173,6 @@ export class WebSocketService {
     });
   }
 
-  private handleAuthentication(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: AuthenticationData) {
-    // Basic authentication logic - can be enhanced with JWT validation
-    // For now, we'll accept any authentication request with sessionId
-    if (data.sessionId || data.userId) {
-      const connectionInfo: ConnectionInfo = {
-        socketId: socket.id,
-        userId: data.userId,
-        sessionId: data.sessionId,
-        connectedAt: Date.now(),
-        authenticated: true
-      };
-
-      // Update socket data
-      socket.data.authenticated = true;
-      socket.data.userId = data.userId;
-      socket.data.sessionId = data.sessionId;
-
-      // Store connection info
-      this.connectedUsers.set(socket.id, connectionInfo);
-
-      // Send success response
-      socket.emit('auth:success', connectionInfo);
-      
-      console.log(`🔐 User authenticated: ${data.userId || 'anonymous'} (${socket.id})`);
-    } else {
-      const errorData: ErrorData = {
-        code: 'INVALID_AUTH',
-        message: 'Invalid authentication data. sessionId or userId required.',
-        details: { provided: Object.keys(data) }
-      };
-      socket.emit('auth:failure', errorData);
-    }
-  }
 
   private handleMessageSend(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: MessageSendEvent) {
     const messageData: MessageData = {
@@ -264,7 +214,6 @@ export class WebSocketService {
 
     const joinEvent: RoomJoinedEvent = {
       roomId,
-      userId: socket.data.userId || socket.id,
       timestamp: Date.now()
     };
 
@@ -274,13 +223,13 @@ export class WebSocketService {
     // Notify other users in the room
     socket.to(roomId).emit('message:broadcast', {
       id: this.generateMessageId(),
-      content: `${socket.data.userId || 'Anonymous'} joined the room`,
+      content: `User joined the room`,
       senderId: 'system',
       timestamp: Date.now(),
       type: 'system'
     });
 
-    console.log(`🏠 User ${socket.data.userId || socket.id} joined room: ${roomId}`);
+    console.log(`🏠 Socket ${socket.id} joined room: ${roomId}`);
   }
 
   private handleRoomLeave(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: RoomData) {
@@ -299,7 +248,6 @@ export class WebSocketService {
 
     const leaveEvent: RoomLeftEvent = {
       roomId,
-      userId: socket.data.userId || socket.id,
       timestamp: Date.now()
     };
 
@@ -309,13 +257,13 @@ export class WebSocketService {
     // Notify other users in the room
     socket.to(roomId).emit('message:broadcast', {
       id: this.generateMessageId(),
-      content: `${socket.data.userId || 'Anonymous'} left the room`,
+      content: `User left the room`,
       senderId: 'system',
       timestamp: Date.now(),
       type: 'system'
     });
 
-    console.log(`🏠 User ${socket.data.userId || socket.id} left room: ${roomId}`);
+    console.log(`🏠 Socket ${socket.id} left room: ${roomId}`);
   }
 
   private handleDisconnection(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
@@ -328,7 +276,7 @@ export class WebSocketService {
       userRooms.forEach(roomId => {
         socket.to(roomId).emit('message:broadcast', {
           id: this.generateMessageId(),
-          content: `${socket.data.userId || 'Anonymous'} disconnected`,
+          content: `User disconnected`,
           senderId: 'system',
           timestamp: Date.now(),
           type: 'system'
@@ -423,7 +371,7 @@ export class WebSocketService {
         projectId: socket.data.sessionId || 'unknown'
       });
 
-      console.log(`🤖 Amazon Q CLI session started: ${sessionId} for user ${socket.data.userId}`);
+      console.log(`🤖 Amazon Q CLI session started: ${sessionId} for socket ${socket.id}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.sendError(socket, 'Q_COMMAND_ERROR', `Failed to start Amazon Q CLI: ${errorMessage}`);
@@ -435,7 +383,7 @@ export class WebSocketService {
       const success = await this.qCliService.abortSession(data.sessionId, 'user_request');
       
       if (success) {
-        console.log(`🛑 Amazon Q CLI session aborted: ${data.sessionId} by user ${socket.data.userId}`);
+        console.log(`🛑 Amazon Q CLI session aborted: ${data.sessionId} by socket ${socket.id}`);
       } else {
         this.sendError(socket, 'Q_ABORT_ERROR', `Session ${data.sessionId} not found or already terminated`);
       }

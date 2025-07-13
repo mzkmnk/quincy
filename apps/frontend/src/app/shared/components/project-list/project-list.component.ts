@@ -90,15 +90,9 @@ export class ProjectListComponent implements OnInit {
   private setupWebSocketListeners(): void {
     this.webSocketService.connect();
 
-    // WebSocket接続完了後に認証
+    // WebSocket接続完了後に直接Amazon Q履歴を取得
     this.webSocketService.on('connect', () => {
-      console.log('WebSocket connected, authenticating...');
-      this.webSocketService.emit('auth:request', { userId: 'amazon-q-user' });
-    });
-
-    // 認証成功後にAmazon Q履歴を取得
-    this.webSocketService.on('auth:success', () => {
-      console.log('Authentication successful, loading Amazon Q history...');
+      console.log('WebSocket connected, loading Amazon Q history...');
       this.webSocketService.getAllProjectsHistory();
     });
 
