@@ -746,18 +746,26 @@ export class AmazonQCLIService extends EventEmitter {
     const ansiRegex = /\x1b\[[0-9;]*[a-zA-Z]/g;
     cleanText = cleanText.replace(ansiRegex, '');
     
-    // 2. スピナー文字を除去 (ユニコードスピナー)
+    // 2. カーソル保存・復元シーケンスを除去 (\x1B7, \x1B8)
+    const cursorSaveRestoreRegex = /\x1b[78]/g;
+    cleanText = cleanText.replace(cursorSaveRestoreRegex, '');
+    
+    // 3. その他の単文字ANSIエスケープシーケンス
+    const singleCharAnsiRegex = /\x1b[DMH]/g;
+    cleanText = cleanText.replace(singleCharAnsiRegex, '');
+    
+    // 4. スピナー文字を除去 (ユニコードスピナー)
     const spinnerRegex = /[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]/g;
     cleanText = cleanText.replace(spinnerRegex, '');
     
-    // 3. カーソル制御文字を除去
+    // 5. カーソル制御文字を除去
     const cursorRegex = /\x1b\[\?25[lh]/g;
     cleanText = cleanText.replace(cursorRegex, '');
     
-    // 4. バックスペースとカリッジリターンを正規化
+    // 6. バックスペースとカリッジリターンを正規化
     cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     
-    // 5. 余分な空白を正規化
+    // 7. 余分な空白を正規化
     cleanText = cleanText.replace(/[ \t]+/g, ' ');
     
     return cleanText;

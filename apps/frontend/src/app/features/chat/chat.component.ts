@@ -345,8 +345,9 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.messageList()?.removeTypingIndicator();
           // Clear any streaming message
           this.streamingMessageId.set(null);
-          // Add error message to chat
-          this.messageList()?.addMessage(`Error: ${data.error}`, 'assistant');
+          // ANSIコードを除去してクリーンなエラーメッセージを表示
+          const cleanError = this.stripAnsiCodes(data.error);
+          this.messageList()?.addMessage(`Error: ${cleanError}`, 'assistant');
         }
       },
       // On Q completion
@@ -361,12 +362,20 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
   
   private handleStreamingResponse(content: string): void {
+    // ANSIエスケープシーケンスを除去
+    const cleanContent = this.stripAnsiCodes(content);
+    
+    // 空のコンテンツは無視
+    if (!cleanContent.trim()) {
+      return;
+    }
+    
     const currentStreamingId = this.streamingMessageId();
     
     if (!currentStreamingId) {
       // 新しいストリーミングメッセージを開始
       this.messageList()?.removeTypingIndicator();
-      const messageId = this.messageList()?.addMessage(content, 'assistant') || '';
+      const messageId = this.messageList()?.addMessage(cleanContent, 'assistant') || '';
       this.streamingMessageId.set(messageId);
       
       // インデックスマップを更新
@@ -378,7 +387,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       
       if (messageIndex !== undefined && messageIndex < currentMessages.length && 
           currentMessages[messageIndex].id === currentStreamingId) {
-        const updatedContent = currentMessages[messageIndex].content + content;
+        const updatedContent = currentMessages[messageIndex].content + cleanContent;
         this.appStore.updateChatMessage(currentStreamingId, { content: updatedContent });
         
         // ストリーミング更新時にスクロール更新をトリガー
@@ -388,7 +397,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.updateMessageIndexMap();
         const newMessageIndex = this.messageIndexMap.get(currentStreamingId);
         if (newMessageIndex !== undefined && newMessageIndex < currentMessages.length) {
-          const updatedContent = currentMessages[newMessageIndex].content + content;
+          const updatedContent = currentMessages[newMessageIndex].content + cleanContent;
           this.appStore.updateChatMessage(currentStreamingId, { content: updatedContent });
           this.messageList()?.markForScrollUpdate();
         }
@@ -397,7 +406,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
   
   private shouldDisplayError(error: string): boolean {
-    const trimmed = error.trim();
+    // ANSIエスケープシーケンスを除去
+    const cleanedError = this.stripAnsiCodes(error);
+    const trimmed = cleanedError.trim();
     
     // 空のエラーは表示しない
     if (!trimmed) {
@@ -416,6 +427,41 @@ export class ChatComponent implements OnInit, OnDestroy {
     ];
     
     return !skipPatterns.some(pattern => pattern.test(trimmed));
+  }
+
+  /**
+   * ANSIエスケープシーケンスを除去
+   */
+  private stripAnsiCodes(text: string): string {
+    let cleanText = text;
+    
+    // 1. ANSIエスケープシーケンスを除去
+    const ansiRegex = /\x1b\[[0-9;]*[a-zA-Z]/g;
+    cleanText = cleanText.replace(ansiRegex, '');
+    
+    // 2. カーソル保存・復元シーケンスを除去 (\x1B7, \x1B8)
+    const cursorSaveRestoreRegex = /\x1b[78]/g;
+    cleanText = cleanText.replace(cursorSaveRestoreRegex, '');
+    
+    // 3. その他の単文字ANSIエスケープシーケンス
+    const singleCharAnsiRegex = /\x1b[DMH]/g;
+    cleanText = cleanText.replace(singleCharAnsiRegex, '');
+    
+    // 4. スピナー文字を除去
+    const spinnerRegex = /[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]/g;
+    cleanText = cleanText.replace(spinnerRegex, '');
+    
+    // 5. カーソル制御文字を除去
+    const cursorRegex = /\x1b\[\?25[lh]/g;
+    cleanText = cleanText.replace(cursorRegex, '');
+    
+    // 6. バックスペースとカリッジリターンを正規化
+    cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    
+    // 7. 余分な空白を正規化
+    cleanText = cleanText.replace(/[ \t]+/g, ' ');
+    
+    return cleanText;
   }
   
   /**
