@@ -462,8 +462,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     // 6. バックスペースとカリッジリターンを正規化
     cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     
-    // 7. 余分な空白を正規化
-    cleanText = cleanText.replace(/[ \t]+/g, ' ');
+    // 7. 余分な空白を正規化（改行文字は保持）
+    cleanText = cleanText.replace(/[^\S\n]+/g, ' ');
     
     return cleanText;
   }
