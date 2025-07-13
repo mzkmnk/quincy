@@ -11,18 +11,6 @@ export const routes: Routes = [
     loadComponent: () => import('./features/chat/chat.component').then(m => m.ChatComponent)
   },
   {
-    path: 'dashboard',
-    loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
-  },
-  {
-    path: 'projects',
-    loadComponent: () => import('./features/projects/projects.component').then(m => m.ProjectsComponent)
-  },
-  {
-    path: 'sessions',
-    loadComponent: () => import('./features/sessions/sessions.component').then(m => m.SessionsComponent)
-  },
-  {
     path: '**',
     redirectTo: '/chat'
   }

@@ -41,7 +41,7 @@ import { WebSocketService } from '../../../core/services/websocket.service';
         </div>
 
         <!-- Sidebar Content -->
-        <div class="flex-1 overflow-y-auto">
+        <div class="flex-1 h-0">
           <app-sidebar 
             [collapsed]="sidebarCollapsed()"
             (newProjectRequested)="showProjectModal()"

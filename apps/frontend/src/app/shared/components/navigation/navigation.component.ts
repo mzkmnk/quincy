@@ -12,20 +12,8 @@ import { WebSocketService } from '../../../core/services/websocket.service';
     <nav class="bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 right-0 z-50 h-16">
       <div class="max-w-screen-xl mx-auto px-8 flex items-center justify-between h-full">
         <div class="flex items-center">
-          <a routerLink="/dashboard" class="no-underline">
+          <a routerLink="/chat" class="no-underline">
             <h1 class="m-0 text-2xl font-semibold text-blue-500">Quincy</h1>
-          </a>
-        </div>
-        
-        <div class="flex items-center gap-8 md:gap-4">
-          <a routerLink="/dashboard" routerLinkActive="router-link-active" class="no-underline text-gray-600 font-medium py-2 px-4 rounded transition-all duration-200 hover:text-blue-500 hover:bg-gray-50 md:px-2 md:text-sm">
-            Dashboard
-          </a>
-          <a routerLink="/projects" routerLinkActive="router-link-active" class="no-underline text-gray-600 font-medium py-2 px-4 rounded transition-all duration-200 hover:text-blue-500 hover:bg-gray-50 md:px-2 md:text-sm">
-            Projects
-          </a>
-          <a routerLink="/sessions" routerLinkActive="router-link-active" class="no-underline text-gray-600 font-medium py-2 px-4 rounded transition-all duration-200 hover:text-blue-500 hover:bg-gray-50 md:px-2 md:text-sm">
-            Sessions
           </a>
         </div>
         

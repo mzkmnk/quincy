@@ -10,7 +10,7 @@ import { ConversationMetadata } from '@quincy/shared';
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="h-123 flex flex-col overflow-y-auto">
+    <div class="flex flex-col">
       <!-- Fixed Header -->
       <div class="flex-shrink-0 p-4 pb-2" [class.p-2]="collapsed()">
         <div class="mb-3" [class.hidden]="collapsed()">
@@ -26,7 +26,11 @@ import { ConversationMetadata } from '@quincy/shared';
       </div>
 
       <!-- Scrollable Content -->
-      <div class="flex-1 overflow-y-auto px-4 pb-4" [class.px-2]="collapsed()">
+      <div 
+        class="flex-1 min-h-0 overflow-y-auto px-4 pb-4" 
+        [class.px-2]="collapsed()"
+        (wheel)="onWheel($event)"
+      >
         @if (appStore.hasAmazonQHistory()) {
           <div class="space-y-1">
             @for (project of appStore.amazonQHistory(); track project.conversation_id) {
@@ -116,7 +120,7 @@ export class ProjectListComponent implements OnInit, OnDestroy {
   private setupWebSocketListeners(): void {
     // リスナーの重複登録を防止
     this.webSocketService.removeQHistoryListeners();
-    
+
     this.webSocketService.connect();
 
     // 接続状態を確認して適切に履歴を取得
@@ -159,7 +163,7 @@ export class ProjectListComponent implements OnInit, OnDestroy {
   private loadHistoryWithConnectionCheck(): void {
     // ローディング状態を開始
     this.appStore.setQHistoryLoading(true);
-    
+
     if (this.webSocketService.connected()) {
       // 既に接続済みの場合は即座に履歴取得
       console.log('🔌 WebSocket already connected, loading history immediately');
@@ -179,7 +183,7 @@ export class ProjectListComponent implements OnInit, OnDestroy {
    */
   private async requestHistoryWithRetry(maxRetries = 3, retryDelay = 1000): Promise<void> {
     let attempt = 0;
-    
+
     while (attempt < maxRetries) {
       try {
         await this.webSocketService.getAllProjectsHistory();
@@ -188,14 +192,14 @@ export class ProjectListComponent implements OnInit, OnDestroy {
       } catch (error) {
         attempt++;
         console.warn(`⚠️ History request failed (attempt ${attempt}/${maxRetries}):`, error);
-        
+
         if (attempt >= maxRetries) {
           console.error('❌ All history request attempts failed');
           this.appStore.setQHistoryLoading(false);
           this.appStore.setError('履歴の取得に失敗しました。ページを再読み込みしてください。');
           return;
         }
-        
+
         // 指数バックオフで再試行
         const delay = retryDelay * Math.pow(2, attempt - 1);
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -205,13 +209,13 @@ export class ProjectListComponent implements OnInit, OnDestroy {
 
   selectQProject(project: ConversationMetadata): void {
     console.log('Selected Amazon Q project:', project);
-    
+
     // 現在のアクティブセッションをクリア（重要！）
     this.appStore.clearCurrentView();
-    
+
     // プロジェクトの履歴を取得
     this.webSocketService.getProjectHistory(project.projectPath);
-    
+
     // チャットページに移動
     this.router.navigate(['/chat']);
   }
@@ -242,5 +246,25 @@ export class ProjectListComponent implements OnInit, OnDestroy {
     console.log('🔄 Retrying history load...');
     this.appStore.clearError();
     this.loadAmazonQHistory();
+  }
+
+  /**
+   * スクロールイベントの伝播を制御
+   */
+  onWheel(event: WheelEvent): void {
+    const element = event.target as HTMLElement;
+    const container = element.closest('.overflow-y-auto');
+    
+    if (container) {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isAtTop = scrollTop === 0;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
+      
+      // 上端で上スクロール、または下端で下スクロールの場合のみ伝播を防ぐ
+      if ((isAtTop && event.deltaY < 0) || (isAtBottom && event.deltaY > 0)) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }
   }
 }
