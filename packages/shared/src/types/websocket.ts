@@ -155,11 +155,7 @@ export interface SessionCreatedEvent {
   projectId: string;
 }
 
-// 新しいWebSocket通信用の型定義
-export interface AuthenticationData {
-  sessionId?: string;
-}
-
+// WebSocket通信用の型定義
 export interface MessageData {
   id: string;
   content: string;
@@ -201,13 +197,11 @@ export interface ConnectionInfo {
   socketId: string;
   sessionId?: string;
   connectedAt: number;
-  authenticated: boolean;
 }
 
 // Socket.ioのSocket型用のデータ
 export interface SocketData {
   sessionId?: string;
-  authenticated: boolean;
   rooms: string[];
 }
 
