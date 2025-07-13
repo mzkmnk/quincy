@@ -15,6 +15,7 @@ import type {
   RoomLeftEvent,
   QCommandEvent,
   QAbortEvent,
+  QMessageEvent,
   QProjectStartEvent,
   QSessionStartedEvent,
   QHistoryDataResponse,
@@ -122,6 +123,16 @@ export class WebSocketService {
           return;
         }
         this.handleQCommand(socket, data);
+      });
+
+      // Handle Amazon Q message sending
+      socket.on('q:message', async (data: QMessageEvent, ack?: (response: { success: boolean; error?: string }) => void) => {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          if (ack) ack({ success: false, error: 'Authentication required' });
+          return;
+        }
+        await this.handleQMessage(socket, data, ack);
       });
 
       // Handle Amazon Q CLI abort
@@ -617,6 +628,38 @@ export class WebSocketService {
         projectPath: data.projectPath,
         cliCommand: 'q'
       });
+    }
+  }
+
+  private async handleQMessage(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QMessageEvent, ack?: (response: { success: boolean; error?: string }) => void): Promise<void> {
+    try {
+      console.log(`💬 Sending message to Amazon Q session ${data.sessionId}: ${data.message}`);
+      
+      // Amazon Q CLIセッションにメッセージを送信
+      const success = await this.qCliService.sendInput(data.sessionId, data.message + '\n');
+      
+      if (!success) {
+        const errorMsg = `Session ${data.sessionId} not found or not active`;
+        this.sendError(socket, 'Q_MESSAGE_ERROR', errorMsg, {
+          sessionId: data.sessionId,
+          message: data.message
+        });
+        if (ack) ack({ success: false, error: errorMsg });
+        return;
+      }
+      
+      console.log(`✅ Message sent to Amazon Q session: ${data.sessionId}`);
+      if (ack) ack({ success: true });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Failed to send message to Amazon Q session ${data.sessionId}:`, error);
+      
+      this.sendError(socket, 'Q_MESSAGE_ERROR', `Failed to send message: ${errorMessage}`, {
+        sessionId: data.sessionId,
+        message: data.message,
+        originalError: errorMessage
+      });
+      if (ack) ack({ success: false, error: errorMessage });
     }
   }
 }

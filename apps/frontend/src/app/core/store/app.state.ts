@@ -2,6 +2,15 @@ import { signal, computed } from '@angular/core';
 import { signalStore, withState, withComputed, withMethods, patchState } from '@ngrx/signals';
 import type { Project, Session, ConversationMetadata, AmazonQConversation, QSessionStartedEvent } from '@quincy/shared';
 
+export interface ChatMessage {
+  id: string;
+  content: string;
+  sender: 'user' | 'assistant';
+  timestamp: Date;
+  isTyping?: boolean;
+  sessionId?: string;
+}
+
 export interface AppState {
   projects: Project[];
   currentProject: Project | null;
@@ -10,6 +19,7 @@ export interface AppState {
   amazonQHistory: ConversationMetadata[];
   currentQConversation: AmazonQConversation | null;
   currentQSession: QSessionStartedEvent | null;
+  chatMessages: ChatMessage[];
   qHistoryLoading: boolean;
   sessionStarting: boolean;
   sessionError: string | null;
@@ -25,6 +35,7 @@ const initialState: AppState = {
   amazonQHistory: [],
   currentQConversation: null,
   currentQSession: null,
+  chatMessages: [],
   qHistoryLoading: false,
   sessionStarting: false,
   sessionError: null,
@@ -35,7 +46,7 @@ const initialState: AppState = {
 export const AppStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withComputed(({ projects, currentProject, sessions, currentSession, amazonQHistory, currentQConversation, currentQSession, qHistoryLoading, sessionStarting, sessionError }) => ({
+  withComputed(({ projects, currentProject, sessions, currentSession, amazonQHistory, currentQConversation, currentQSession, chatMessages, qHistoryLoading, sessionStarting, sessionError }) => ({
     hasProjects: computed(() => projects().length > 0),
     hasSessions: computed(() => sessions().length > 0),
     hasAmazonQHistory: computed(() => amazonQHistory().length > 0),
@@ -51,6 +62,11 @@ export const AppStore = signalStore(
     isSessionSelected: computed(() => currentSession() !== null),
     isQConversationSelected: computed(() => currentQConversation() !== null),
     isQSessionActive: computed(() => currentQSession() !== null),
+    currentSessionMessages: computed(() => {
+      const sessionId = currentQSession()?.sessionId;
+      return sessionId ? chatMessages().filter(m => m.sessionId === sessionId) : [];
+    }),
+    hasChatMessages: computed(() => chatMessages().length > 0),
   })),
   withMethods((store) => ({
     setProjects: (projects: Project[]) => {
@@ -129,6 +145,29 @@ export const AppStore = signalStore(
     },
     setSessionError: (sessionError: string | null) => {
       patchState(store, { sessionError, sessionStarting: false });
+    },
+    addChatMessage: (message: ChatMessage) => {
+      patchState(store, {
+        chatMessages: [...store.chatMessages(), message]
+      });
+    },
+    updateChatMessage: (messageId: string, updates: Partial<ChatMessage>) => {
+      patchState(store, {
+        chatMessages: store.chatMessages().map(m => 
+          m.id === messageId ? { ...m, ...updates } : m
+        )
+      });
+    },
+    removeChatMessage: (messageId: string) => {
+      patchState(store, {
+        chatMessages: store.chatMessages().filter(m => m.id !== messageId)
+      });
+    },
+    clearChatMessages: () => {
+      patchState(store, { chatMessages: [] });
+    },
+    setChatMessages: (chatMessages: ChatMessage[]) => {
+      patchState(store, { chatMessages });
     }
   }))
 );

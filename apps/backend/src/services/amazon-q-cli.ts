@@ -15,13 +15,18 @@ export interface QProcessSession {
   process: ChildProcess;
   workingDir: string;
   startTime: number;
-  status: 'starting' | 'running' | 'completed' | 'error' | 'aborted';
+  status: 'starting' | 'running' | 'completed' | 'error' | 'aborted' | 'terminated';
   lastActivity: number;
   pid?: number;
   memoryUsage?: number;
   cpuUsage?: number;
   command: string;
   options: QProcessOptions;
+  // レスポンスバッファリング用
+  outputBuffer: string;
+  errorBuffer: string;
+  bufferTimeout?: NodeJS.Timeout;
+  bufferFlushCount: number;
 }
 
 export interface QProcessOptions {
@@ -41,6 +46,7 @@ export class AmazonQCLIService extends EventEmitter {
     process.env.HOME + '/.local/bin/q'
   ].filter(Boolean); // undefined要素を除外
   private readonly DEFAULT_TIMEOUT = 300000; // 5分
+  private readonly MAX_BUFFER_SIZE = 10 * 1024; // 10KB制限
   private readonly execAsync = promisify(exec);
   private cliPath: string | null = null;
   private cliChecked: boolean = false;
@@ -301,7 +307,10 @@ export class AmazonQCLIService extends EventEmitter {
         lastActivity: Date.now(),
         pid: childProcess.pid,
         command,
-        options
+        options,
+        outputBuffer: '',
+        errorBuffer: '',
+        bufferFlushCount: 0
       };
 
       this.sessions.set(sessionId, session);
@@ -374,7 +383,7 @@ export class AmazonQCLIService extends EventEmitter {
    */
   async sendInput(sessionId: string, input: string): Promise<boolean> {
     const session = this.sessions.get(sessionId);
-    if (!session || session.status !== 'running') {
+    if (!session || !['starting', 'running'].includes(session.status)) {
       return false;
     }
 
@@ -511,28 +520,66 @@ export class AmazonQCLIService extends EventEmitter {
   private setupProcessHandlers(session: QProcessSession): void {
     const { sessionId, process } = session;
 
-    // 標準出力の処理
+    // 標準出力の処理（バッファリング付き）
     process.stdout?.on('data', (data: Buffer) => {
       session.lastActivity = Date.now();
-      const output = data.toString();
+      const rawOutput = data.toString();
       
-      const responseEvent: QResponseEvent = {
-        sessionId,
-        data: output,
-        type: 'stream'
-      };
+      // ANSIエスケープシーケンスを除去
+      const cleanOutput = this.stripAnsiCodes(rawOutput);
       
-      this.emit('q:response', responseEvent);
+      // Amazon Q CLIの初期化メッセージや空の出力をフィルタリング
+      if (this.shouldSkipOutput(cleanOutput)) {
+        return;
+      }
+      
+      // バッファサイズ制限チェック
+      if (session.outputBuffer.length > this.MAX_BUFFER_SIZE) {
+        // バッファが大きすぎる場合は後半を保持
+        session.outputBuffer = session.outputBuffer.slice(-this.MAX_BUFFER_SIZE / 2);
+      }
+      
+      // バッファに追加
+      session.outputBuffer += cleanOutput;
+      
+      // 既存のタイムアウトをクリア
+      if (session.bufferTimeout) {
+        clearTimeout(session.bufferTimeout);
+      }
+      
+      // 適応的タイムアウトを設定（コンテンツ長に基づく）
+      const adaptiveTimeout = this.getAdaptiveBufferTimeout(session.outputBuffer);
+      session.bufferTimeout = setTimeout(() => {
+        this.flushOutputBuffer(session);
+      }, adaptiveTimeout);
+      
+      // 改行文字がある場合は即座にフラッシュ
+      if (session.outputBuffer.includes('\n')) {
+        if (session.bufferTimeout) {
+          clearTimeout(session.bufferTimeout);
+          session.bufferTimeout = undefined;
+        }
+        this.flushOutputBuffer(session);
+      }
     });
 
-    // 標準エラー出力の処理
+    // 標準エラー出力の処理（バッファリング付き）
     process.stderr?.on('data', (data: Buffer) => {
       session.lastActivity = Date.now();
-      const error = data.toString();
+      const rawError = data.toString();
       
+      // ANSIエスケープシーケンスを除去
+      const cleanError = this.stripAnsiCodes(rawError);
+      
+      // Amazon Q CLIの初期化メッセージや空のエラーをフィルタリング
+      if (this.shouldSkipError(cleanError)) {
+        return;
+      }
+      
+      // エラーはバッファせず即座に送信
       const errorEvent: QErrorEvent = {
         sessionId,
-        error,
+        error: cleanError,
         code: 'STDERR'
       };
       
@@ -541,6 +588,17 @@ export class AmazonQCLIService extends EventEmitter {
 
     // プロセス終了の処理
     process.on('exit', (code: number | null, signal: string | null) => {
+      // 残りのバッファをフラッシュ
+      if (session.outputBuffer.trim()) {
+        this.flushOutputBuffer(session);
+      }
+      
+      // タイムアウトをクリア
+      if (session.bufferTimeout) {
+        clearTimeout(session.bufferTimeout);
+        session.bufferTimeout = undefined;
+      }
+      
       session.status = code === 0 ? 'completed' : 'error';
       
       const completeEvent: QCompleteEvent = {
@@ -549,6 +607,9 @@ export class AmazonQCLIService extends EventEmitter {
       };
       
       this.emit('q:complete', completeEvent);
+      
+      // セッションを即座に無効化してID衝突を防ぐ
+      session.status = 'terminated';
       
       // セッションをクリーンアップ（遅延実行）
       setTimeout(() => {
@@ -672,5 +733,124 @@ export class AmazonQCLIService extends EventEmitter {
     this.sessions.clear();
 
     console.log('AmazonQCLIService destroyed and resources cleaned up');
+  }
+
+  /**
+   * ANSIエスケープシーケンス、スピナー、その他の制御文字を除去
+   */
+  private stripAnsiCodes(text: string): string {
+    let cleanText = text;
+    
+    // 1. ANSIエスケープシーケンスを除去
+    // より包括的なパターンでANSIコードをマッチ
+    const ansiRegex = /\x1b\[[0-9;]*[a-zA-Z]/g;
+    cleanText = cleanText.replace(ansiRegex, '');
+    
+    // 2. スピナー文字を除去 (ユニコードスピナー)
+    const spinnerRegex = /[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]/g;
+    cleanText = cleanText.replace(spinnerRegex, '');
+    
+    // 3. カーソル制御文字を除去
+    const cursorRegex = /\x1b\[\?25[lh]/g;
+    cleanText = cleanText.replace(cursorRegex, '');
+    
+    // 4. バックスペースとカリッジリターンを正規化
+    cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    
+    // 5. 余分な空白を正規化
+    cleanText = cleanText.replace(/[ \t]+/g, ' ');
+    
+    return cleanText;
+  }
+
+  /**
+   * バッファされた出力をフラッシュ
+   */
+  private flushOutputBuffer(session: QProcessSession): void {
+    if (!session.outputBuffer.trim()) {
+      return;
+    }
+
+    const responseEvent: QResponseEvent = {
+      sessionId: session.sessionId,
+      data: session.outputBuffer,
+      type: 'stream'
+    };
+    
+    this.emit('q:response', responseEvent);
+    
+    // バッファをクリア
+    session.outputBuffer = '';
+    
+    // タイムアウトをクリア
+    if (session.bufferTimeout) {
+      clearTimeout(session.bufferTimeout);
+      session.bufferTimeout = undefined;
+    }
+  }
+
+  /**
+   * 出力をスキップすべきか判定
+   */
+  private shouldSkipOutput(output: string): boolean {
+    const trimmed = output.trim();
+    
+    // 空の出力
+    if (!trimmed) {
+      return true;
+    }
+    
+    // Amazon Q CLIの初期化メッセージをスキップ
+    const skipPatterns = [
+      /^\s*$/,                                    // 空白のみ
+      /^\s*[\.•●]\s*$/,                      // ドットやブレットのみ
+      /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]\s*$/, // スピナー文字のみ
+      /^\s*[\x00-\x1f]\s*$/,                     // 制御文字のみ
+    ];
+    
+    return skipPatterns.some(pattern => pattern.test(trimmed));
+  }
+
+  /**
+   * エラーをスキップすべきか判定
+   */
+  private shouldSkipError(error: string): boolean {
+    const trimmed = error.trim();
+    
+    // 空のエラー
+    if (!trimmed) {
+      return true;
+    }
+    
+    // Amazon Q CLIの初期化メッセージや情報メッセージをスキップ
+    const skipPatterns = [
+      /^\s*$/,                                           // 空白のみ
+      /^\s*[\x00-\x1f]\s*$/,                            // 制御文字のみ
+      /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]\s*$/, // スピナー文字のみ
+      /mcp servers? initialized/i,                       // MCPサーバー初期化メッセージ
+      /ctrl-c to start chatting/i,                       // チャット開始指示
+      /press.*enter.*continue/i,                         // Enterキー指示
+      /loading|initializing/i,                           // ローディングメッセージ
+    ];
+    
+    return skipPatterns.some(pattern => pattern.test(trimmed));
+  }
+
+  /**
+   * 適応的バッファタイムアウトを計算
+   */
+  private getAdaptiveBufferTimeout(buffer: string): number {
+    const baseTimeout = 100;
+    const maxTimeout = 300;
+    const contentLength = buffer.length;
+    
+    // コンテンツ長に基づいてタイムアウトを調整
+    if (contentLength > 1000) {
+      return Math.min(maxTimeout, baseTimeout * 2);
+    } else if (contentLength > 500) {
+      return baseTimeout * 1.5;
+    }
+    
+    return baseTimeout;
   }
 }

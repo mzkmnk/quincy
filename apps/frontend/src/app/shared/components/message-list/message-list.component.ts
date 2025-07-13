@@ -1,22 +1,14 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, computed, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AppStore } from '../../../core/store/app.state';
+import { AppStore, ChatMessage } from '../../../core/store/app.state';
 import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.component';
-
-interface Message {
-  id: string;
-  content: string;
-  sender: 'user' | 'assistant';
-  timestamp: Date;
-  isTyping?: boolean;
-}
 
 @Component({
   selector: 'app-message-list',
   imports: [CommonModule, TypingIndicatorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="p-4 space-y-4">
+    <div class="p-4 space-y-4" #messageContainer>
       @if (messages().length === 0) {
         <!-- Empty conversation state -->
         <div class="text-center py-12">
@@ -97,30 +89,29 @@ interface Message {
     </div>
   `
 })
-export class MessageListComponent {
+export class MessageListComponent implements AfterViewChecked {
+  @ViewChild('messageContainer') messageContainer!: ElementRef<HTMLDivElement>;
+  
+  private scrollToBottomRequest = signal(false);
   protected appStore = inject(AppStore);
   
-  // Mock messages for demonstration
-  messages = signal<Message[]>([
-    {
-      id: '1',
-      content: 'Hello! How can I help you with your project today?',
+  private getWelcomeMessage(): ChatMessage[] {
+    return [{
+      id: 'welcome',
+      content: 'Hello! I\'m Amazon Q, your AI coding assistant. How can I help you with your project today?',
       sender: 'assistant',
-      timestamp: new Date(Date.now() - 300000) // 5 minutes ago
-    },
-    {
-      id: '2',
-      content: 'I need help setting up a new feature for my application.',
-      sender: 'user',
-      timestamp: new Date(Date.now() - 240000) // 4 minutes ago
-    },
-    {
-      id: '3',
-      content: 'I\'d be happy to help you with that! Could you tell me more details about the feature you want to implement?',
-      sender: 'assistant',
-      timestamp: new Date(Date.now() - 180000) // 3 minutes ago
-    }
-  ]);
+      timestamp: new Date()
+    }];
+  }
+  
+  // Chat messages from the store
+  messages = computed(() => {
+    const currentSession = this.appStore.currentQSession();
+    if (!currentSession) return this.getWelcomeMessage();
+    
+    const sessionMessages = this.appStore.currentSessionMessages();
+    return sessionMessages.length === 0 ? this.getWelcomeMessage() : sessionMessages;
+  });
 
   formatTime(timestamp: Date): string {
     return timestamp.toLocaleTimeString([], { 
@@ -138,32 +129,70 @@ export class MessageListComponent {
     });
   }
 
-  addMessage(content: string, sender: 'user' | 'assistant'): void {
-    const newMessage: Message = {
-      id: Date.now().toString(),
+  addMessage(content: string, sender: 'user' | 'assistant'): string {
+    const currentSession = this.appStore.currentQSession();
+    const messageId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const newMessage: ChatMessage = {
+      id: messageId,
       content,
       sender,
-      timestamp: new Date()
+      timestamp: new Date(),
+      sessionId: currentSession?.sessionId
     };
     
-    this.messages.update(messages => [...messages, newMessage]);
+    this.appStore.addChatMessage(newMessage);
+    this.scrollToBottomRequest.set(true);
+    
+    return messageId;
   }
 
   addTypingIndicator(): void {
-    const typingMessage: Message = {
+    const currentSession = this.appStore.currentQSession();
+    const typingMessage: ChatMessage = {
       id: 'typing',
       content: '',
       sender: 'assistant',
       timestamp: new Date(),
-      isTyping: true
+      isTyping: true,
+      sessionId: currentSession?.sessionId
     };
     
-    this.messages.update(messages => [...messages, typingMessage]);
+    this.appStore.addChatMessage(typingMessage);
+    this.scrollToBottomRequest.set(true);
   }
 
   removeTypingIndicator(): void {
-    this.messages.update(messages => 
-      messages.filter(m => m.id !== 'typing')
-    );
+    this.appStore.removeChatMessage('typing');
+  }
+  
+  ngAfterViewChecked(): void {
+    if (this.scrollToBottomRequest()) {
+      this.scrollToBottom();
+      this.scrollToBottomRequest.set(false);
+    }
+  }
+  
+  clearMessages(): void {
+    this.appStore.clearChatMessages();
+  }
+  
+  private scrollToBottom(): void {
+    try {
+      if (this.messageContainer) {
+        const element = this.messageContainer.nativeElement;
+        element.scrollTop = element.scrollHeight;
+      }
+    } catch (err) {
+      // スクロールエラーを無視
+    }
+  }
+  
+  // メッセージが更新されたときに呼び出される
+  markForScrollUpdate(): void {
+    this.scrollToBottomRequest.set(true);
+  }
+  
+  getMessageCount(): number {
+    return this.messages().filter(m => !m.isTyping).length;
   }
 }

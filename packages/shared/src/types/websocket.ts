@@ -7,6 +7,7 @@ import type { Project, ProjectScanResult } from './project';
 // クライアント → サーバーのイベント
 export interface ClientToServerEvents {
   'q:command': (data: QCommandEvent) => void;
+  'q:message': (data: QMessageEvent) => void;
   'q:abort': (data: QAbortEvent) => void;
   'q:history': (data: { projectPath: string }) => void;
   'q:projects': () => void;
@@ -57,6 +58,11 @@ export interface QCommandEvent {
 
 export interface QAbortEvent {
   sessionId: string;
+}
+
+export interface QMessageEvent {
+  sessionId: string;
+  message: string;
 }
 
 export interface QResponseEvent {

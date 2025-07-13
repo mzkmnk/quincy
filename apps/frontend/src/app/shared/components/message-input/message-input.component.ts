@@ -1,7 +1,8 @@
-import { Component, signal, ViewChild, ElementRef, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, ViewChild, ElementRef, inject, ChangeDetectionStrategy, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppStore } from '../../../core/store/app.state';
+import { WebSocketService } from '../../../core/services/websocket.service';
 
 @Component({
   selector: 'app-message-input',
@@ -123,6 +124,10 @@ export class MessageInputComponent {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   protected appStore = inject(AppStore);
+  private websocket = inject(WebSocketService);
+  
+  // Events
+  messageSent = output<{content: string; files: File[]}>();
   
   messageText = '';
   sending = signal(false);
@@ -138,16 +143,23 @@ export class MessageInputComponent {
 
     const content = this.messageText.trim();
     const files = this.attachedFiles();
+    const currentSession = this.appStore.currentQSession();
+
+    if (!currentSession) {
+      console.error('No active session to send message to');
+      return;
+    }
 
     this.sending.set(true);
     
     try {
-      // TODO: Implement actual message sending logic
-      console.log('Sending message:', content);
-      console.log('Attached files:', files);
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Sending message to Amazon Q:', content);
+      
+      // Emit message sent event for parent component to handle
+      this.messageSent.emit({ content, files });
+      
+      // Send message to Amazon Q CLI via WebSocket
+      await this.websocket.sendQMessage(currentSession.sessionId, content);
       
       // Clear input
       this.messageText = '';
@@ -160,6 +172,7 @@ export class MessageInputComponent {
       
     } catch (error) {
       console.error('Failed to send message:', error);
+      // TODO: Show error toast to user
     } finally {
       this.sending.set(false);
     }
