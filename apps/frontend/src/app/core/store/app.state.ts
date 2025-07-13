@@ -168,6 +168,34 @@ export const AppStore = signalStore(
     },
     setChatMessages: (chatMessages: ChatMessage[]) => {
       patchState(store, { chatMessages });
+    },
+    
+    // セッション/会話切り替え用のメソッド
+    switchToHistoryView: (conversation: AmazonQConversation) => {
+      patchState(store, { 
+        currentQConversation: conversation,
+        currentQSession: null,  // アクティブセッションをクリア
+        sessionStarting: false,
+        sessionError: null
+      });
+    },
+    
+    switchToActiveSession: (session: QSessionStartedEvent) => {
+      patchState(store, { 
+        currentQSession: session,
+        currentQConversation: null,  // 履歴表示をクリア
+        sessionStarting: false,
+        sessionError: null
+      });
+    },
+    
+    clearCurrentView: () => {
+      patchState(store, { 
+        currentQSession: null,
+        currentQConversation: null,
+        sessionStarting: false,
+        sessionError: null
+      });
     }
   }))
 );

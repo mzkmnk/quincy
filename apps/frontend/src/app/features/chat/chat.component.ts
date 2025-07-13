@@ -306,7 +306,18 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (conversation) {
       const projectPath = this.getProjectPathFromConversation();
       if (projectPath) {
+        // セッション開始状態に切り替え
+        this.appStore.clearCurrentView();
+        this.appStore.setSessionStarting(true);
+        
+        // Resume sessionリクエストを送信
         this.websocket.resumeSession(projectPath, conversation.conversation_id);
+        
+        // セッション開始リスナーを設定（LayoutComponentと同様）
+        this.websocket.setupProjectSessionListeners((data) => {
+          console.log('Amazon Q session resumed:', data);
+          this.appStore.switchToActiveSession(data);
+        });
       }
     }
   }

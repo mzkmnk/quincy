@@ -127,7 +127,10 @@ export class ProjectListComponent implements OnInit, OnDestroy {
       // q:history:data イベント（個別履歴）
       (data) => {
         console.log('📋 Received history data:', data);
-        this.appStore.setCurrentQConversation(data.conversation);
+        if (data.conversation) {
+          // 履歴表示モードに切り替え
+          this.appStore.switchToHistoryView(data.conversation);
+        }
       },
       // q:history:list イベント（プロジェクト一覧）
       (data) => {
@@ -135,6 +138,12 @@ export class ProjectListComponent implements OnInit, OnDestroy {
         this.appStore.setAmazonQHistory(data.projects);
       }
     );
+
+    // 履歴更新通知を受信
+    this.webSocketService.on('q:history:updated', () => {
+      console.log('📋 History updated, refreshing history list...');
+      this.requestHistoryWithRetry();
+    });
 
     // エラーハンドリングの追加
     this.webSocketService.on('error', (error: any) => {
@@ -196,8 +205,13 @@ export class ProjectListComponent implements OnInit, OnDestroy {
 
   selectQProject(project: ConversationMetadata): void {
     console.log('Selected Amazon Q project:', project);
+    
+    // 現在のアクティブセッションをクリア（重要！）
+    this.appStore.clearCurrentView();
+    
     // プロジェクトの履歴を取得
     this.webSocketService.getProjectHistory(project.projectPath);
+    
     // チャットページに移動
     this.router.navigate(['/chat']);
   }
