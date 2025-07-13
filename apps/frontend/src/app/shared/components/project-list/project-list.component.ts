@@ -35,27 +35,9 @@ import { ConversationMetadata } from '@quincy/shared';
               >
                 @if (!collapsed()) {
                   <div class="p-3">
-                    <div class="flex items-center justify-between">
-                      <div class="flex-1 min-w-0">
-                        <h4 class="text-sm font-medium text-gray-900 truncate">
-                          {{ getProjectName(project.projectPath) }}
-                        </h4>
-                        <div class="text-xs text-gray-500 mt-1">
-                          <div>💬 {{ project.messageCount }} messages</div>
-                          <div>🤖 {{ project.model }}</div>
-                        </div>
-                      </div>
-                      <div class="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          class="p-1 rounded text-gray-400 hover:text-gray-600"
-                          (click)="$event.stopPropagation(); openQProjectMenu(project)"
-                        >
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
+                    <h4 class="text-sm font-medium text-gray-900 truncate">
+                      {{ getProjectName(project.projectPath) }}
+                    </h4>
                   </div>
                 } @else {
                   <!-- Collapsed View -->
