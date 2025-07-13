@@ -34,7 +34,7 @@ import { ProjectListComponent } from '../project-list/project-list.component';
       </div>
 
       <!-- Projects List -->
-      <div class="flex-1 overflow-y-auto">
+      <div class="flex-1 min-h-0">
         <app-project-list [collapsed]="collapsed()"></app-project-list>
       </div>
 
