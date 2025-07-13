@@ -10,7 +10,7 @@ import { ConversationMetadata } from '@quincy/shared';
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col">
+    <div class="flex-1 flex-col">
       <!-- Fixed Header -->
       <div class="flex-shrink-0 p-4 pb-2" [class.p-2]="collapsed()">
         <div class="mb-3" [class.hidden]="collapsed()">
@@ -27,42 +27,44 @@ import { ConversationMetadata } from '@quincy/shared';
 
       <!-- Scrollable Content -->
       <div 
-        class="flex-1 min-h-0 overflow-y-auto px-4 pb-4" 
+        class="flex h-140 overflow-y-auto px-4 pb-4" 
         [class.px-2]="collapsed()"
         (wheel)="onWheel($event)"
       >
         @if (appStore.hasAmazonQHistory()) {
-          <div class="space-y-1">
-            @for (project of appStore.amazonQHistory(); track project.conversation_id) {
-              <div
-                class="group cursor-pointer rounded-lg transition-all duration-200 hover:bg-gray-50"
-                [class.bg-blue-50]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                (click)="selectQProject(project)"
-              >
-                @if (!collapsed()) {
-                  <div class="p-3">
-                    <h4 class="text-sm font-medium text-gray-900 truncate">
-                      {{ getProjectName(project.projectPath) }}
-                    </h4>
-                  </div>
-                } @else {
-                  <!-- Collapsed View -->
-                  <div 
-                    class="p-2 flex items-center justify-center"
-                    [title]="getProjectName(project.projectPath)"
-                  >
-                    <div 
-                      class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold"
-                      [class.bg-blue-100]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                      [class.text-blue-600]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                      [class.bg-gray-100]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
-                      [class.text-gray-600]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
-                    >
-                      {{ getProjectInitials(getProjectName(project.projectPath)) }}
+          <div class="flex flex-col w-full space-y-1">
+            @if(!collapsed()){
+              @for (project of appStore.amazonQHistory(); track project.conversation_id) {
+                <div
+                  class="group cursor-pointer rounded-lg transition-all duration-200 hover:bg-gray-50"
+                  [class.bg-blue-50]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                  (click)="selectQProject(project)"
+                >
+                  @if (!collapsed()) {
+                    <div class="p-3">
+                      <h4 class="text-sm font-medium text-gray-900 truncate">
+                        {{ getProjectName(project.projectPath) }}
+                      </h4>
                     </div>
-                  </div>
-                }
-              </div>
+                  } @else {
+                    <!-- Collapsed View -->
+                    <div 
+                      class="p-2 flex items-center justify-center"
+                      [title]="getProjectName(project.projectPath)"
+                    >
+                      <div 
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold"
+                        [class.bg-blue-100]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                        [class.text-blue-600]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                        [class.bg-gray-100]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
+                        [class.text-gray-600]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
+                      >
+                        {{ getProjectInitials(getProjectName(project.projectPath)) }}
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
             }
           </div>
         } @else if (!appStore.qHistoryLoading() && !appStore.error()) {
@@ -254,12 +256,12 @@ export class ProjectListComponent implements OnInit, OnDestroy {
   onWheel(event: WheelEvent): void {
     const element = event.target as HTMLElement;
     const container = element.closest('.overflow-y-auto');
-    
+
     if (container) {
       const { scrollTop, scrollHeight, clientHeight } = container;
       const isAtTop = scrollTop === 0;
       const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
-      
+
       // 上端で上スクロール、または下端で下スクロールの場合のみ伝播を防ぐ
       if ((isAtTop && event.deltaY < 0) || (isAtBottom && event.deltaY > 0)) {
         event.preventDefault();
