@@ -59,7 +59,7 @@ export class AmazonQCLIService extends EventEmitter {
     '/opt/homebrew/bin/q',
     process.env.HOME + '/.local/bin/q'
   ].filter(Boolean); // undefined要素を除外
-  private readonly DEFAULT_TIMEOUT = 300000; // 5分
+  private readonly DEFAULT_TIMEOUT = 0; // タイムアウト無効化（0 = 無期限）
   private readonly MAX_BUFFER_SIZE = 10 * 1024; // 10KB制限
   private readonly execAsync = promisify(exec);
   private cliPath: string | null = null;
@@ -819,15 +819,9 @@ export class AmazonQCLIService extends EventEmitter {
   }
 
   private cleanupInactiveSessions(): void {
-    const now = Date.now();
-    const INACTIVE_THRESHOLD = 30 * 60 * 1000; // 30分
-
-    for (const [sessionId, session] of this.sessions.entries()) {
-      if (now - session.lastActivity > INACTIVE_THRESHOLD) {
-        console.log(`Cleaning up inactive session: ${sessionId}`);
-        this.abortSession(sessionId, 'inactive');
-      }
-    }
+    // 時間ベースのセッション終了を無効化（ユーザー要求により）
+    // セッションは手動での終了またはプロセス終了時のみクリーンアップされます
+    console.log('⏰ Session timeout disabled - sessions will persist until manually closed');
   }
 
   /**
