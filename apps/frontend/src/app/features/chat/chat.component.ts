@@ -13,12 +13,21 @@ import { WebSocketService } from '../../core/services/websocket.service';
       <div class="border-b border-gray-200 p-4 bg-white">
         <div class="flex items-center justify-between">
           <div>
-            @if (appStore.currentQConversation()) {
+            @if (appStore.currentQSession()) {
+              <h1 class="text-xl font-semibold text-gray-900">{{ getProjectName(appStore.currentQSession()!.projectPath) }}</h1>
+              <p class="text-sm text-gray-500 mt-1">Amazon Q Session • {{ appStore.currentQSession()?.model || 'Default Model' }}</p>
+            } @else if (appStore.currentQConversation()) {
               <h1 class="text-xl font-semibold text-gray-900">{{ getProjectName(getProjectPathFromConversation()) }}</h1>
               <p class="text-sm text-gray-500 mt-1">Amazon Q Conversation • {{ appStore.currentQConversation()?.model }}</p>
+            } @else if (appStore.sessionStarting()) {
+              <h1 class="text-xl font-semibold text-gray-900">Starting Amazon Q Session...</h1>
+              <p class="text-sm text-gray-500 mt-1">Please wait while we start your session</p>
+            } @else if (appStore.sessionError()) {
+              <h1 class="text-xl font-semibold text-red-600">Session Start Failed</h1>
+              <p class="text-sm text-red-500 mt-1">Failed to start Amazon Q session</p>
             } @else {
               <h1 class="text-xl font-semibold text-gray-900">Welcome to Quincy</h1>
-              <p class="text-sm text-gray-500 mt-1">Select an Amazon Q project from the sidebar to view history</p>
+              <p class="text-sm text-gray-500 mt-1">Select an Amazon Q project from the sidebar to view history or create a new project</p>
             }
           </div>
           
@@ -40,7 +49,79 @@ import { WebSocketService } from '../../core/services/websocket.service';
 
       <!-- Chat Messages Area -->
       <div class="flex-1 overflow-y-auto">
-        @if (appStore.currentQConversation()) {
+        @if (appStore.currentQSession()) {
+          <!-- New Amazon Q Session -->
+          <div class="h-full flex items-center justify-center">
+            <div class="text-center max-w-md">
+              <div class="mb-6">
+                <svg class="w-24 h-24 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <h2 class="text-2xl font-semibold text-gray-900 mb-4">Amazon Q Session Ready</h2>
+              <p class="text-gray-500 mb-4 leading-relaxed">
+                Your Amazon Q session for <strong>{{ getProjectName(appStore.currentQSession()!.projectPath) }}</strong> has been started successfully.
+              </p>
+              <div class="text-sm text-gray-500 bg-gray-50 rounded-lg p-4">
+                <p><strong>Session ID:</strong> {{ appStore.currentQSession()?.sessionId }}</p>
+                <p><strong>Project Path:</strong> {{ appStore.currentQSession()?.projectPath }}</p>
+                @if (appStore.currentQSession()?.model) {
+                  <p><strong>Model:</strong> {{ appStore.currentQSession()?.model }}</p>
+                }
+              </div>
+            </div>
+          </div>
+        } @else if (appStore.sessionStarting()) {
+          <!-- Session Starting -->
+          <div class="h-full flex items-center justify-center">
+            <div class="text-center max-w-md">
+              <div class="mb-6">
+                <svg class="w-24 h-24 text-blue-500 mx-auto animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+              </div>
+              <h2 class="text-2xl font-semibold text-gray-900 mb-4">Starting Amazon Q Session</h2>
+              <p class="text-gray-500 mb-6 leading-relaxed">
+                Please wait while we initialize your Amazon Q session...
+              </p>
+              <div class="text-sm text-gray-400">
+                <p>🚀 Launching Amazon Q CLI</p>
+                <p>🔗 Establishing connection</p>
+                <p>📂 Setting up project workspace</p>
+              </div>
+            </div>
+          </div>
+        } @else if (appStore.sessionError()) {
+          <!-- Session Error -->
+          <div class="h-full flex items-center justify-center">
+            <div class="text-center max-w-md">
+              <div class="mb-6">
+                <svg class="w-24 h-24 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+              </div>
+              <h2 class="text-2xl font-semibold text-red-600 mb-4">Session Start Failed</h2>
+              <p class="text-gray-700 mb-6 leading-relaxed bg-red-50 border border-red-200 rounded-lg p-4">
+                {{ appStore.sessionError() }}
+              </p>
+              <div class="space-y-2 text-sm text-gray-600">
+                <p class="font-medium">💡 Troubleshooting Tips:</p>
+                <div class="text-left bg-gray-50 rounded-lg p-4">
+                  <p>1. Install Amazon Q CLI if not installed</p>
+                  <p>2. Ensure 'q' command is in your PATH</p>
+                  <p>3. Run 'q --version' in terminal to verify</p>
+                  <p>4. Restart the application after installation</p>
+                </div>
+              </div>
+              <button 
+                class="mt-6 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                (click)="clearSessionError()"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        } @else if (appStore.currentQConversation()) {
           <!-- Amazon Q Conversation History -->
           <div class="p-4 space-y-4">
             @if (appStore.qHistoryLoading()) {
@@ -172,5 +253,9 @@ export class ChatComponent implements OnInit {
     }
     // toolsが配列でない場合（念のため）
     return String(tools);
+  }
+
+  clearSessionError(): void {
+    this.appStore.setSessionError(null);
   }
 }

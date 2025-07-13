@@ -1,6 +1,6 @@
 import { Injectable, Signal, WritableSignal, signal, computed } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
-import type { ConversationMetadata, AmazonQConversation } from '@quincy/shared';
+import type { ConversationMetadata, AmazonQConversation, QProjectStartEvent, QSessionStartedEvent } from '@quincy/shared';
 
 export interface ConnectionState {
   connected: boolean;
@@ -93,6 +93,12 @@ export class WebSocketService {
     this.emit('q:resume', { projectPath, conversationId });
   }
 
+  // 新しいプロジェクトセッションを開始
+  startProjectSession(projectPath: string, resume?: boolean): void {
+    const data: QProjectStartEvent = { projectPath, resume };
+    this.emit('q:project:start', data);
+  }
+
   // Amazon Q履歴イベントリスナーのセットアップ
   setupQHistoryListeners(
     onHistoryData: (data: { projectPath: string; conversation: AmazonQConversation | null; message?: string }) => void,
@@ -106,5 +112,17 @@ export class WebSocketService {
   removeQHistoryListeners(): void {
     this.off('q:history:data');
     this.off('q:history:list');
+  }
+
+  // プロジェクトセッション開始イベントリスナーのセットアップ
+  setupProjectSessionListeners(
+    onSessionStarted: (data: QSessionStartedEvent) => void
+  ): void {
+    this.on('q:session:started', onSessionStarted);
+  }
+
+  // プロジェクトセッション開始イベントリスナーの削除
+  removeProjectSessionListeners(): void {
+    this.off('q:session:started');
   }
 }

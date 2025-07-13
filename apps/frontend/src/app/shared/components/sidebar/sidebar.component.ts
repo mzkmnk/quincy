@@ -1,8 +1,9 @@
-import { Component, input, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, inject, ChangeDetectionStrategy, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
 import { ProjectListComponent } from '../project-list/project-list.component';
+import { WebSocketService } from '../../../core/services/websocket.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -82,9 +83,14 @@ import { ProjectListComponent } from '../project-list/project-list.component';
 export class SidebarComponent {
   collapsed = input<boolean>(false);
   protected appStore = inject(AppStore);
+  private webSocketService = inject(WebSocketService);
+  private router = inject(Router);
+  
+  // モーダル表示要求を親コンポーネントに通知
+  newProjectRequested = output<void>();
 
   createNewProject(): void {
-    // TODO: Implement new project creation
-    console.log('Create new project');
+    // 親コンポーネントにモーダル表示を要求
+    this.newProjectRequested.emit();
   }
 }

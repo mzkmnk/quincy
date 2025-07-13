@@ -15,6 +15,8 @@ import type {
   RoomLeftEvent,
   QCommandEvent,
   QAbortEvent,
+  QProjectStartEvent,
+  QSessionStartedEvent,
   QHistoryDataResponse,
   QHistoryListResponse,
   AmazonQConversation,
@@ -154,6 +156,15 @@ export class WebSocketService {
         await this.handleQResume(socket, data);
       });
 
+      // Handle Amazon Q project start
+      socket.on('q:project:start', async (data: QProjectStartEvent) => {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        await this.handleQProjectStart(socket, data);
+      });
+
       // Handle ping
       socket.on('ping', () => {
         socket.emit('pong');
@@ -171,6 +182,44 @@ export class WebSocketService {
         this.sendError(socket, 'SOCKET_ERROR', 'WebSocket connection error');
       });
     });
+    
+    // グローバルエラーハンドリングを設定
+    this.setupGlobalErrorHandling();
+  }
+
+  private setupGlobalErrorHandling(): void {
+    // Socket.IOのエラー型定義
+    interface SocketIOError {
+      message?: string;
+      type?: string;
+      description?: string;
+      context?: unknown;
+      req?: unknown;
+      code?: string | number;
+    }
+
+    // グローバルエラーハンドリング
+    this.io.engine.on('connection_error', (error: SocketIOError) => {
+      console.error('❌ WebSocket connection error:', {
+        message: error.message || 'Unknown error',
+        type: error.type || 'connection_error',
+        description: error.description || 'No description',
+        context: error.context,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    // サーバーレベルのエラーハンドリング
+    // Socket.IOの型定義に'connect_error'が含まれていないため、型アサーションが必要
+    this.io.on('connect_error' as any, (error: SocketIOError) => {
+      console.error('❌ Socket.IO server error:', {
+        message: error.message || 'Unknown server error',
+        code: error.code,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    console.log('✅ Global error handling setup complete');
   }
 
 
@@ -288,13 +337,22 @@ export class WebSocketService {
     console.log(`🔌 Cleaned up connection: ${socket.id}`);
   }
 
-  private sendError(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, code: string, message: string, details?: Record<string, unknown>) {
+  private sendError(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, code: string, message: string, details?: Record<string, string | number | boolean | null>) {
     const errorData: ErrorData = {
       code,
       message,
       details
     };
-    socket.emit('error', errorData);
+    
+    // ログにエラーを記録
+    console.error(`❌ WebSocket Error [${code}] for socket ${socket.id}: ${message}`, details || '');
+    
+    // ソケットが接続されているか確認してからエラーを送信
+    if (socket.connected) {
+      socket.emit('error', errorData);
+    } else {
+      console.warn(`⚠️ Cannot send error to disconnected socket: ${socket.id}`);
+    }
   }
 
   private generateMessageId(): string {
@@ -321,6 +379,8 @@ export class WebSocketService {
     event: K, 
     data: Parameters<ServerToClientEvents[K]>[0]
   ): void {
+    // Socket.IOのBroadcastOperator型とジェネリック型の非互換性のため、型アサーションが必要
+    // これはSocket.IOライブラリの制約であり、実行時には安全
     (this.io.to(roomId) as any).emit(event, data);
   }
 
@@ -328,6 +388,8 @@ export class WebSocketService {
     event: K, 
     data: Parameters<ServerToClientEvents[K]>[0]
   ): void {
+    // Socket.IOのジェネリック型システムの制約のため、型アサーションが必要
+    // これはSocket.IOライブラリの制約であり、実行時には安全
     (this.io as any).emit(event, data);
   }
 
@@ -486,5 +548,75 @@ export class WebSocketService {
 
   public async terminateAllQSessions(): Promise<void> {
     await this.qCliService.terminateAllSessions();
+  }
+
+  private async handleQProjectStart(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QProjectStartEvent): Promise<void> {
+    try {
+      console.log(`🚀 Starting new Amazon Q CLI session for project: ${data.projectPath}`);
+
+      // Amazon Q CLIの可用性をまずチェック
+      const cliCheck = await this.qCliService.checkCLIAvailability();
+      if (!cliCheck.available) {
+        console.error(`❌ Amazon Q CLI not available: ${cliCheck.error}`);
+        this.sendError(socket, 'Q_CLI_NOT_AVAILABLE', 
+          cliCheck.error || 'Amazon Q CLI is not installed or not available in PATH. Please install Amazon Q CLI first.'
+        );
+        return;
+      }
+
+      console.log(`✅ Amazon Q CLI found at: ${cliCheck.path}`);
+
+      // Amazon Q CLIを指定されたプロジェクトパスで開始
+      const commandData: QCommandEvent = {
+        command: 'chat',
+        workingDir: data.projectPath,
+        resume: data.resume || false
+      };
+
+      const sessionId = await this.qCliService.startSession(commandData.command, {
+        workingDir: commandData.workingDir,
+        model: commandData.model,
+        resume: commandData.resume
+      });
+
+      // セッション開始の通知
+      const sessionStartedEvent: QSessionStartedEvent = {
+        sessionId,
+        projectPath: data.projectPath,
+        model: commandData.model
+      };
+
+      socket.emit('q:session:started', sessionStartedEvent);
+      socket.emit('session:created', {
+        sessionId,
+        projectId: socket.data.sessionId || 'unknown'
+      });
+
+      console.log(`✅ Amazon Q CLI session started: ${sessionId} for project: ${data.projectPath}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Failed to start Amazon Q CLI session for project ${data.projectPath}:`, error);
+      
+      // エラーの種類によって適切なエラーコードを設定
+      let errorCode = 'Q_PROJECT_START_ERROR';
+      let userMessage = `Failed to start Amazon Q CLI session: ${errorMessage}`;
+      
+      if (errorMessage.includes('ENOENT')) {
+        errorCode = 'Q_CLI_NOT_FOUND';
+        userMessage = 'Amazon Q CLI command not found. Please install Amazon Q CLI and ensure it is available in your system PATH.';
+      } else if (errorMessage.includes('EACCES')) {
+        errorCode = 'Q_CLI_PERMISSION_ERROR';
+        userMessage = 'Permission denied when trying to execute Amazon Q CLI. Please check file permissions.';
+      } else if (errorMessage.includes('spawn')) {
+        errorCode = 'Q_CLI_SPAWN_ERROR';
+        userMessage = 'Failed to start Amazon Q CLI process. Please check your installation and try again.';
+      }
+      
+      this.sendError(socket, errorCode, userMessage, {
+        originalError: errorMessage,
+        projectPath: data.projectPath,
+        cliCommand: 'q'
+      });
+    }
   }
 }
