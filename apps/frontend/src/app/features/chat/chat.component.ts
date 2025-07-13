@@ -2,12 +2,10 @@ import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { AppStore } from '../../core/store/app.state';
 import { WebSocketService } from '../../core/services/websocket.service';
-import { MessageListComponent } from '../../shared/components/message-list/message-list.component';
-import { MessageInputComponent } from '../../shared/components/message-input/message-input.component';
 
 @Component({
   selector: 'app-chat',
-  imports: [CommonModule, MessageListComponent, MessageInputComponent],
+  imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="h-full flex flex-col bg-white">
@@ -15,11 +13,12 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
       <div class="border-b border-gray-200 p-4 bg-white">
         <div class="flex items-center justify-between">
           <div>
-            @if (appStore.currentProject()) {
-              <h1 class="text-xl font-semibold text-gray-900">{{ appStore.currentProject()?.name }}</h1>
+            @if (appStore.currentQConversation()) {
+              <h1 class="text-xl font-semibold text-gray-900">{{ getProjectName(getProjectPathFromConversation()) }}</h1>
+              <p class="text-sm text-gray-500 mt-1">Amazon Q Conversation • {{ appStore.currentQConversation()?.model }}</p>
             } @else {
               <h1 class="text-xl font-semibold text-gray-900">Welcome to Quincy</h1>
-              <p class="text-sm text-gray-500 mt-1">Select a project from the sidebar to start chatting</p>
+              <p class="text-sm text-gray-500 mt-1">Select an Amazon Q project from the sidebar to view history</p>
             }
           </div>
           
@@ -41,8 +40,50 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
 
       <!-- Chat Messages Area -->
       <div class="flex-1 overflow-y-auto">
-        @if (appStore.currentProject()) {
-          <app-message-list></app-message-list>
+        @if (appStore.currentQConversation()) {
+          <!-- Amazon Q Conversation History -->
+          <div class="p-4 space-y-4">
+            @if (appStore.qHistoryLoading()) {
+              <div class="text-center py-8">
+                <div class="text-lg text-gray-600">Loading conversation history...</div>
+              </div>
+            } @else if (appStore.currentQConversation()?.transcript) {
+              @for (message of appStore.currentQConversation()!.transcript; track $index; let isEven = $even) {
+                <div class="mb-4">
+                  <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0">
+                      @if (isEven) {
+                        <!-- User Message -->
+                        <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                          </svg>
+                        </div>
+                      } @else {
+                        <!-- Amazon Q Message -->
+                        <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center">
+                          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                          </svg>
+                        </div>
+                      }
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm font-medium text-gray-900 mb-1">
+                        {{ isEven ? 'You' : 'Amazon Q' }}
+                      </div>
+                      <div class="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-3">{{ message }}</div>
+                    </div>
+                  </div>
+                </div>
+              }
+            } @else {
+              <div class="text-center text-gray-500 py-8">
+                <div class="text-lg mb-2">📭 No conversation transcript available</div>
+                <div class="text-sm">This project may not have any Amazon Q conversation history.</div>
+              </div>
+            }
+          </div>
         } @else {
           <!-- Welcome/Empty State -->
           <div class="h-full flex items-center justify-center">
@@ -52,24 +93,41 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                 </svg>
               </div>
-              <h2 class="text-2xl font-semibold text-gray-900 mb-4">Start a Conversation</h2>
+              <h2 class="text-2xl font-semibold text-gray-900 mb-4">View Amazon Q History</h2>
               <p class="text-gray-500 mb-6 leading-relaxed">
-                Welcome to Quincy! Select an existing project from the sidebar or create a new one to begin chatting with your AI assistant.
+                Select an Amazon Q project from the sidebar to view conversation history and see your past interactions with Amazon Q.
               </p>
               <div class="space-y-2 text-sm text-gray-400">
-                <p>💡 Create projects to organize your conversations</p>
-                <p>🤖 Chat with AI assistants in real-time</p>
-                <p>📁 Upload files and manage sessions</p>
+                <p>🤖 View Amazon Q conversation transcripts</p>
+                <p>📁 Browse your project history</p>
+                <p>💬 See message counts and models used</p>
               </div>
             </div>
           </div>
         }
       </div>
 
-      <!-- Chat Input Area -->
-      @if (appStore.currentProject()) {
-        <div class="border-t border-gray-200 bg-white">
-          <app-message-input></app-message-input>
+      <!-- Additional Information Panel -->
+      @if (appStore.currentQConversation()) {
+        <div class="border-t border-gray-200 bg-gray-50 p-4">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <span class="font-medium text-gray-600">Conversation ID:</span>
+              <p class="text-gray-800 font-mono text-xs truncate">{{ appStore.currentQConversation()?.conversation_id }}</p>
+            </div>
+            <div>
+              <span class="font-medium text-gray-600">Model:</span>
+              <p class="text-gray-800">{{ appStore.currentQConversation()?.model }}</p>
+            </div>
+            <div>
+              <span class="font-medium text-gray-600">Messages:</span>
+              <p class="text-gray-800">{{ appStore.currentQConversation()?.transcript?.length || 0 }}</p>
+            </div>
+            <div>
+              <span class="font-medium text-gray-600">Tools:</span>
+              <p class="text-gray-800">{{ getToolsDisplay(appStore.currentQConversation()?.tools) }}</p>
+            </div>
+          </div>
         </div>
       }
     </div>
@@ -84,5 +142,35 @@ export class ChatComponent implements OnInit {
     if (!this.websocket.connected()) {
       this.websocket.connect();
     }
+  }
+
+  getProjectPathFromConversation(): string {
+    // Amazon Q履歴からプロジェクトパスを取得
+    // 現在の実装では、currentQConversationにプロジェクトパス情報が含まれていないため、
+    // amazonQHistoryから該当するプロジェクトを検索
+    const currentConversation = this.appStore.currentQConversation();
+    if (!currentConversation) return '';
+    
+    const historyItem = this.appStore.amazonQHistory().find(
+      h => h.conversation_id === currentConversation.conversation_id
+    );
+    return historyItem?.projectPath || '';
+  }
+
+  getProjectName(projectPath: string): string {
+    if (!projectPath) return 'Unknown Project';
+    const parts = projectPath.split('/');
+    return parts[parts.length - 1] || projectPath;
+  }
+
+  getToolsDisplay(tools: string[] | undefined | null): string {
+    if (!tools) {
+      return 'None';
+    }
+    if (Array.isArray(tools)) {
+      return tools.length > 0 ? tools.join(', ') : 'None';
+    }
+    // toolsが配列でない場合（念のため）
+    return String(tools);
   }
 }
