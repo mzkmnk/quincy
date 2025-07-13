@@ -419,6 +419,12 @@ export class ChatComponent implements OnInit, OnDestroy {
       return null;
     }
     
+    // 特別なメッセージの処理
+    const lowerTrimmed = trimmed.toLowerCase();
+    if (lowerTrimmed === 'thinking' || lowerTrimmed === 'thinking...') {
+      return `🤔 Thinking...`;
+    }
+    
     // メッセージタイプに基づいてフォーマット
     switch (data.type) {
       case 'initialization':

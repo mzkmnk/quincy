@@ -31,6 +31,9 @@ export interface QProcessSession {
   // 行ベースバッファリング用
   incompleteOutputLine: string;
   incompleteErrorLine: string;
+  // 重複メッセージ防止用
+  lastInfoMessage: string;
+  lastInfoMessageTime: number;
 }
 
 export interface QProcessOptions {
@@ -316,7 +319,9 @@ export class AmazonQCLIService extends EventEmitter {
         errorBuffer: '',
         bufferFlushCount: 0,
         incompleteOutputLine: '',
-        incompleteErrorLine: ''
+        incompleteErrorLine: '',
+        lastInfoMessage: '',
+        lastInfoMessageTime: 0
       };
 
       this.sessions.set(sessionId, session);
@@ -597,6 +602,11 @@ export class AmazonQCLIService extends EventEmitter {
         }
         
         if (messageType === 'info') {
+          // 重複メッセージチェック
+          if (this.shouldSkipDuplicateInfo(session, cleanLine)) {
+            continue;
+          }
+          
           // 情報メッセージとしてq:infoイベントを発行
           const infoEvent: QInfoEvent = {
             sessionId,
@@ -880,13 +890,16 @@ export class AmazonQCLIService extends EventEmitter {
     const messageType = this.classifyStderrMessage(cleanLine);
     
     if (messageType === 'info') {
-      const infoEvent: QInfoEvent = {
-        sessionId: session.sessionId,
-        message: cleanLine,
-        type: this.getInfoMessageType(cleanLine)
-      };
-      
-      this.emit('q:info', infoEvent);
+      // 重複メッセージチェック
+      if (!this.shouldSkipDuplicateInfo(session, cleanLine)) {
+        const infoEvent: QInfoEvent = {
+          sessionId: session.sessionId,
+          message: cleanLine,
+          type: this.getInfoMessageType(cleanLine)
+        };
+        
+        this.emit('q:info', infoEvent);
+      }
     } else if (messageType === 'error') {
       const errorEvent: QErrorEvent = {
         sessionId: session.sessionId,
@@ -993,6 +1006,7 @@ export class AmazonQCLIService extends EventEmitter {
       /^\/\w+/,                                          // コマンド案内（/helpなど）
       /of \d+/,                                          // プログレス表示（"1 of 2"など）
       /\d+\.\d+\s*s$/,                                   // 時間表示（"0.26 s"など）
+      /^thinking\.?\.?\.?$/i,                            // Thinkingメッセージ
     ];
     
     if (infoPatterns.some(pattern => pattern.test(trimmed))) {
@@ -1041,7 +1055,53 @@ export class AmazonQCLIService extends EventEmitter {
       return 'progress';
     }
     
+    if (trimmed === 'thinking' || trimmed === 'thinking...') {
+      return 'progress';
+    }
+    
     return 'general';
+  }
+
+  /**
+   * 重複する情報メッセージをチェック
+   */
+  private shouldSkipDuplicateInfo(session: QProcessSession, message: string): boolean {
+    const trimmed = message.trim().toLowerCase();
+    const now = Date.now();
+    
+    // "thinking"メッセージの特別処理
+    if (trimmed === 'thinking' || trimmed === 'thinking...') {
+      // 5秒以内の同じメッセージは重複とみなす
+      if (session.lastInfoMessage === trimmed && (now - session.lastInfoMessageTime) < 5000) {
+        return true;
+      }
+      // 初回または5秒以上経過していれば表示
+      session.lastInfoMessage = trimmed;
+      session.lastInfoMessageTime = now;
+      return false;
+    }
+    
+    // その他の繰り返しやすいメッセージの処理
+    const duplicatePatterns = [
+      /^loading/,
+      /^initializing/,
+      /^connecting/,
+      /^processing/,
+      /^please wait/
+    ];
+    
+    if (duplicatePatterns.some(pattern => pattern.test(trimmed))) {
+      // 3秒以内の同じメッセージは重複とみなす
+      if (session.lastInfoMessage === trimmed && (now - session.lastInfoMessageTime) < 3000) {
+        return true;
+      }
+      session.lastInfoMessage = trimmed;
+      session.lastInfoMessageTime = now;
+      return false;
+    }
+    
+    // 通常のメッセージは重複チェックしない
+    return false;
   }
 
 
