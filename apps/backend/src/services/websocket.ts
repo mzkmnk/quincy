@@ -80,94 +80,57 @@ export class WebSocketService {
     this.io.on('connection', (socket) => {
       console.log(`🔌 New client connected: ${socket.id}`);
       
-      // Set connection timeout for authentication
-      const authTimeout = setTimeout(() => {
-        if (!socket.data.authenticated) {
-          console.log(`⏰ Authentication timeout for ${socket.id}`);
-          socket.emit('auth:failure', {
-            code: 'AUTH_TIMEOUT',
-            message: 'Authentication timeout. Please reconnect.'
-          });
-          socket.disconnect(true);
-        }
-      }, 30000); // 30 second timeout
-
-      // Handle authentication
-      socket.on('auth:request', (data: AuthenticationData) => {
-        clearTimeout(authTimeout);
-        this.handleAuthentication(socket, data);
-      });
+      // Auto-authenticate all connections (no authentication required for local development)
+      socket.data.authenticated = true;
+      const connectionInfo: ConnectionInfo = {
+        socketId: socket.id,
+        userId: 'local-user',
+        sessionId: `session_${Date.now()}`,
+        connectedAt: Date.now(),
+        authenticated: true
+      };
+      
+      this.connectedUsers.set(socket.id, connectionInfo);
+      console.log(`🔐 Auto-authenticated local user: ${socket.id}`);
 
       // Handle message sending
       socket.on('message:send', (data: MessageSendEvent) => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
         this.handleMessageSend(socket, data);
       });
 
       // Handle room joining
       socket.on('room:join', (data: RoomData) => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
         this.handleRoomJoin(socket, data);
       });
 
       // Handle room leaving
       socket.on('room:leave', (data: RoomData) => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
         this.handleRoomLeave(socket, data);
       });
 
 
       // Handle Amazon Q CLI command
       socket.on('q:command', (data: QCommandEvent) => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
         this.handleQCommand(socket, data);
       });
 
       // Handle Amazon Q CLI abort
       socket.on('q:abort', (data: QAbortEvent) => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
         this.handleQAbort(socket, data);
       });
 
       // Handle Amazon Q history requests
       socket.on('q:history', async (data: { projectPath: string }) => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
         await this.handleQHistory(socket, data);
       });
 
       // Handle Amazon Q projects history list
       socket.on('q:projects', async () => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
         await this.handleQProjects(socket);
       });
 
       // Handle Amazon Q session resume
       socket.on('q:resume', async (data: { projectPath: string; conversationId?: string }) => {
-        if (!socket.data.authenticated) {
-          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
-          return;
-        }
         await this.handleQResume(socket, data);
       });
 
@@ -190,39 +153,6 @@ export class WebSocketService {
     });
   }
 
-  private handleAuthentication(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: AuthenticationData) {
-    // Basic authentication logic - can be enhanced with JWT validation
-    // For now, we'll accept any authentication request with sessionId
-    if (data.sessionId || data.userId) {
-      const connectionInfo: ConnectionInfo = {
-        socketId: socket.id,
-        userId: data.userId,
-        sessionId: data.sessionId,
-        connectedAt: Date.now(),
-        authenticated: true
-      };
-
-      // Update socket data
-      socket.data.authenticated = true;
-      socket.data.userId = data.userId;
-      socket.data.sessionId = data.sessionId;
-
-      // Store connection info
-      this.connectedUsers.set(socket.id, connectionInfo);
-
-      // Send success response
-      socket.emit('auth:success', connectionInfo);
-      
-      console.log(`🔐 User authenticated: ${data.userId || 'anonymous'} (${socket.id})`);
-    } else {
-      const errorData: ErrorData = {
-        code: 'INVALID_AUTH',
-        message: 'Invalid authentication data. sessionId or userId required.',
-        details: { provided: Object.keys(data) }
-      };
-      socket.emit('auth:failure', errorData);
-    }
-  }
 
   private handleMessageSend(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: MessageSendEvent) {
     const messageData: MessageData = {
