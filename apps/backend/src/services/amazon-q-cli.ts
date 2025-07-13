@@ -7,6 +7,7 @@ import type {
   QCommandEvent, 
   QResponseEvent, 
   QErrorEvent, 
+  QInfoEvent,
   QCompleteEvent 
 } from '@quincy/shared';
 
@@ -27,6 +28,9 @@ export interface QProcessSession {
   errorBuffer: string;
   bufferTimeout?: NodeJS.Timeout;
   bufferFlushCount: number;
+  // 行ベースバッファリング用
+  incompleteOutputLine: string;
+  incompleteErrorLine: string;
 }
 
 export interface QProcessOptions {
@@ -310,7 +314,9 @@ export class AmazonQCLIService extends EventEmitter {
         options,
         outputBuffer: '',
         errorBuffer: '',
-        bufferFlushCount: 0
+        bufferFlushCount: 0,
+        incompleteOutputLine: '',
+        incompleteErrorLine: ''
       };
 
       this.sessions.set(sessionId, session);
@@ -520,75 +526,116 @@ export class AmazonQCLIService extends EventEmitter {
   private setupProcessHandlers(session: QProcessSession): void {
     const { sessionId, process } = session;
 
-    // 標準出力の処理（バッファリング付き）
+    // 標準出力の処理（行ベースバッファリング）
     process.stdout?.on('data', (data: Buffer) => {
       session.lastActivity = Date.now();
       const rawOutput = data.toString();
       
-      // ANSIエスケープシーケンスを除去
-      const cleanOutput = this.stripAnsiCodes(rawOutput);
+      // 前回の不完全な行と結合
+      const fullText = session.incompleteOutputLine + rawOutput;
       
-      // Amazon Q CLIの初期化メッセージや空の出力をフィルタリング
-      if (this.shouldSkipOutput(cleanOutput)) {
-        return;
+      // 行単位で分割
+      const lines = fullText.split('\n');
+      
+      // 最後の要素は不完全な行の可能性があるため、次回に回す
+      session.incompleteOutputLine = lines.pop() || '';
+      
+      // 完全な行のみを処理
+      for (const line of lines) {
+        const cleanLine = this.stripAnsiCodes(line);
+        
+        // 空の行や無意味な行をスキップ
+        if (this.shouldSkipOutput(cleanLine)) {
+          continue;
+        }
+        
+        // 直接レスポンスイベントを発行（行ベース）
+        const responseEvent: QResponseEvent = {
+          sessionId: session.sessionId,
+          data: cleanLine + '\n', // 改行を復元
+          type: 'stream'
+        };
+        
+        this.emit('q:response', responseEvent);
       }
       
-      // バッファサイズ制限チェック
-      if (session.outputBuffer.length > this.MAX_BUFFER_SIZE) {
-        // バッファが大きすぎる場合は後半を保持
-        session.outputBuffer = session.outputBuffer.slice(-this.MAX_BUFFER_SIZE / 2);
-      }
-      
-      // バッファに追加
-      session.outputBuffer += cleanOutput;
-      
-      // 既存のタイムアウトをクリア
-      if (session.bufferTimeout) {
-        clearTimeout(session.bufferTimeout);
-      }
-      
-      // 適応的タイムアウトを設定（コンテンツ長に基づく）
-      const adaptiveTimeout = this.getAdaptiveBufferTimeout(session.outputBuffer);
-      session.bufferTimeout = setTimeout(() => {
-        this.flushOutputBuffer(session);
-      }, adaptiveTimeout);
-      
-      // 改行文字がある場合は即座にフラッシュ
-      if (session.outputBuffer.includes('\n')) {
+      // 不完全な行がある場合は短時間でタイムアウト処理
+      if (session.incompleteOutputLine.trim()) {
         if (session.bufferTimeout) {
           clearTimeout(session.bufferTimeout);
-          session.bufferTimeout = undefined;
         }
-        this.flushOutputBuffer(session);
+        
+        session.bufferTimeout = setTimeout(() => {
+          this.flushIncompleteOutputLine(session);
+        }, 200); // 200ms後にフラッシュ
       }
     });
 
-    // 標準エラー出力の処理（バッファリング付き）
+    // 標準エラー出力の処理（行ベース分類付き）
     process.stderr?.on('data', (data: Buffer) => {
       session.lastActivity = Date.now();
       const rawError = data.toString();
       
-      // ANSIエスケープシーケンスを除去
-      const cleanError = this.stripAnsiCodes(rawError);
+      // 前回の不完全な行と結合
+      const fullText = session.incompleteErrorLine + rawError;
       
-      // Amazon Q CLIの初期化メッセージや空のエラーをフィルタリング
-      if (this.shouldSkipError(cleanError)) {
-        return;
+      // 行単位で分割
+      const lines = fullText.split('\n');
+      
+      // 最後の要素は不完全な行の可能性があるため、次回に回す
+      session.incompleteErrorLine = lines.pop() || '';
+      
+      // 完全な行のみを処理
+      for (const line of lines) {
+        const cleanLine = this.stripAnsiCodes(line);
+        
+        // メッセージを分類
+        const messageType = this.classifyStderrMessage(cleanLine);
+        
+        if (messageType === 'skip') {
+          continue;
+        }
+        
+        if (messageType === 'info') {
+          // 情報メッセージとしてq:infoイベントを発行
+          const infoEvent: QInfoEvent = {
+            sessionId,
+            message: cleanLine,
+            type: this.getInfoMessageType(cleanLine)
+          };
+          
+          this.emit('q:info', infoEvent);
+        } else if (messageType === 'error') {
+          // エラーメッセージとしてq:errorイベントを発行
+          const errorEvent: QErrorEvent = {
+            sessionId,
+            error: cleanLine,
+            code: 'STDERR'
+          };
+          
+          this.emit('q:error', errorEvent);
+        }
       }
       
-      // エラーはバッファせず即座に送信
-      const errorEvent: QErrorEvent = {
-        sessionId,
-        error: cleanError,
-        code: 'STDERR'
-      };
-      
-      this.emit('q:error', errorEvent);
+      // 不完全なエラー行がある場合は短時間でタイムアウト処理
+      if (session.incompleteErrorLine.trim()) {
+        setTimeout(() => {
+          this.flushIncompleteErrorLine(session);
+        }, 200); // 200ms後にフラッシュ
+      }
     });
 
     // プロセス終了の処理
     process.on('exit', (code: number | null, signal: string | null) => {
-      // 残りのバッファをフラッシュ
+      // 残りの不完全な行をフラッシュ
+      if (session.incompleteOutputLine.trim()) {
+        this.flushIncompleteOutputLine(session);
+      }
+      if (session.incompleteErrorLine.trim()) {
+        this.flushIncompleteErrorLine(session);
+      }
+      
+      // 残りのバッファをフラッシュ（後方互換性のため）
       if (session.outputBuffer.trim()) {
         this.flushOutputBuffer(session);
       }
@@ -741,30 +788,121 @@ export class AmazonQCLIService extends EventEmitter {
   private stripAnsiCodes(text: string): string {
     let cleanText = text;
     
-    // 1. ANSIエスケープシーケンスを除去
-    // より包括的なパターンでANSIコードをマッチ
-    const ansiRegex = /\x1b\[[0-9;]*[a-zA-Z]/g;
-    cleanText = cleanText.replace(ansiRegex, '');
+    // 1. 包括的なANSIエスケープシーケンスを除去
+    // ESC[ で始まる制御シーケンス（CSI）
+    cleanText = cleanText.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
     
-    // 2. スピナー文字を除去 (ユニコードスピナー)
-    const spinnerRegex = /[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]/g;
+    // ESC] で始まるOSCシーケンス（Operating System Command）
+    cleanText = cleanText.replace(/\x1b\][^\x07]*\x07/g, '');
+    cleanText = cleanText.replace(/\x1b\][^\x1b]*\x1b\\/g, '');
+    
+    // ESC( で始まる文字集合選択シーケンス
+    cleanText = cleanText.replace(/\x1b\([AB0]/g, '');
+    
+    // プライベートモード設定/リセット（DEC Private Mode）
+    cleanText = cleanText.replace(/\x1b\[\?[0-9]+[hl]/g, '');
+    
+    // 8ビット制御文字（C1 control characters）
+    cleanText = cleanText.replace(/[\x80-\x9F]/g, '');
+    
+    // その他のエスケープシーケンス
+    cleanText = cleanText.replace(/\x1b[NOPVWXYZ\\^_]/g, '');
+    cleanText = cleanText.replace(/\x1b[#()*/+-]/g, '');
+    
+    // 2. スピナー文字を除去（より包括的）
+    const spinnerRegex = /[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏⠿⠾⠽⠻⠺⠯⠟⠞⠜⠛⠚⠉⠈⠁]/g;
     cleanText = cleanText.replace(spinnerRegex, '');
     
-    // 3. カーソル制御文字を除去
-    const cursorRegex = /\x1b\[\?25[lh]/g;
-    cleanText = cleanText.replace(cursorRegex, '');
+    // 3. プログレスバー文字を除去
+    cleanText = cleanText.replace(/[▁▂▃▄▅▆▇█░▒▓■□▪▫▬▭▮▯―]/g, '');
     
-    // 4. バックスペースとカリッジリターンを正規化
+    // 4. その他の特殊文字
+    cleanText = cleanText.replace(/[♠♣♥♦♪♫]/g, '');
+    
+    // 5. 制御文字を除去（改行文字は除く）
+    cleanText = cleanText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+    
+    // 6. 文字列の始まりや終わりにある不完全なエスケープシーケンス
+    cleanText = cleanText.replace(/^\x1b.*?(?=[a-zA-Z0-9]|$)/g, '');
+    cleanText = cleanText.replace(/\x1b[^a-zA-Z]*$/g, '');
+    
+    // 7. 数字のみの断片（"7 8"のような）を除去
+    cleanText = cleanText.replace(/^\s*\d+\s*\d*\s*$/g, '');
+    
+    // 8. 開いた括弧のみ（"[[[" のような）を除去
+    cleanText = cleanText.replace(/^\s*[\[\{]+\s*$/g, '');
+    
+    // 9. バックスペースとカリッジリターンを正規化
     cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     
-    // 5. 余分な空白を正規化
+    // 10. 余分な空白を正規化（ただし、意味のある構造は保持）
     cleanText = cleanText.replace(/[ \t]+/g, ' ');
+    cleanText = cleanText.replace(/\n\s+\n/g, '\n\n');
+    cleanText = cleanText.replace(/^\s+|\s+$/g, '');
     
     return cleanText;
   }
 
   /**
-   * バッファされた出力をフラッシュ
+   * 不完全な出力行をフラッシュ
+   */
+  private flushIncompleteOutputLine(session: QProcessSession): void {
+    if (!session.incompleteOutputLine.trim()) {
+      return;
+    }
+    
+    const cleanLine = this.stripAnsiCodes(session.incompleteOutputLine);
+    
+    // 無意味な行はスキップ
+    if (!this.shouldSkipOutput(cleanLine)) {
+      const responseEvent: QResponseEvent = {
+        sessionId: session.sessionId,
+        data: cleanLine,
+        type: 'stream'
+      };
+      
+      this.emit('q:response', responseEvent);
+    }
+    
+    // 不完全な行をクリア
+    session.incompleteOutputLine = '';
+  }
+
+  /**
+   * 不完全なエラー行をフラッシュ
+   */
+  private flushIncompleteErrorLine(session: QProcessSession): void {
+    if (!session.incompleteErrorLine.trim()) {
+      return;
+    }
+    
+    const cleanLine = this.stripAnsiCodes(session.incompleteErrorLine);
+    const messageType = this.classifyStderrMessage(cleanLine);
+    
+    if (messageType === 'info') {
+      const infoEvent: QInfoEvent = {
+        sessionId: session.sessionId,
+        message: cleanLine,
+        type: this.getInfoMessageType(cleanLine)
+      };
+      
+      this.emit('q:info', infoEvent);
+    } else if (messageType === 'error') {
+      const errorEvent: QErrorEvent = {
+        sessionId: session.sessionId,
+        error: cleanLine,
+        code: 'STDERR'
+      };
+      
+      this.emit('q:error', errorEvent);
+    }
+    
+    // 不完全な行をクリア
+    session.incompleteErrorLine = '';
+  }
+
+  /**
+   * バッファされた出力をフラッシュ（後方互換性のため）
    */
   private flushOutputBuffer(session: QProcessSession): void {
     if (!session.outputBuffer.trim()) {
@@ -812,45 +950,99 @@ export class AmazonQCLIService extends EventEmitter {
   }
 
   /**
-   * エラーをスキップすべきか判定
+   * メッセージが情報メッセージかエラーメッセージかを分類
    */
-  private shouldSkipError(error: string): boolean {
-    const trimmed = error.trim();
+  private classifyStderrMessage(message: string): 'info' | 'error' | 'skip' {
+    const trimmed = message.trim();
     
-    // 空のエラー
+    // 空のメッセージ
     if (!trimmed) {
-      return true;
+      return 'skip';
     }
     
-    // Amazon Q CLIの初期化メッセージや情報メッセージをスキップ
+    // 完全にスキップすべきパターン
     const skipPatterns = [
       /^\s*$/,                                           // 空白のみ
       /^\s*[\x00-\x1f]\s*$/,                            // 制御文字のみ
-      /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]\s*$/, // スピナー文字のみ
-      /mcp servers? initialized/i,                       // MCPサーバー初期化メッセージ
-      /ctrl-c to start chatting/i,                       // チャット開始指示
-      /press.*enter.*continue/i,                         // Enterキー指示
-      /loading|initializing/i,                           // ローディングメッセージ
+      /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏⠿⠾⠽⠻⠺⠯⠟⠞⠜⠛⠚⠉⠈⠁]\s*$/, // スピナー文字のみ
+      /^\s*\d+\s*\d*\s*$/,                              // 数字のみの断片
+      /^\s*[\[\{]+\s*$/,                                // 開いた括弧のみ
+      /^\s*[m\x1b]*\s*$/,                               // エスケープ文字の残骸
     ];
     
-    return skipPatterns.some(pattern => pattern.test(trimmed));
+    if (skipPatterns.some(pattern => pattern.test(trimmed))) {
+      return 'skip';
+    }
+    
+    // 情報メッセージのパターン
+    const infoPatterns = [
+      /welcome to amazon q/i,                            // Amazon Qへようこそ
+      /✓.*loaded/i,                                      // ローディング完了メッセージ
+      /github loaded/i,                                  // GitHubローディング
+      /mcp servers? initialized/i,                       // MCPサーバー初期化
+      /ctrl[\s-]?[cj]/i,                                // キーボードショートカット案内
+      /press.*enter/i,                                   // Enterキー指示
+      /loading|initializing/i,                           // ローディング/初期化
+      /starting|started/i,                               // 開始メッセージ
+      /ready|connected/i,                                // 準備完了メッセージ
+      /you are chatting with/i,                          // チャットモード案内
+      /if you want to file an issue/i,                   // フィードバック案内
+      /.*help.*commands?/i,                              // ヘルプ案内
+      /ctrl.*new.*lines?/i,                              // ショートカット案内
+      /fuzzy search/i,                                   // 検索機能案内
+      /^\/\w+/,                                          // コマンド案内（/helpなど）
+      /of \d+/,                                          // プログレス表示（"1 of 2"など）
+      /\d+\.\d+\s*s$/,                                   // 時間表示（"0.26 s"など）
+    ];
+    
+    if (infoPatterns.some(pattern => pattern.test(trimmed))) {
+      return 'info';
+    }
+    
+    // 明確なエラーパターン
+    const errorPatterns = [
+      /error(?!.*loaded)/i,                              // Error（ただしloadedは除く）
+      /failed/i,                                         // Failed
+      /exception/i,                                      // Exception
+      /cannot|can't/i,                                   // Cannot/Can't
+      /unable to/i,                                      // Unable to
+      /permission denied/i,                              // Permission denied
+      /access denied/i,                                  // Access denied
+      /not found/i,                                      // Not found
+      /invalid/i,                                        // Invalid
+      /timeout/i,                                        // Timeout
+      /connection.*(?:refused|reset|lost)/i,             // Connection issues
+    ];
+    
+    if (errorPatterns.some(pattern => pattern.test(trimmed))) {
+      return 'error';
+    }
+    
+    // デフォルトでは情報メッセージとして扱う
+    // Amazon Q CLIは多くの情報をstderrに出力するため
+    return 'info';
   }
 
   /**
-   * 適応的バッファタイムアウトを計算
+   * 情報メッセージのタイプを決定
    */
-  private getAdaptiveBufferTimeout(buffer: string): number {
-    const baseTimeout = 100;
-    const maxTimeout = 300;
-    const contentLength = buffer.length;
+  private getInfoMessageType(message: string): 'initialization' | 'status' | 'progress' | 'general' {
+    const trimmed = message.trim().toLowerCase();
     
-    // コンテンツ長に基づいてタイムアウトを調整
-    if (contentLength > 1000) {
-      return Math.min(maxTimeout, baseTimeout * 2);
-    } else if (contentLength > 500) {
-      return baseTimeout * 1.5;
+    if (trimmed.includes('welcome') || trimmed.includes('initialized') || trimmed.includes('starting')) {
+      return 'initialization';
     }
     
-    return baseTimeout;
+    if (trimmed.includes('loaded') || trimmed.includes('ready') || trimmed.includes('connected')) {
+      return 'status';
+    }
+    
+    if (/\d+\s*of\s*\d+/.test(trimmed) || /\d+\.\d+\s*s/.test(trimmed) || trimmed.includes('progress')) {
+      return 'progress';
+    }
+    
+    return 'general';
   }
+
+
 }

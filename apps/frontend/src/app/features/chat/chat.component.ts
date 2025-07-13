@@ -349,6 +349,11 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.messageList()?.addMessage(`Error: ${data.error}`, 'assistant');
         }
       },
+      // On Q info (information messages)
+      (data) => {
+        console.log('Received Q info:', data);
+        this.handleInfoMessage(data);
+      },
       // On Q completion
       (data) => {
         console.log('Q session completed:', data);
@@ -396,6 +401,38 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
   
+  private handleInfoMessage(data: { sessionId: string; message: string; type?: string }): void {
+    // 情報メッセージを適切に表示
+    const messageContent = this.formatInfoMessage(data);
+    
+    if (messageContent) {
+      // メッセージリストに情報メッセージを追加（assistantタイプで情報として表示）
+      this.messageList()?.addMessage(messageContent, 'assistant');
+    }
+  }
+
+  private formatInfoMessage(data: { sessionId: string; message: string; type?: string }): string | null {
+    const trimmed = data.message.trim();
+    
+    // 空のメッセージはスキップ
+    if (!trimmed) {
+      return null;
+    }
+    
+    // メッセージタイプに基づいてフォーマット
+    switch (data.type) {
+      case 'initialization':
+        return `ℹ️ ${trimmed}`;
+      case 'status':
+        return `✅ ${trimmed}`;
+      case 'progress':
+        return `⏳ ${trimmed}`;
+      case 'general':
+      default:
+        return `💬 ${trimmed}`;
+    }
+  }
+
   private shouldDisplayError(error: string): boolean {
     const trimmed = error.trim();
     

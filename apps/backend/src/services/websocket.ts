@@ -15,6 +15,7 @@ import type {
   QCommandEvent,
   QAbortEvent,
   QMessageEvent,
+  QInfoEvent,
   QProjectStartEvent,
   QSessionStartedEvent,
   QHistoryDataResponse,
@@ -379,6 +380,10 @@ export class WebSocketService {
 
     this.qCliService.on('q:error', (data) => {
       this.io.emit('q:error', data);
+    });
+
+    this.qCliService.on('q:info', (data) => {
+      this.io.emit('q:info', data);
     });
 
     this.qCliService.on('q:complete', (data) => {
