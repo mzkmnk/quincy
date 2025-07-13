@@ -337,6 +337,7 @@ export class AmazonQCLIService extends EventEmitter {
       };
 
       this.sessions.set(sessionId, session);
+      console.log(`✅ Session created: ${sessionId} (Total sessions: ${this.sessions.size})`);
       this.setupProcessHandlers(session);
       
       // タイムアウト設定
@@ -385,14 +386,18 @@ export class AmazonQCLIService extends EventEmitter {
         }, 5000);
       }
 
-      this.sessions.delete(sessionId);
-      
       // 終了イベントを発行
       this.emit('session:aborted', {
         sessionId,
         reason,
         exitCode: 0 // 正常な中止として扱う
       });
+
+      // セッションを遅延削除（プロセス完全終了を待つ）
+      setTimeout(() => {
+        this.sessions.delete(sessionId);
+        console.log(`🗑️ Session ${sessionId} deleted after abort`);
+      }, 3000);
 
       return true;
     } catch (error) {
@@ -406,7 +411,13 @@ export class AmazonQCLIService extends EventEmitter {
    */
   async sendInput(sessionId: string, input: string): Promise<boolean> {
     const session = this.sessions.get(sessionId);
-    if (!session || !['starting', 'running'].includes(session.status)) {
+    if (!session) {
+      console.error(`Session ${sessionId} not found`);
+      return false;
+    }
+
+    if (!['starting', 'running'].includes(session.status)) {
+      console.error(`Session ${sessionId} is not active. Status: ${session.status}`);
       return false;
     }
 
@@ -414,9 +425,12 @@ export class AmazonQCLIService extends EventEmitter {
       if (session.process.stdin && !session.process.stdin.destroyed) {
         session.process.stdin.write(input);
         session.lastActivity = Date.now();
+        console.log(`✅ Input sent to session ${sessionId}: ${input.trim()}`);
         return true;
+      } else {
+        console.error(`Session ${sessionId} stdin is not available`);
+        return false;
       }
-      return false;
     } catch (error) {
       console.error(`Failed to send input to session ${sessionId}:`, error);
       return false;
@@ -427,9 +441,12 @@ export class AmazonQCLIService extends EventEmitter {
    * アクティブなセッション一覧を取得
    */
   getActiveSessions(): QProcessSession[] {
-    return Array.from(this.sessions.values()).filter(
+    const activeSessions = Array.from(this.sessions.values()).filter(
       session => ['starting', 'running'].includes(session.status)
     );
+    
+    console.log(`📊 Active sessions: ${activeSessions.length}/${this.sessions.size} total`);
+    return activeSessions;
   }
 
   /**
@@ -719,10 +736,13 @@ export class AmazonQCLIService extends EventEmitter {
       // セッションを即座に無効化してID衝突を防ぐ
       session.status = 'terminated';
       
+      console.log(`🔄 Session ${sessionId} marked as terminated. Exit code: ${code}, Signal: ${signal}`);
+      
       // セッションをクリーンアップ（遅延実行）
       setTimeout(() => {
         this.sessions.delete(sessionId);
-      }, 5000);
+        console.log(`🗑️ Session ${sessionId} deleted after process exit`);
+      }, 10000); // 10秒に延長
     });
 
     // プロセスエラーの処理
@@ -1242,6 +1262,8 @@ export class AmazonQCLIService extends EventEmitter {
       return; // 初期化フェーズでない場合はスキップ
     }
     
+    // 初期化中もアクティビティを更新
+    session.lastActivity = Date.now();
     session.initializationBuffer.push(message);
     
     // 初期化完了をチェック
