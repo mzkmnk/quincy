@@ -799,8 +799,8 @@ export class AmazonQCLIService extends EventEmitter {
     let cleanText = text;
     
     // 1. 包括的なANSIエスケープシーケンスを除去
-    // ESC[ で始まる制御シーケンス（CSI）
-    cleanText = cleanText.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
+    // ESC[ で始まる制御シーケンス（CSI）- より包括的なパターン
+    cleanText = cleanText.replace(/\x1b\[[0-9;:]*[a-zA-Z@]/g, '');
     
     // ESC] で始まるOSCシーケンス（Operating System Command）
     cleanText = cleanText.replace(/\x1b\][^\x07]*\x07/g, '');
@@ -836,16 +836,24 @@ export class AmazonQCLIService extends EventEmitter {
     cleanText = cleanText.replace(/^\x1b.*?(?=[a-zA-Z0-9]|$)/g, '');
     cleanText = cleanText.replace(/\x1b[^a-zA-Z]*$/g, '');
     
-    // 7. 数字のみの断片（"7 8"のような）を除去
+    // 7. ANSIカラーコードの残骸（数字の断片）を除去
+    // "787878"や"78"のような数字の並びがテキストの前に現れる場合
+    cleanText = cleanText.replace(/^[\d;]+(?=\S)/g, '');
+    
+    // 8. 数字のみの断片（"7 8"のような）を除去
     cleanText = cleanText.replace(/^\s*\d+\s*\d*\s*$/g, '');
     
-    // 8. 開いた括弧のみ（"[[[" のような）を除去
+    // 9. 開いた括弧のみ（"[[[" のような）を除去
     cleanText = cleanText.replace(/^\s*[\[\{]+\s*$/g, '');
     
-    // 9. バックスペースとカリッジリターンを正規化
+    // 10. 連続する数字の断片をテキストから除去（より積極的）
+    cleanText = cleanText.replace(/(\d{2,})\s*(?=[\u2713\u2717✓✗])/g, ''); // チェックマーク前の数字
+    cleanText = cleanText.replace(/^(\d+)\s*(\S)/g, '$2'); // 行の先頭の数字を除去
+    
+    // 11. バックスペースとカリッジリターンを正規化
     cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     
-    // 10. 余分な空白を正規化（ただし、意味のある構造は保持）
+    // 12. 余分な空白を正規化（ただし、意味のある構造は保持）
     cleanText = cleanText.replace(/[ \t]+/g, ' ');
     cleanText = cleanText.replace(/\n\s+\n/g, '\n\n');
     cleanText = cleanText.replace(/^\s+|\s+$/g, '');
