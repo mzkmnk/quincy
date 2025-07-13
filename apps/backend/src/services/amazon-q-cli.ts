@@ -22,6 +22,10 @@ export interface QProcessSession {
   cpuUsage?: number;
   command: string;
   options: QProcessOptions;
+  // レスポンスバッファリング用
+  outputBuffer: string;
+  errorBuffer: string;
+  bufferTimeout?: NodeJS.Timeout;
 }
 
 export interface QProcessOptions {
@@ -301,7 +305,9 @@ export class AmazonQCLIService extends EventEmitter {
         lastActivity: Date.now(),
         pid: childProcess.pid,
         command,
-        options
+        options,
+        outputBuffer: '',
+        errorBuffer: ''
       };
 
       this.sessions.set(sessionId, session);
@@ -511,28 +517,59 @@ export class AmazonQCLIService extends EventEmitter {
   private setupProcessHandlers(session: QProcessSession): void {
     const { sessionId, process } = session;
 
-    // 標準出力の処理
+    // 標準出力の処理（バッファリング付き）
     process.stdout?.on('data', (data: Buffer) => {
       session.lastActivity = Date.now();
-      const output = data.toString();
+      const rawOutput = data.toString();
       
-      const responseEvent: QResponseEvent = {
-        sessionId,
-        data: output,
-        type: 'stream'
-      };
+      // ANSIエスケープシーケンスを除去
+      const cleanOutput = this.stripAnsiCodes(rawOutput);
       
-      this.emit('q:response', responseEvent);
+      // 空の出力や制御文字のみの場合はスキップ
+      if (!cleanOutput.trim()) {
+        return;
+      }
+      
+      // バッファに追加
+      session.outputBuffer += cleanOutput;
+      
+      // 既存のタイムアウトをクリア
+      if (session.bufferTimeout) {
+        clearTimeout(session.bufferTimeout);
+      }
+      
+      // 新しいタイムアウトを設定（100ms後にバッファをフラッシュ）
+      session.bufferTimeout = setTimeout(() => {
+        this.flushOutputBuffer(session);
+      }, 100);
+      
+      // 改行文字がある場合は即座にフラッシュ
+      if (session.outputBuffer.includes('\n')) {
+        if (session.bufferTimeout) {
+          clearTimeout(session.bufferTimeout);
+          session.bufferTimeout = undefined;
+        }
+        this.flushOutputBuffer(session);
+      }
     });
 
-    // 標準エラー出力の処理
+    // 標準エラー出力の処理（バッファリング付き）
     process.stderr?.on('data', (data: Buffer) => {
       session.lastActivity = Date.now();
-      const error = data.toString();
+      const rawError = data.toString();
       
+      // ANSIエスケープシーケンスを除去
+      const cleanError = this.stripAnsiCodes(rawError);
+      
+      // 空のエラーや制御文字のみの場合はスキップ
+      if (!cleanError.trim()) {
+        return;
+      }
+      
+      // エラーはバッファせず即座に送信
       const errorEvent: QErrorEvent = {
         sessionId,
-        error,
+        error: cleanError,
         code: 'STDERR'
       };
       
@@ -541,6 +578,17 @@ export class AmazonQCLIService extends EventEmitter {
 
     // プロセス終了の処理
     process.on('exit', (code: number | null, signal: string | null) => {
+      // 残りのバッファをフラッシュ
+      if (session.outputBuffer.trim()) {
+        this.flushOutputBuffer(session);
+      }
+      
+      // タイムアウトをクリア
+      if (session.bufferTimeout) {
+        clearTimeout(session.bufferTimeout);
+        session.bufferTimeout = undefined;
+      }
+      
       session.status = code === 0 ? 'completed' : 'error';
       
       const completeEvent: QCompleteEvent = {
@@ -672,5 +720,41 @@ export class AmazonQCLIService extends EventEmitter {
     this.sessions.clear();
 
     console.log('AmazonQCLIService destroyed and resources cleaned up');
+  }
+
+  /**
+   * ANSIエスケープシーケンスを除去
+   */
+  private stripAnsiCodes(text: string): string {
+    // ANSIエスケープシーケンスの正規表現
+    // \x1b[ から始まり、数字、セミコロン、文字で終わるパターン
+    const ansiRegex = /\x1b\[[0-9;]*[mGKHJ]/g;
+    return text.replace(ansiRegex, '');
+  }
+
+  /**
+   * バッファされた出力をフラッシュ
+   */
+  private flushOutputBuffer(session: QProcessSession): void {
+    if (!session.outputBuffer.trim()) {
+      return;
+    }
+
+    const responseEvent: QResponseEvent = {
+      sessionId: session.sessionId,
+      data: session.outputBuffer,
+      type: 'stream'
+    };
+    
+    this.emit('q:response', responseEvent);
+    
+    // バッファをクリア
+    session.outputBuffer = '';
+    
+    // タイムアウトをクリア
+    if (session.bufferTimeout) {
+      clearTimeout(session.bufferTimeout);
+      session.bufferTimeout = undefined;
+    }
   }
 }

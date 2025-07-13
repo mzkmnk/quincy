@@ -1,4 +1,4 @@
-import { Component, inject, signal, ChangeDetectionStrategy, computed } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, computed, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppStore, ChatMessage } from '../../../core/store/app.state';
 import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.component';
@@ -89,7 +89,10 @@ import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.c
     </div>
   `
 })
-export class MessageListComponent {
+export class MessageListComponent implements AfterViewChecked {
+  @ViewChild('messageContainer') messageContainer!: ElementRef<HTMLDivElement>;
+  
+  private shouldScrollToBottom = false;
   protected appStore = inject(AppStore);
   
   private getWelcomeMessage(): ChatMessage[] {
@@ -126,10 +129,11 @@ export class MessageListComponent {
     });
   }
 
-  addMessage(content: string, sender: 'user' | 'assistant'): void {
+  addMessage(content: string, sender: 'user' | 'assistant'): string {
     const currentSession = this.appStore.currentQSession();
+    const messageId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const newMessage: ChatMessage = {
-      id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      id: messageId,
       content,
       sender,
       timestamp: new Date(),
@@ -137,9 +141,9 @@ export class MessageListComponent {
     };
     
     this.appStore.addChatMessage(newMessage);
+    this.shouldScrollToBottom = true;
     
-    // Auto-scroll to bottom after adding message
-    setTimeout(() => this.scrollToBottom(), 100);
+    return messageId;
   }
 
   addTypingIndicator(): void {
@@ -154,10 +158,18 @@ export class MessageListComponent {
     };
     
     this.appStore.addChatMessage(typingMessage);
+    this.shouldScrollToBottom = true;
   }
 
   removeTypingIndicator(): void {
     this.appStore.removeChatMessage('typing');
+  }
+  
+  ngAfterViewChecked(): void {
+    if (this.shouldScrollToBottom) {
+      this.scrollToBottom();
+      this.shouldScrollToBottom = false;
+    }
   }
   
   clearMessages(): void {
@@ -165,8 +177,19 @@ export class MessageListComponent {
   }
   
   private scrollToBottom(): void {
-    // This will be called by the parent component after view updates
-    // We could emit an event or use ViewChild to scroll
+    try {
+      if (this.messageContainer) {
+        const element = this.messageContainer.nativeElement;
+        element.scrollTop = element.scrollHeight;
+      }
+    } catch (err) {
+      // スクロールエラーを無視
+    }
+  }
+  
+  // メッセージが更新されたときに呼び出される
+  markForScrollUpdate(): void {
+    this.shouldScrollToBottom = true;
   }
   
   getMessageCount(): number {

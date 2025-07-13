@@ -242,6 +242,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   
   // Local state
   isActiveChat = signal(false);
+  streamingMessageId = signal<string | null>(null);
   
   constructor() {
     // Monitor session changes to update chat state
@@ -344,24 +345,26 @@ export class ChatComponent implements OnInit, OnDestroy {
     
     // Add typing indicator for Amazon Q response
     this.messageList()?.addTypingIndicator();
+    
+    // Clear any previous streaming message ID
+    this.streamingMessageId.set(null);
   }
   
   private setupWebSocketListeners(): void {
     // Setup chat listeners for real-time message handling
     this.websocket.setupChatListeners(
-      // On Q response
+      // On Q response (streaming)
       (data) => {
         console.log('Received Q response:', data);
-        // Remove typing indicator
-        this.messageList()?.removeTypingIndicator();
-        // Add response message to chat
-        this.messageList()?.addMessage(data.data, 'assistant');
+        this.handleStreamingResponse(data.data);
       },
       // On Q error
       (data) => {
         console.error('Received Q error:', data);
         // Remove typing indicator
         this.messageList()?.removeTypingIndicator();
+        // Clear any streaming message
+        this.streamingMessageId.set(null);
         // Add error message to chat
         this.messageList()?.addMessage(`Error: ${data.error}`, 'assistant');
       },
@@ -370,7 +373,32 @@ export class ChatComponent implements OnInit, OnDestroy {
         console.log('Q session completed:', data);
         // Remove typing indicator if present
         this.messageList()?.removeTypingIndicator();
+        // Clear streaming message ID
+        this.streamingMessageId.set(null);
       }
     );
+  }
+  
+  private handleStreamingResponse(content: string): void {
+    const currentStreamingId = this.streamingMessageId();
+    
+    if (!currentStreamingId) {
+      // 新しいストリーミングメッセージを開始
+      this.messageList()?.removeTypingIndicator();
+      const messageId = this.messageList()?.addMessage(content, 'assistant') || '';
+      this.streamingMessageId.set(messageId);
+    } else {
+      // 既存のメッセージにコンテンツを結合
+      const currentMessages = this.appStore.chatMessages();
+      const messageIndex = currentMessages.findIndex(m => m.id === currentStreamingId);
+      
+      if (messageIndex !== -1) {
+        const updatedContent = currentMessages[messageIndex].content + content;
+        this.appStore.updateChatMessage(currentStreamingId, { content: updatedContent });
+        
+        // ストリーミング更新時にスクロール更新をトリガー
+        this.messageList()?.markForScrollUpdate();
+      }
+    }
   }
 }
