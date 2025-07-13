@@ -37,6 +37,10 @@ export interface QProcessSession {
   // グローバルThinking状態管理
   isThinkingActive: boolean;
   lastThinkingTime: number;
+  // 初期化メッセージバッファリング
+  initializationBuffer: string[];
+  initializationPhase: boolean;
+  initializationTimeout?: NodeJS.Timeout;
 }
 
 export interface QProcessOptions {
@@ -326,7 +330,10 @@ export class AmazonQCLIService extends EventEmitter {
         lastInfoMessage: '',
         lastInfoMessageTime: 0,
         isThinkingActive: false,
-        lastThinkingTime: 0
+        lastThinkingTime: 0,
+        initializationBuffer: [],
+        initializationPhase: true,
+        initializationTimeout: undefined
       };
 
       this.sessions.set(sessionId, session);
@@ -616,6 +623,12 @@ export class AmazonQCLIService extends EventEmitter {
         }
         
         if (messageType === 'info') {
+          // 初期化フェーズの処理
+          if (session.initializationPhase && this.isInitializationMessage(cleanLine)) {
+            this.addToInitializationBuffer(session, cleanLine);
+            continue;
+          }
+          
           // Thinkingメッセージの特別処理
           if (this.isThinkingMessage(cleanLine)) {
             if (this.shouldSkipThinking(session)) {
@@ -659,6 +672,11 @@ export class AmazonQCLIService extends EventEmitter {
 
     // プロセス終了の処理
     process.on('exit', (code: number | null, signal: string | null) => {
+      // 残りの初期化バッファをフラッシュ
+      if (session.initializationPhase && session.initializationBuffer.length > 0) {
+        this.flushInitializationBuffer(session);
+      }
+      
       // 残りの不完全な行をフラッシュ
       if (session.incompleteOutputLine.trim()) {
         this.flushIncompleteOutputLine(session);
@@ -676,6 +694,12 @@ export class AmazonQCLIService extends EventEmitter {
       if (session.bufferTimeout) {
         clearTimeout(session.bufferTimeout);
         session.bufferTimeout = undefined;
+      }
+      
+      // 初期化タイムアウトをクリア
+      if (session.initializationTimeout) {
+        clearTimeout(session.initializationTimeout);
+        session.initializationTimeout = undefined;
       }
       
       session.status = code === 0 ? 'completed' : 'error';
@@ -934,6 +958,14 @@ export class AmazonQCLIService extends EventEmitter {
     const messageType = this.classifyStderrMessage(cleanLine);
     
     if (messageType === 'info') {
+      // 初期化フェーズの処理
+      if (session.initializationPhase && this.isInitializationMessage(cleanLine)) {
+        this.addToInitializationBuffer(session, cleanLine);
+        // 不完全な行をクリア
+        session.incompleteErrorLine = '';
+        return;
+      }
+      
       // Thinkingメッセージの特別処理
       if (this.isThinkingMessage(cleanLine)) {
         if (!this.shouldSkipThinking(session)) {
@@ -1131,6 +1163,40 @@ export class AmazonQCLIService extends EventEmitter {
   }
 
   /**
+   * 初期化メッセージかどうかを判定
+   */
+  private isInitializationMessage(message: string): boolean {
+    const trimmed = message.trim().toLowerCase();
+    
+    const initPatterns = [
+      /mcp servers? initialized/i,
+      /ctrl-c to start chatting/i,
+      /✓.*loaded in.*s$/i,
+      /welcome to amazon q/i,
+      /you can resume.*conversation/i,
+      /q chat --resume/i,
+      /\/help.*commands/i,
+      /ctrl.*new.*lines/i,
+      /ctrl.*fuzzy.*search/i,
+      /you are chatting with/i,
+      /to exit.*cli.*press/i
+    ];
+    
+    return initPatterns.some(pattern => pattern.test(trimmed));
+  }
+
+  /**
+   * 初期化フェーズが完了したかチェック
+   */
+  private isInitializationComplete(message: string): boolean {
+    const trimmed = message.trim().toLowerCase();
+    
+    // "You are chatting with" メッセージが最後の初期化メッセージ
+    return /you are chatting with/i.test(trimmed) || 
+           /to exit.*cli.*press/i.test(trimmed);
+  }
+
+  /**
    * Thinkingメッセージをスキップすべきかチェック
    */
   private shouldSkipThinking(session: QProcessSession): boolean {
@@ -1155,6 +1221,131 @@ export class AmazonQCLIService extends EventEmitter {
     setTimeout(() => {
       session.isThinkingActive = false;
     }, 10000);
+  }
+
+  /**
+   * 初期化メッセージをバッファに追加
+   */
+  private addToInitializationBuffer(session: QProcessSession, message: string): void {
+    session.initializationBuffer.push(message);
+    
+    // 初期化完了をチェック
+    if (this.isInitializationComplete(message)) {
+      // 2秒後に初期化バッファをフラッシュ（遅延メッセージを待つため）
+      if (session.initializationTimeout) {
+        clearTimeout(session.initializationTimeout);
+      }
+      
+      session.initializationTimeout = setTimeout(() => {
+        this.flushInitializationBuffer(session);
+      }, 2000);
+    } else {
+      // 通常のタイムアウト（10秒）
+      if (session.initializationTimeout) {
+        clearTimeout(session.initializationTimeout);
+      }
+      
+      session.initializationTimeout = setTimeout(() => {
+        this.flushInitializationBuffer(session);
+      }, 10000);
+    }
+  }
+
+  /**
+   * 初期化バッファをフラッシュして統合メッセージを送信
+   */
+  private flushInitializationBuffer(session: QProcessSession): void {
+    if (session.initializationBuffer.length === 0) {
+      return;
+    }
+    
+    // 初期化フェーズを終了
+    session.initializationPhase = false;
+    
+    // メッセージを整理・統合
+    const combinedMessage = this.combineInitializationMessages(session.initializationBuffer);
+    
+    // 統合メッセージを送信
+    const infoEvent: QInfoEvent = {
+      sessionId: session.sessionId,
+      message: combinedMessage,
+      type: 'initialization'
+    };
+    
+    this.emit('q:info', infoEvent);
+    
+    // バッファをクリア
+    session.initializationBuffer = [];
+    
+    // タイムアウトをクリア
+    if (session.initializationTimeout) {
+      clearTimeout(session.initializationTimeout);
+      session.initializationTimeout = undefined;
+    }
+  }
+
+  /**
+   * 初期化メッセージを統合
+   */
+  private combineInitializationMessages(messages: string[]): string {
+    const lines: string[] = [];
+    const loadedServices: string[] = [];
+    let mcpStatus = '';
+    let welcomeMessage = '';
+    let helpInfo: string[] = [];
+    
+    for (const message of messages) {
+      const trimmed = message.trim();
+      
+      if (/✓.*loaded in.*s$/i.test(trimmed)) {
+        // ロードされたサービスを抽出
+        const match = trimmed.match(/✓\s*(.+?)\s+loaded/i);
+        if (match) {
+          loadedServices.push(match[1]);
+        }
+      } else if (/mcp servers? initialized/i.test(trimmed)) {
+        // 最後のMCPステータスを保持
+        if (trimmed.includes('✓ 2 of 2') || trimmed.includes('initialized.')) {
+          mcpStatus = 'MCP servers initialized successfully';
+        }
+      } else if (/welcome to amazon q/i.test(trimmed)) {
+        welcomeMessage = trimmed;
+      } else if (/\/help|ctrl|you are chatting with|resume.*conversation/i.test(trimmed)) {
+        helpInfo.push(trimmed);
+      }
+    }
+    
+    // 統合メッセージを構築
+    if (welcomeMessage) {
+      lines.push(welcomeMessage);
+    }
+    
+    if (mcpStatus) {
+      lines.push(mcpStatus);
+    }
+    
+    if (loadedServices.length > 0) {
+      lines.push(`Loaded services: ${loadedServices.join(', ')}`);
+    }
+    
+    if (helpInfo.length > 0) {
+      lines.push(''); // 空行
+      lines.push('Available commands:');
+      helpInfo.forEach(info => {
+        if (!info.includes('You are chatting with')) {
+          lines.push(`• ${info}`);
+        }
+      });
+      
+      // "You are chatting with" メッセージは最後に
+      const modelInfo = helpInfo.find(info => info.includes('You are chatting with'));
+      if (modelInfo) {
+        lines.push('');
+        lines.push(modelInfo);
+      }
+    }
+    
+    return lines.join('\n');
   }
 
   /**
