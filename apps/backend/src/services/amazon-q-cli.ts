@@ -539,8 +539,8 @@ export class AmazonQCLIService extends EventEmitter {
         session.outputBuffer = session.outputBuffer.slice(-this.MAX_BUFFER_SIZE / 2);
       }
 
-      // バッファに追加
-      session.outputBuffer += cleanOutput;
+      // バッファに追加（単語境界を考慮）
+      this.appendToBuffer(session, cleanOutput);
 
       // 既存のタイムアウトをクリア
       if (session.bufferTimeout) {
@@ -765,10 +765,41 @@ export class AmazonQCLIService extends EventEmitter {
     // 6. バックスペースとカリッジリターンを正規化
     cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-    // 7. 余分な空白を正規化（改行文字は保持）
-    cleanText = cleanText.replace(/[^\S\n]+/g, ' ');
+    // 7. 余分な空白を正規化（改行文字は保持、より保守的に）
+    cleanText = cleanText.replace(/[ \t]+/g, ' ');
 
     return cleanText;
+  }
+
+  /**
+   * Amazon Q CLI特有のフォーマット出力かどうかを判定
+   */
+  private isAmazonQFormattedOutput(text: string): boolean {
+    const trimmed = text.trim();
+    
+    return /^>/.test(trimmed) ||                           // プロンプト出力
+           /\w{15,}\n\w{15,}/.test(text) ||               // 長い単語が改行で分割されている
+           /\w+\.\w+\b/.test(trimmed) ||                   // 単語が途中で区切られている
+           /[a-z][A-Z]/.test(trimmed.replace(/\s/g, ''));  // camelCaseが空白なしで連結
+  }
+
+  /**
+   * 単語境界を考慮してバッファに追加
+   */
+  private appendToBuffer(session: QProcessSession, output: string): void {
+    // Amazon Q CLI特有のフォーマット出力の場合は適切にスペースを挿入
+    if (this.isAmazonQFormattedOutput(output) && session.outputBuffer.length > 0) {
+      // 前のバッファの最後と新しい出力の最初を確認
+      const lastChar = session.outputBuffer.slice(-1);
+      const firstChar = output.charAt(0);
+      
+      // 適切な区切り文字を挿入
+      if (lastChar.match(/[a-z]/) && firstChar.match(/[a-zA-Z]/)) {
+        session.outputBuffer += ' '; // 単語境界にスペースを挿入
+      }
+    }
+    
+    session.outputBuffer += output;
   }
 
   /**
