@@ -10,82 +10,89 @@ import { ConversationMetadata } from '@quincy/shared';
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="p-4" [class.p-2]="collapsed()">
-      <!-- Amazon Q History Section Header -->
-      <div class="mb-3" [class.hidden]="collapsed()">
-        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Amazon Q History</h3>
-        @if (appStore.qHistoryLoading()) {
-          <div class="text-xs text-gray-500 mt-1">Loading...</div>
-        }
+    <div class="h-full flex flex-col">
+      <!-- Fixed Header -->
+      <div class="flex-shrink-0 p-4 pb-2" [class.p-2]="collapsed()">
+        <!-- Amazon Q History Section Header -->
+        <div class="mb-3" [class.hidden]="collapsed()">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Amazon Q History</h3>
+          @if (appStore.qHistoryLoading()) {
+            <div class="text-xs text-gray-500 mt-1">Loading...</div>
+          }
+        </div>
       </div>
 
-      <!-- Amazon Q History List -->
-      @if (appStore.hasAmazonQHistory()) {
-        <div class="space-y-1">
-          @for (project of appStore.amazonQHistory(); track project.conversation_id) {
-            <div
-              class="group cursor-pointer rounded-lg transition-all duration-200 hover:bg-gray-50"
-              [class.bg-purple-50]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-              [class.border-l-2]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-              [class.border-purple-500]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-              (click)="selectQProject(project)"
-            >
-              @if (!collapsed()) {
-                <div class="p-3">
-                  <div class="flex items-center justify-between">
-                    <div class="flex-1 min-w-0">
-                      <h4 class="text-sm font-medium text-gray-900 truncate">
-                        {{ getProjectName(project.projectPath) }}
-                      </h4>
-                      <div class="text-xs text-gray-500 mt-1">
-                        <div>💬 {{ project.messageCount }} messages</div>
-                        <div>🤖 {{ project.model }}</div>
+      <!-- Scrollable History List -->
+      <div class="flex-1 overflow-y-auto min-h-0">
+        <div class="px-4 pb-4" [class.px-2]="collapsed()">
+          @if (appStore.hasAmazonQHistory()) {
+            <div class="space-y-1">
+              @for (project of appStore.amazonQHistory(); track project.conversation_id) {
+                <div
+                  class="group cursor-pointer rounded-lg transition-all duration-200 hover:bg-gray-50"
+                  [class.bg-purple-50]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                  [class.border-l-2]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                  [class.border-purple-500]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                  (click)="selectQProject(project)"
+                >
+                  @if (!collapsed()) {
+                    <div class="p-3">
+                      <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                          <h4 class="text-sm font-medium text-gray-900 truncate">
+                            {{ getProjectName(project.projectPath) }}
+                          </h4>
+                          <div class="text-xs text-gray-500 mt-1">
+                            <div>💬 {{ project.messageCount }} messages</div>
+                            <div>🤖 {{ project.model }}</div>
+                          </div>
+                        </div>
+                        <div class="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            class="p-1 rounded text-gray-400 hover:text-gray-600"
+                            (click)="$event.stopPropagation(); openQProjectMenu(project)"
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <div class="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        class="p-1 rounded text-gray-400 hover:text-gray-600"
-                        (click)="$event.stopPropagation(); openQProjectMenu(project)"
+                  } @else {
+                    <!-- Collapsed View -->
+                    <div 
+                      class="p-2 flex items-center justify-center"
+                      [title]="getProjectName(project.projectPath)"
+                    >
+                      <div 
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold"
+                        [class.bg-purple-100]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                        [class.text-purple-600]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                        [class.bg-gray-100]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
+                        [class.text-gray-600]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
                       >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-                        </svg>
-                      </button>
+                        {{ getProjectInitials(getProjectName(project.projectPath)) }}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              } @else {
-                <!-- Collapsed View -->
-                <div 
-                  class="p-2 flex items-center justify-center"
-                  [title]="getProjectName(project.projectPath)"
-                >
-                  <div 
-                    class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold"
-                    [class.bg-purple-100]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                    [class.text-purple-600]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                    [class.bg-gray-100]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
-                    [class.text-gray-600]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
-                  >
-                    {{ getProjectInitials(getProjectName(project.projectPath)) }}
-                  </div>
+                  }
                 </div>
               }
             </div>
+          } @else {
+            <!-- Empty State -->
+            @if (!collapsed()) {
+              <div class="text-center py-8">
+                <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                <p class="text-sm text-gray-500">No Amazon Q history</p>
+                <p class="text-xs text-gray-400 mt-1">Start conversations with Amazon Q to see history</p>
+              </div>
+            }
           }
         </div>
-      } @else {
-        <!-- Empty State -->
-        @if (!collapsed()) {
-          <div class="text-center py-8">
-            <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-            </svg>
-            <p class="text-sm text-gray-500">No Amazon Q history</p>
-            <p class="text-xs text-gray-400 mt-1">Start conversations with Amazon Q to see history</p>
-          </div>
-        }
-      }
+      </div>
     </div>
   `
 })
