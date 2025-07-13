@@ -45,8 +45,8 @@ import { ConversationMetadata } from '@quincy/shared';
                   >
                     <div 
                       class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold"
-                      [class.bg-purple-100]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                      [class.text-purple-600]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                      [class.bg-blue-100]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                      [class.text-blue-600]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
                       [class.bg-gray-100]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
                       [class.text-gray-600]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
                     >
