@@ -566,6 +566,11 @@ export class AmazonQCLIService extends EventEmitter {
           continue;
         }
         
+        // 初期化フェーズで初期化メッセージはスキップ（stderrで処理）
+        if (session.initializationPhase && this.isInitializationMessage(cleanLine)) {
+          continue;
+        }
+        
         // 「Thinking」メッセージの特別処理
         if (this.isThinkingMessage(cleanLine)) {
           if (this.shouldSkipThinking(session)) {
@@ -922,6 +927,12 @@ export class AmazonQCLIService extends EventEmitter {
     
     // 無意味な行はスキップ
     if (!this.shouldSkipOutput(cleanLine)) {
+      // 初期化フェーズで初期化メッセージはスキップ
+      if (session.initializationPhase && this.isInitializationMessage(cleanLine)) {
+        session.incompleteOutputLine = '';
+        return;
+      }
+      
       // Thinkingメッセージの重複チェック
       if (this.isThinkingMessage(cleanLine) && this.shouldSkipThinking(session)) {
         // 不完全な行をクリア
@@ -1227,27 +1238,31 @@ export class AmazonQCLIService extends EventEmitter {
    * 初期化メッセージをバッファに追加
    */
   private addToInitializationBuffer(session: QProcessSession, message: string): void {
+    if (!session.initializationPhase) {
+      return; // 初期化フェーズでない場合はスキップ
+    }
+    
     session.initializationBuffer.push(message);
     
     // 初期化完了をチェック
     if (this.isInitializationComplete(message)) {
-      // 2秒後に初期化バッファをフラッシュ（遅延メッセージを待つため）
+      // 1秒後に初期化バッファをフラッシュ（遅延メッセージを待つため）
       if (session.initializationTimeout) {
         clearTimeout(session.initializationTimeout);
       }
       
       session.initializationTimeout = setTimeout(() => {
         this.flushInitializationBuffer(session);
-      }, 2000);
+      }, 1000);
     } else {
-      // 通常のタイムアウト（10秒）
+      // 通常のタイムアウト（5秒に短縮）
       if (session.initializationTimeout) {
         clearTimeout(session.initializationTimeout);
       }
       
       session.initializationTimeout = setTimeout(() => {
         this.flushInitializationBuffer(session);
-      }, 10000);
+      }, 5000);
     }
   }
 
@@ -1255,11 +1270,11 @@ export class AmazonQCLIService extends EventEmitter {
    * 初期化バッファをフラッシュして統合メッセージを送信
    */
   private flushInitializationBuffer(session: QProcessSession): void {
-    if (session.initializationBuffer.length === 0) {
+    if (session.initializationBuffer.length === 0 || !session.initializationPhase) {
       return;
     }
     
-    // 初期化フェーズを終了
+    // 初期化フェーズを終了（重複防止）
     session.initializationPhase = false;
     
     // メッセージを整理・統合
