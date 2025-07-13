@@ -93,7 +93,8 @@ export class AmazonQHistoryService {
         }
 
         logger.info(`Successfully retrieved ${metadata.length} conversation metadata entries`)
-        return metadata.sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
+        // プロジェクトパスでアルファベット順にソート（安定した並び替え）
+        return metadata.sort((a, b) => a.projectPath.localeCompare(b.projectPath))
       } finally {
         db.close()
       }
