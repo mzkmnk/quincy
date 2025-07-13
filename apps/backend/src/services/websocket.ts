@@ -80,21 +80,27 @@ export class WebSocketService {
     this.io.on('connection', (socket) => {
       console.log(`🔌 New client connected: ${socket.id}`);
       
-      // Auto-authenticate all connections (no authentication required for local development)
-      socket.data.authenticated = true;
+      // Auto-authenticate all connections in development mode
+      const isDevelopment = process.env.NODE_ENV !== 'production';
+      socket.data.authenticated = isDevelopment;
+      
       const connectionInfo: ConnectionInfo = {
         socketId: socket.id,
-        userId: 'local-user',
+        userId: process.env.LOCAL_USER_ID || 'local-user',
         sessionId: `session_${Date.now()}`,
         connectedAt: Date.now(),
-        authenticated: true
+        authenticated: isDevelopment
       };
       
       this.connectedUsers.set(socket.id, connectionInfo);
-      console.log(`🔐 Auto-authenticated local user: ${socket.id}`);
+      console.log(`🔐 Auto-authenticated user: ${socket.id} (mode: ${process.env.NODE_ENV || 'development'})`);
 
       // Handle message sending
       socket.on('message:send', (data: MessageSendEvent) => {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
         this.handleMessageSend(socket, data);
       });
 
@@ -111,6 +117,10 @@ export class WebSocketService {
 
       // Handle Amazon Q CLI command
       socket.on('q:command', (data: QCommandEvent) => {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
         this.handleQCommand(socket, data);
       });
 
@@ -121,16 +131,28 @@ export class WebSocketService {
 
       // Handle Amazon Q history requests
       socket.on('q:history', async (data: { projectPath: string }) => {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
         await this.handleQHistory(socket, data);
       });
 
       // Handle Amazon Q projects history list
       socket.on('q:projects', async () => {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
         await this.handleQProjects(socket);
       });
 
       // Handle Amazon Q session resume
       socket.on('q:resume', async (data: { projectPath: string; conversationId?: string }) => {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
         await this.handleQResume(socket, data);
       });
 
