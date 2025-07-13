@@ -28,9 +28,7 @@ import { ConversationMetadata } from '@quincy/shared';
             @for (project of appStore.amazonQHistory(); track project.conversation_id) {
               <div
                 class="group cursor-pointer rounded-lg transition-all duration-200 hover:bg-gray-50"
-                [class.bg-purple-50]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                [class.border-l-2]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                [class.border-purple-500]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                [class.bg-blue-50]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
                 (click)="selectQProject(project)"
               >
                 @if (!collapsed()) {
