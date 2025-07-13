@@ -1,6 +1,8 @@
 import { spawn, ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
 import { promisify } from 'util';
+import { access, stat } from 'fs/promises';
+import { resolve, normalize, isAbsolute } from 'path';
 import type { 
   QCommandEvent, 
   QResponseEvent, 
@@ -48,6 +50,79 @@ export class AmazonQCLIService extends EventEmitter {
     this.setMaxListeners(50); // EventEmitterのリスナー上限を増加
     this.setupCleanupHandlers();
     this.startResourceMonitoring();
+  }
+
+  /**
+   * プロジェクトパスの検証
+   */
+  async validateProjectPath(projectPath: string): Promise<{ valid: boolean; error?: string; normalizedPath?: string }> {
+    try {
+      console.log(`🔍 Validating project path: ${projectPath}`);
+
+      // 基本的なバリデーション
+      if (!projectPath || typeof projectPath !== 'string') {
+        return { valid: false, error: 'Project path is required and must be a string' };
+      }
+
+      const trimmedPath = projectPath.trim();
+      if (!trimmedPath) {
+        return { valid: false, error: 'Project path cannot be empty' };
+      }
+
+      // 絶対パスチェック
+      if (!isAbsolute(trimmedPath)) {
+        return { valid: false, error: 'Project path must be an absolute path' };
+      }
+
+      // パスの正規化（../ などの解決）
+      const normalizedPath = normalize(resolve(trimmedPath));
+      console.log(`📍 Normalized path: ${normalizedPath}`);
+
+      // セキュリティチェック：危険なパス
+      const dangerousPaths = [
+        '/',
+        '/etc',
+        '/bin',
+        '/usr/bin',
+        '/sbin',
+        '/usr/sbin',
+        '/var',
+        '/tmp',
+        '/System',
+        '/Applications'
+      ];
+
+      if (dangerousPaths.some(dangerous => normalizedPath === dangerous || normalizedPath.startsWith(dangerous + '/'))) {
+        return { valid: false, error: 'Access to system directories is not allowed for security reasons' };
+      }
+
+      // パストラバーサル攻撃チェック
+      if (normalizedPath.includes('..') || normalizedPath !== trimmedPath.replace(/\/+/g, '/')) {
+        return { valid: false, error: 'Invalid path: path traversal detected' };
+      }
+
+      // ディレクトリの存在確認
+      try {
+        await access(normalizedPath);
+        const stats = await stat(normalizedPath);
+        
+        if (!stats.isDirectory()) {
+          return { valid: false, error: 'Path exists but is not a directory' };
+        }
+
+        console.log(`✅ Path validation successful: ${normalizedPath}`);
+        return { valid: true, normalizedPath };
+
+      } catch (accessError) {
+        console.log(`❌ Path does not exist or is not accessible: ${normalizedPath}`);
+        return { valid: false, error: `Directory does not exist or is not accessible: ${normalizedPath}` };
+      }
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Path validation error:`, error);
+      return { valid: false, error: `Path validation failed: ${errorMessage}` };
+    }
   }
 
   /**
@@ -113,6 +188,15 @@ export class AmazonQCLIService extends EventEmitter {
     const sessionId = this.generateSessionId();
     
     try {
+      // プロジェクトパスの検証
+      const pathValidation = await this.validateProjectPath(options.workingDir);
+      if (!pathValidation.valid) {
+        throw new Error(`Invalid project path: ${pathValidation.error}`);
+      }
+
+      // 検証済みの正規化されたパスを使用
+      const validatedWorkingDir = pathValidation.normalizedPath!;
+
       // CLI可用性をチェック
       const cliCheck = await this.checkCLIAvailability();
       if (!cliCheck.available) {
@@ -121,7 +205,7 @@ export class AmazonQCLIService extends EventEmitter {
 
       const cliCommand = cliCheck.path || this.CLI_COMMAND;
       console.log(`🚀 Starting Amazon Q CLI session with command: ${cliCommand}`);
-      console.log(`📂 Working directory: ${options.workingDir}`);
+      console.log(`📂 Working directory: ${validatedWorkingDir}`);
 
       // コマンドライン引数を構築
       const args = this.buildCommandArgs(command, options);
@@ -129,7 +213,7 @@ export class AmazonQCLIService extends EventEmitter {
       
       // プロセスを起動
       const childProcess = spawn(cliCommand, args, {
-        cwd: options.workingDir,
+        cwd: validatedWorkingDir,
         stdio: ['pipe', 'pipe', 'pipe'],
         env: {
           ...process.env,
@@ -143,7 +227,7 @@ export class AmazonQCLIService extends EventEmitter {
       const session: QProcessSession = {
         sessionId,
         process: childProcess,
-        workingDir: options.workingDir,
+        workingDir: validatedWorkingDir,
         startTime: Date.now(),
         status: 'starting',
         lastActivity: Date.now(),
