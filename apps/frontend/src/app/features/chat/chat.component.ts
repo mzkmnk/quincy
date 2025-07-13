@@ -320,9 +320,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     // Add user message to chat immediately
     this.messageList()?.addMessage(event.content, 'user');
     
-    // Add typing indicator for Amazon Q response
-    this.messageList()?.addTypingIndicator();
-    
     // Clear any previous streaming message ID
     this.streamingMessageId.set(null);
   }
@@ -341,8 +338,6 @@ export class ChatComponent implements OnInit, OnDestroy {
         
         // 意味のあるエラーのみ表示
         if (this.shouldDisplayError(data.error)) {
-          // Remove typing indicator
-          this.messageList()?.removeTypingIndicator();
           // Clear any streaming message
           this.streamingMessageId.set(null);
           // Add error message to chat
@@ -357,8 +352,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       // On Q completion
       (data) => {
         console.log('Q session completed:', data);
-        // Remove typing indicator if present
-        this.messageList()?.removeTypingIndicator();
         // Clear streaming message ID
         this.streamingMessageId.set(null);
       }
@@ -370,7 +363,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     
     if (!currentStreamingId) {
       // 新しいストリーミングメッセージを開始
-      this.messageList()?.removeTypingIndicator();
       const messageId = this.messageList()?.addMessage(content, 'assistant') || '';
       this.streamingMessageId.set(messageId);
       
