@@ -12,15 +12,23 @@ websocket.get('/status', (_req: Request, res: Response) => {
       connection: 'ws://localhost:3000/socket.io/',
       events: {
         client_to_server: [
-          'auth:request',
+          'q:command',
+          'q:abort',
+          'q:history',
+          'q:projects',
+          'q:resume',
           'message:send',
           'room:join',
           'room:leave',
           'ping'
         ],
         server_to_client: [
-          'auth:success',
-          'auth:failure',
+          'q:response',
+          'q:error',
+          'q:complete',
+          'q:history:data',
+          'q:history:list',
+          'session:created',
           'message:received',
           'message:broadcast',
           'room:joined',
@@ -47,7 +55,8 @@ websocket.get('/info', (_req: Request, res: Response) => {
       transports: ['websocket', 'polling']
     },
     features: [
-      'Authentication',
+      'Amazon Q CLI Integration',
+      'History Management',
       'Message Broadcasting',
       'Room Management',
       'Error Handling',

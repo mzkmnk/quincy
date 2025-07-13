@@ -64,7 +64,6 @@ export class WebSocketService {
         socket.data = {
           authenticated: false,
           rooms: [],
-          userId: undefined,
           sessionId: undefined
         };
         
@@ -86,7 +85,6 @@ export class WebSocketService {
       
       const connectionInfo: ConnectionInfo = {
         socketId: socket.id,
-        userId: process.env.LOCAL_USER_ID || 'local-user',
         sessionId: `session_${Date.now()}`,
         connectedAt: Date.now(),
         authenticated: isDevelopment
@@ -216,7 +214,6 @@ export class WebSocketService {
 
     const joinEvent: RoomJoinedEvent = {
       roomId,
-      userId: socket.data.userId || socket.id,
       timestamp: Date.now()
     };
 
@@ -226,13 +223,13 @@ export class WebSocketService {
     // Notify other users in the room
     socket.to(roomId).emit('message:broadcast', {
       id: this.generateMessageId(),
-      content: `${socket.data.userId || 'Anonymous'} joined the room`,
+      content: `User joined the room`,
       senderId: 'system',
       timestamp: Date.now(),
       type: 'system'
     });
 
-    console.log(`🏠 User ${socket.data.userId || socket.id} joined room: ${roomId}`);
+    console.log(`🏠 Socket ${socket.id} joined room: ${roomId}`);
   }
 
   private handleRoomLeave(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: RoomData) {
@@ -251,7 +248,6 @@ export class WebSocketService {
 
     const leaveEvent: RoomLeftEvent = {
       roomId,
-      userId: socket.data.userId || socket.id,
       timestamp: Date.now()
     };
 
@@ -261,13 +257,13 @@ export class WebSocketService {
     // Notify other users in the room
     socket.to(roomId).emit('message:broadcast', {
       id: this.generateMessageId(),
-      content: `${socket.data.userId || 'Anonymous'} left the room`,
+      content: `User left the room`,
       senderId: 'system',
       timestamp: Date.now(),
       type: 'system'
     });
 
-    console.log(`🏠 User ${socket.data.userId || socket.id} left room: ${roomId}`);
+    console.log(`🏠 Socket ${socket.id} left room: ${roomId}`);
   }
 
   private handleDisconnection(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
@@ -280,7 +276,7 @@ export class WebSocketService {
       userRooms.forEach(roomId => {
         socket.to(roomId).emit('message:broadcast', {
           id: this.generateMessageId(),
-          content: `${socket.data.userId || 'Anonymous'} disconnected`,
+          content: `User disconnected`,
           senderId: 'system',
           timestamp: Date.now(),
           type: 'system'
@@ -375,7 +371,7 @@ export class WebSocketService {
         projectId: socket.data.sessionId || 'unknown'
       });
 
-      console.log(`🤖 Amazon Q CLI session started: ${sessionId} for user ${socket.data.userId}`);
+      console.log(`🤖 Amazon Q CLI session started: ${sessionId} for socket ${socket.id}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.sendError(socket, 'Q_COMMAND_ERROR', `Failed to start Amazon Q CLI: ${errorMessage}`);
@@ -387,7 +383,7 @@ export class WebSocketService {
       const success = await this.qCliService.abortSession(data.sessionId, 'user_request');
       
       if (success) {
-        console.log(`🛑 Amazon Q CLI session aborted: ${data.sessionId} by user ${socket.data.userId}`);
+        console.log(`🛑 Amazon Q CLI session aborted: ${data.sessionId} by socket ${socket.id}`);
       } else {
         this.sendError(socket, 'Q_ABORT_ERROR', `Session ${data.sessionId} not found or already terminated`);
       }

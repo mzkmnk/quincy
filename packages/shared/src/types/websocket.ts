@@ -14,7 +14,6 @@ export interface ClientToServerEvents {
   'shell:init': (data: ShellInitEvent) => void;
   'shell:input': (data: ShellInputEvent) => void;
   'shell:resize': (data: ShellResizeEvent) => void;
-  'auth:request': (data: AuthenticationData) => void;
   'message:send': (data: MessageSendEvent) => void;
   'room:join': (data: RoomData) => void;
   'room:leave': (data: RoomData) => void;
@@ -37,8 +36,6 @@ export interface ServerToClientEvents {
   'shell:output': (data: ShellOutputEvent) => void;
   'shell:exit': (data: ShellExitEvent) => void;
   'session:created': (data: SessionCreatedEvent) => void;
-  'auth:success': (data: ConnectionInfo) => void;
-  'auth:failure': (data: ErrorData) => void;
   'message:received': (data: MessageData) => void;
   'message:broadcast': (data: MessageData) => void;
   'room:joined': (data: RoomJoinedEvent) => void;
@@ -141,9 +138,7 @@ export interface SessionCreatedEvent {
 
 // 新しいWebSocket通信用の型定義
 export interface AuthenticationData {
-  token?: string;
   sessionId?: string;
-  userId?: string;
 }
 
 export interface MessageData {
@@ -169,13 +164,11 @@ export interface RoomData {
 
 export interface RoomJoinedEvent {
   roomId: string;
-  userId: string;
   timestamp: number;
 }
 
 export interface RoomLeftEvent {
   roomId: string;
-  userId: string;
   timestamp: number;
 }
 
@@ -187,7 +180,6 @@ export interface ErrorData {
 
 export interface ConnectionInfo {
   socketId: string;
-  userId?: string;
   sessionId?: string;
   connectedAt: number;
   authenticated: boolean;
@@ -195,7 +187,6 @@ export interface ConnectionInfo {
 
 // Socket.ioのSocket型用のデータ
 export interface SocketData {
-  userId?: string;
   sessionId?: string;
   authenticated: boolean;
   rooms: string[];
