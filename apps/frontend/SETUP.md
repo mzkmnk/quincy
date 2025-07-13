@@ -181,4 +181,4 @@ To complete the setup:
 2. Configure Angular Material theming
 3. Add backend API endpoints
 4. Test WebSocket connectivity
-5. Add authentication if needed
+5. Test the WebSocket connection (no authentication required)

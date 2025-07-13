@@ -18,7 +18,7 @@ open http://localhost:3000
 ## Features
 
 - **Real-time Communication**: Socket.io WebSocket server
-- **Authentication**: Session/token-based authentication
+- **Direct Access**: No authentication required for local development
 - **Room Management**: Join/leave rooms for group communication
 - **Message Broadcasting**: Send messages to all users or specific rooms
 - **Connection Management**: Auto-cleanup and reconnection support
@@ -34,25 +34,15 @@ Connect to the WebSocket server:
 const socket = io('http://localhost:3000');
 ```
 
-### Authentication
+### Direct Connection
 
-Before using other features, authenticate your connection:
+Connect and start using features immediately (no authentication required):
 
 ```javascript
-// Send authentication request
-socket.emit('auth:request', {
-  userId: 'user123',
-  sessionId: 'session456',
-  token: 'optional-jwt-token'
-});
-
-// Handle authentication response
-socket.on('auth:success', (data) => {
-  console.log('Authenticated:', data.userId);
-});
-
-socket.on('auth:failure', (error) => {
-  console.error('Authentication failed:', error.message);
+// Connection is ready to use immediately
+socket.on('connect', () => {
+  console.log('Connected to WebSocket server');
+  // Can start sending messages or joining rooms immediately
 });
 ```
 
@@ -143,4 +133,4 @@ pnpm start
 - **Port**: 3000
 - **CORS**: Enabled for `http://localhost:4200`
 - **WebSocket**: Socket.io with polling/websocket transport
-- **Authentication**: 30-second timeout
+- **Environment**: Optimized for local development
