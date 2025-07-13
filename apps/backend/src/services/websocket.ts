@@ -412,6 +412,14 @@ export class WebSocketService {
         projectId: socket.data.sessionId || 'unknown'
       });
 
+      // セッション開始の通知（フロントエンドが待っているイベント）
+      const sessionStartedEvent: QSessionStartedEvent = {
+        sessionId,
+        projectPath: data.workingDir,
+        model: data.model
+      };
+      socket.emit('q:session:started', sessionStartedEvent);
+
       console.log(`🤖 Amazon Q CLI session started: ${sessionId} for socket ${socket.id}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
