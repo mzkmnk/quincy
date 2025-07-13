@@ -337,10 +337,10 @@ export class ChatComponent implements OnInit, OnDestroy {
       },
       // On Q error
       (data) => {
-        console.error('Received Q error:', data);
-        
-        // 意味のあるエラーのみ表示
+        // 意味のあるエラーのみ表示とログ出力
         if (this.shouldDisplayError(data.error)) {
+          console.error('Received Q error:', data);
+          
           // Remove typing indicator
           this.messageList()?.removeTypingIndicator();
           // Clear any streaming message
@@ -348,6 +348,9 @@ export class ChatComponent implements OnInit, OnDestroy {
           // ANSIコードを除去してクリーンなエラーメッセージを表示
           const cleanError = this.stripAnsiCodes(data.error);
           this.messageList()?.addMessage(`Error: ${cleanError}`, 'assistant');
+        } else {
+          // 情報メッセージは詳細ログとして出力（任意）
+          console.log('Q info message (filtered):', data);
         }
       },
       // On Q completion
@@ -427,6 +430,14 @@ export class ChatComponent implements OnInit, OnDestroy {
       /analyzing|processing/i,                           // 分析・処理メッセージ
       /^\s*\d+\s+of\s+\d+\s*$/,                        // 進捗表示 (例: "1 of 2")
       /✓\s*\w+\s+loaded\s+in\s+[\d.]+\s*s/i,           // ロード完了メッセージ
+      /^\s*>.*$/,                                        // ">" で始まる出力
+      /^\s*\[.*\]\s*$/,                                 // [bracket] 形式
+      /mcp.*server.*started/i,                           // MCP サーバー開始
+      /session.*started/i,                               // セッション開始
+      /connected.*to/i,                                  // 接続メッセージ
+      /ready.*to.*chat/i,                               // チャット準備完了
+      /starting.*session/i,                              // セッション開始中
+      /waiting.*for.*response/i,                         // レスポンス待機
       /^\s*m\s*$/,                                       // 単一の'm'文字
     ];
     
