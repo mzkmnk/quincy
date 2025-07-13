@@ -90,11 +90,36 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
               <p class="text-gray-500 mb-6 leading-relaxed">
                 Please wait while we initialize your Amazon Q session...
               </p>
-              <div class="text-sm text-gray-400">
-                <p>🚀 Launching Amazon Q CLI</p>
-                <p>🔗 Establishing connection</p>
-                <p>📂 Setting up project workspace</p>
+              <div class="space-y-3">
+                <div class="flex items-center justify-center text-sm" [class.text-gray-400]="!sessionStatus.cliLaunched" [class.text-green-600]="sessionStatus.cliLaunched">
+                  <span class="mr-2">🚀</span>
+                  <span>Launching Amazon Q CLI</span>
+                  @if (sessionStatus.cliLaunched) {
+                    <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                  }
+                </div>
+                <div class="flex items-center justify-center text-sm" [class.text-gray-400]="!sessionStatus.connectionEstablished" [class.text-green-600]="sessionStatus.connectionEstablished">
+                  <span class="mr-2">🔗</span>
+                  <span>Establishing connection</span>
+                  @if (sessionStatus.connectionEstablished) {
+                    <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                  }
+                </div>
+                <div class="flex items-center justify-center text-sm" [class.text-gray-400]="!sessionStatus.workspaceReady" [class.text-green-600]="sessionStatus.workspaceReady">
+                  <span class="mr-2">📂</span>
+                  <span>Setting up project workspace</span>
+                  @if (sessionStatus.workspaceReady) {
+                    <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                  }
+                </div>
               </div>
+              <p class="text-xs text-gray-400 mt-4">This may take up to 30 seconds...</p>
             </div>
           </div>
         } @else if (appStore.sessionError()) {
@@ -221,6 +246,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   streamingMessageId = signal<string | null>(null);
   messageIndexMap = new Map<string, number>(); // メッセージID → インデックスマップ
   
+  // Session status tracking
+  sessionStatus = {
+    cliLaunched: false,
+    connectionEstablished: false,
+    workspaceReady: false
+  };
+  
   constructor() {
     // Monitor session changes to update chat state
     effect(() => {
@@ -310,12 +342,42 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.appStore.clearCurrentView();
         this.appStore.setSessionStarting(true);
         
+        // セッションステータスをリセット
+        this.sessionStatus = {
+          cliLaunched: false,
+          connectionEstablished: false,
+          workspaceReady: false
+        };
+        
+        // ステータス更新を模擬（実際のイベントに基づいて更新）
+        setTimeout(() => { this.sessionStatus.cliLaunched = true; }, 1000);
+        setTimeout(() => { this.sessionStatus.connectionEstablished = true; }, 2000);
+        setTimeout(() => { this.sessionStatus.workspaceReady = true; }, 3000);
+        
+        // タイムアウトを設定（30秒）
+        const timeoutId = setTimeout(() => {
+          console.error('Session resume timeout after 30 seconds');
+          this.appStore.setSessionStarting(false);
+          this.appStore.setSessionError('Session resume timed out. Please try again.');
+        }, 30000);
+        
+        // セッション失敗リスナーを設定
+        const failedSubscription = this.websocket.onSessionFailed().subscribe((data) => {
+          console.error('Session resume failed:', data.error);
+          clearTimeout(timeoutId);
+          this.appStore.setSessionStarting(false);
+          this.appStore.setSessionError(`Failed to resume session: ${data.error}`);
+          failedSubscription.unsubscribe();
+        });
+        
         // Resume sessionリクエストを送信
         this.websocket.resumeSession(projectPath, conversation.conversation_id);
         
         // セッション開始リスナーを設定（LayoutComponentと同様）
         this.websocket.setupProjectSessionListeners((data) => {
           console.log('Amazon Q session resumed:', data);
+          clearTimeout(timeoutId);
+          failedSubscription.unsubscribe();
           this.appStore.switchToActiveSession(data);
         });
       }

@@ -509,19 +509,27 @@ export class WebSocketService {
 
   private async handleQResume(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectPath: string; conversationId?: string }): Promise<void> {
     try {
+      console.log(`📋 Starting resume session for project: ${data.projectPath}`);
+      
       if (!this.qHistoryService.isDatabaseAvailable()) {
+        console.error('❌ Amazon Q database is not available');
         this.sendError(socket, 'Q_RESUME_UNAVAILABLE', 'Amazon Q database is not available');
+        socket.emit('q:session:failed', { error: 'Database not available' });
         return;
       }
 
       // Check if conversation exists
+      console.log('🔍 Checking conversation history...');
       const conversation = await this.qHistoryService.getProjectHistory(data.projectPath);
       if (!conversation) {
+        console.error('❌ No conversation history found');
         this.sendError(socket, 'Q_RESUME_NO_HISTORY', 'No conversation history found for this project');
+        socket.emit('q:session:failed', { error: 'No conversation history' });
         return;
       }
 
       // Start Amazon Q CLI with resume option
+      console.log('🚀 Starting Amazon Q CLI with resume option...');
       const commandData: QCommandEvent = {
         command: 'chat',
         workingDir: data.projectPath,
@@ -530,10 +538,12 @@ export class WebSocketService {
 
       await this.handleQCommand(socket, commandData);
       
-      console.log(`🔄 Amazon Q CLI session resumed for project: ${data.projectPath}`);
+      console.log(`✅ Amazon Q CLI session resumed successfully for project: ${data.projectPath}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Failed to resume session: ${errorMessage}`, error);
       this.sendError(socket, 'Q_RESUME_ERROR', `Failed to resume session: ${errorMessage}`);
+      socket.emit('q:session:failed', { error: errorMessage });
     }
   }
 

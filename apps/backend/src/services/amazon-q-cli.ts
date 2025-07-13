@@ -294,6 +294,9 @@ export class AmazonQCLIService extends EventEmitter {
       const cliCommand = cliCheck.path || this.CLI_COMMAND;
       console.log(`🚀 Starting Amazon Q CLI session with command: ${cliCommand}`);
       console.log(`📂 Working directory: ${validatedWorkingDir}`);
+      if (options.resume) {
+        console.log('🔄 Resume mode: Restoring previous conversation');
+      }
 
       // コマンドライン引数を構築
       const args = this.buildCommandArgs(command, options);
@@ -541,18 +544,14 @@ export class AmazonQCLIService extends EventEmitter {
   private buildCommandArgs(command: string, options: QProcessOptions): string[] {
     const args: string[] = [];
     
-    // モデル指定
-    if (options.model) {
-      args.push('--model', options.model);
-    }
+    // コマンドを最初に追加（例: chat）
+    args.push(...command.split(' ').filter(arg => arg.length > 0));
     
     // resume指定
     if (options.resume) {
+      console.log('📋 Resume option detected, adding --resume flag');
       args.push('--resume');
     }
-    
-    // コマンド追加
-    args.push(...command.split(' ').filter(arg => arg.length > 0));
     
     return args;
   }
@@ -763,7 +762,7 @@ export class AmazonQCLIService extends EventEmitter {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('Process start timeout'));
-      }, 10000); // 10秒でタイムアウト
+      }, 30000); // 30秒でタイムアウト
 
       process.on('spawn', () => {
         clearTimeout(timeout);
@@ -1271,14 +1270,14 @@ export class AmazonQCLIService extends EventEmitter {
         this.flushInitializationBuffer(session);
       }, 1000);
     } else {
-      // 通常のタイムアウト（5秒に短縮）
+      // 通常のタイムアウト（15秒に延長）
       if (session.initializationTimeout) {
         clearTimeout(session.initializationTimeout);
       }
       
       session.initializationTimeout = setTimeout(() => {
         this.flushInitializationBuffer(session);
-      }, 5000);
+      }, 15000); // 15秒に延長
     }
   }
 

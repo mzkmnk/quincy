@@ -34,6 +34,7 @@ export interface ServerToClientEvents {
   'q:history:list': (data: QHistoryListResponse) => void;
   'q:history:updated': () => void;  // 履歴が更新された通知
   'q:session:started': (data: QSessionStartedEvent) => void;
+  'q:session:failed': (data: { error: string }) => void;
   'project:created': (data: { project: Project }) => void;
   'project:updated': (data: { project: Project }) => void;
   'project:deleted': (data: { projectId: string }) => void;

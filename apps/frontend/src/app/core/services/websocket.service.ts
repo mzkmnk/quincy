@@ -1,5 +1,6 @@
 import { Injectable, Signal, WritableSignal, signal, computed } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
+import { Observable } from 'rxjs';
 import type { ConversationMetadata, AmazonQConversation, QProjectStartEvent, QSessionStartedEvent } from '@quincy/shared';
 
 export interface ConnectionState {
@@ -152,6 +153,20 @@ export class WebSocketService {
   // プロジェクトセッション開始イベントリスナーの削除
   removeProjectSessionListeners(): void {
     this.off('q:session:started');
+  }
+
+  // セッション失敗イベントのリスナー
+  onSessionFailed(): Observable<{ error: string }> {
+    return new Observable((subscriber) => {
+      const handler = (data: { error: string }) => {
+        subscriber.next(data);
+      };
+      this.on('q:session:failed', handler);
+      
+      return () => {
+        this.off('q:session:failed', handler);
+      };
+    });
   }
 
   // Amazon Q チャット関連のメソッド
