@@ -1,14 +1,13 @@
-import { Component, input, inject, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, input, inject, ChangeDetectionStrategy, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
 import { ProjectListComponent } from '../project-list/project-list.component';
 import { WebSocketService } from '../../../core/services/websocket.service';
-import { ProjectPathModalComponent, ProjectPathSelection } from '../project-path-modal/project-path-modal.component';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [CommonModule, RouterModule, ProjectListComponent, ProjectPathModalComponent],
+  imports: [CommonModule, RouterModule, ProjectListComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="h-full flex flex-col">
@@ -78,12 +77,6 @@ import { ProjectPathModalComponent, ProjectPathSelection } from '../project-path
           </svg>
         </a>
       </div>
-
-      <!-- Project Path Modal -->
-      <app-project-path-modal 
-        (confirmed)="onProjectPathConfirmed($event)"
-        (cancelled)="onProjectPathCancelled()"
-      />
     </div>
   `
 })
@@ -93,77 +86,11 @@ export class SidebarComponent {
   private webSocketService = inject(WebSocketService);
   private router = inject(Router);
   
-  projectPathModal = viewChild.required(ProjectPathModalComponent);
+  // モーダル表示要求を親コンポーネントに通知
+  newProjectRequested = output<void>();
 
   createNewProject(): void {
-    // モーダルを表示
-    this.projectPathModal().show();
-  }
-
-  onProjectPathConfirmed(selection: ProjectPathSelection): void {
-    console.log('Project path confirmed:', selection);
-    this.startProjectSession(selection.path, selection.resume);
-  }
-
-  onProjectPathCancelled(): void {
-    console.log('Project path selection cancelled');
-  }
-
-  private startProjectSession(projectPath: string, resume: boolean): void {
-    try {
-      console.log('Starting project session:', { projectPath, resume });
-
-      // WebSocket接続を確認
-      this.webSocketService.connect();
-
-      // セッション開始状態をセット
-      this.appStore.setSessionStarting(true);
-      this.appStore.setCurrentQConversation(null);
-      this.appStore.setSessionError(null); // エラー状態をクリア
-
-      // プロジェクトセッションを開始
-      this.webSocketService.startProjectSession(projectPath, resume);
-
-      // セッション開始の通知を受け取るリスナーを設定
-      this.webSocketService.setupProjectSessionListeners((data) => {
-        console.log('Amazon Q session started:', data);
-        
-        // セッション情報をストアに保存
-        this.appStore.setCurrentQSession(data);
-        this.appStore.setSessionStarting(false);
-        
-        // チャット画面に移動
-        this.router.navigate(['/chat']);
-      });
-
-      // エラーハンドリングのリスナーを設定
-      this.webSocketService.on('error', (error: any) => {
-        console.error('WebSocket error:', error);
-        
-        let userMessage = 'セッションの開始中にエラーが発生しました。';
-        
-        if (error.code === 'Q_CLI_NOT_AVAILABLE' || error.code === 'Q_CLI_NOT_FOUND') {
-          userMessage = 'Amazon Q CLIが見つかりません。Amazon Q CLIをインストールしてから再度お試しください。';
-        } else if (error.code === 'Q_CLI_PERMISSION_ERROR') {
-          userMessage = 'Amazon Q CLIの実行権限がありません。ファイルの権限を確認してください。';
-        } else if (error.code === 'Q_CLI_SPAWN_ERROR') {
-          userMessage = 'Amazon Q CLIプロセスの起動に失敗しました。インストールを確認してください。';
-        }
-        
-        // エラー状態をストアに保存
-        this.appStore.setSessionError(userMessage);
-        
-        // チャット画面に移動してエラーを表示
-        this.router.navigate(['/chat']);
-      });
-
-      // チャット画面に移動（ローディング状態を表示）
-      this.router.navigate(['/chat']);
-
-    } catch (error) {
-      console.error('Error starting project session:', error);
-      this.appStore.setSessionError('プロジェクトセッションの開始中にエラーが発生しました。');
-      this.router.navigate(['/chat']);
-    }
+    // 親コンポーネントにモーダル表示を要求
+    this.newProjectRequested.emit();
   }
 }
