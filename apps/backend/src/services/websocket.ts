@@ -182,6 +182,29 @@ export class WebSocketService {
         this.sendError(socket, 'SOCKET_ERROR', 'WebSocket connection error');
       });
     });
+    
+    // グローバルエラーハンドリングを設定
+    this.setupGlobalErrorHandling();
+  }
+
+  private setupGlobalErrorHandling(): void {
+    // グローバルエラーハンドリング
+    this.io.engine.on('connection_error', (error: any) => {
+      console.error('❌ WebSocket connection error:', {
+        message: error.message,
+        type: error.type,
+        description: error.description,
+        context: error.context,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    // サーバーレベルのエラーハンドリング
+    this.io.on('connect_error' as any, (error: any) => {
+      console.error('❌ Socket.IO server error:', error);
+    });
+
+    console.log('✅ Global error handling setup complete');
   }
 
 
@@ -299,13 +322,22 @@ export class WebSocketService {
     console.log(`🔌 Cleaned up connection: ${socket.id}`);
   }
 
-  private sendError(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, code: string, message: string, details?: Record<string, unknown>) {
+  private sendError(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, code: string, message: string, details?: Record<string, string | number | boolean | null>) {
     const errorData: ErrorData = {
       code,
       message,
       details
     };
-    socket.emit('error', errorData);
+    
+    // ログにエラーを記録
+    console.error(`❌ WebSocket Error [${code}] for socket ${socket.id}: ${message}`, details || '');
+    
+    // ソケットが接続されているか確認してからエラーを送信
+    if (socket.connected) {
+      socket.emit('error', errorData);
+    } else {
+      console.warn(`⚠️ Cannot send error to disconnected socket: ${socket.id}`);
+    }
   }
 
   private generateMessageId(): string {
@@ -332,6 +364,7 @@ export class WebSocketService {
     event: K, 
     data: Parameters<ServerToClientEvents[K]>[0]
   ): void {
+    // Socket.ioの型システムの制約により、型アサーションが必要
     (this.io.to(roomId) as any).emit(event, data);
   }
 
@@ -339,6 +372,7 @@ export class WebSocketService {
     event: K, 
     data: Parameters<ServerToClientEvents[K]>[0]
   ): void {
+    // Socket.ioの型システムの制約により、型アサーションが必要
     (this.io as any).emit(event, data);
   }
 

@@ -154,7 +154,7 @@ export class LayoutComponent {
       });
 
       // エラーハンドリングのリスナーを設定
-      this.webSocketService.on('error', (error: any) => {
+      this.webSocketService.on('error', (error: { code?: string; message?: string; [key: string]: unknown }) => {
         console.error('WebSocket error:', error);
         
         let userMessage = 'セッションの開始中にエラーが発生しました。';

@@ -188,7 +188,7 @@ export interface RoomLeftEvent {
 export interface ErrorData {
   code: string;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, string | number | boolean | null>;
 }
 
 export interface ConnectionInfo {

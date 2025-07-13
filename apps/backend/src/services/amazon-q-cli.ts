@@ -44,6 +44,11 @@ export class AmazonQCLIService extends EventEmitter {
   private readonly execAsync = promisify(exec);
   private cliPath: string | null = null;
   private cliChecked: boolean = false;
+  
+  // メモリリーク対策：タイマーとリスナーの管理
+  private resourceMonitorInterval?: NodeJS.Timeout;
+  private cleanupInterval?: NodeJS.Timeout;
+  private isDestroyed: boolean = false;
 
   constructor() {
     super();
@@ -128,24 +133,82 @@ export class AmazonQCLIService extends EventEmitter {
   /**
    * Amazon Q CLIの存在と可用性をチェック
    */
+  /**
+   * CLIパスが安全かどうかを検証
+   */
+  private isValidCLIPath(path: string): boolean {
+    // 空文字列や未定義をチェック
+    if (!path || typeof path !== 'string') {
+      return false;
+    }
+
+    // 許可されたパスパターンのみ実行を許可
+    const allowedPatterns = [
+      /^q$/,                                    // PATH内の'q'コマンド
+      /^\/usr\/local\/bin\/q$/,                // 標準的なインストール場所
+      /^\/opt\/homebrew\/bin\/q$/,             // Apple Silicon Mac
+      /^\/home\/[a-zA-Z0-9_-]+\/\.local\/bin\/q$/,  // ユーザーローカル
+      new RegExp(`^${process.env.HOME?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/\\.local/bin/q$`) // ホームディレクトリ
+    ].filter(Boolean);
+
+    const isAllowed = allowedPatterns.some(pattern => pattern.test(path));
+    
+    // 危険な文字列をチェック
+    const dangerousChars = [';', '&', '|', '`', '$', '(', ')', '{', '}', '[', ']', '<', '>', '"', "'"];
+    const hasDangerousChars = dangerousChars.some(char => path.includes(char));
+    
+    if (hasDangerousChars) {
+      console.warn(`🚨 Dangerous characters detected in CLI path: ${path}`);
+      return false;
+    }
+
+    return isAllowed;
+  }
+
+  /**
+   * セキュアなCLI実行
+   */
+  private async executeSecureCLI(cliPath: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
+    if (!this.isValidCLIPath(cliPath)) {
+      throw new Error(`Invalid CLI path for security reasons: ${cliPath}`);
+    }
+
+    // 引数も検証
+    const safeArgs = args.filter(arg => {
+      // 基本的な引数のみ許可
+      return typeof arg === 'string' && arg.length < 100 && !/[;|&`$()]/.test(arg);
+    });
+
+    if (safeArgs.length !== args.length) {
+      throw new Error('Invalid arguments detected for security reasons');
+    }
+
+    return this.execAsync(`"${cliPath}" ${safeArgs.join(' ')}`, { timeout: 5000 });
+  }
+
   async checkCLIAvailability(): Promise<{ available: boolean; path?: string; error?: string }> {
     if (this.cliChecked && this.cliPath) {
       return { available: true, path: this.cliPath };
     }
 
     console.log('🔍 Checking Amazon Q CLI availability...');
-    console.log(`📂 Current PATH: ${process.env.PATH}`);
+    console.log(`📂 Current PATH: ${process.env.PATH?.substring(0, 200)}...`); // PATH情報を制限
     console.log(`📍 Current working directory: ${process.cwd()}`);
 
     // 候補パスを順番にチェック
     for (const candidate of this.CLI_CANDIDATES) {
+      if (!this.isValidCLIPath(candidate)) {
+        console.log(`🚨 Skipping invalid CLI path: ${candidate}`);
+        continue;
+      }
+
       try {
         console.log(`🔍 Trying CLI candidate: ${candidate}`);
-        const { stdout, stderr } = await this.execAsync(`"${candidate}" --version`, { timeout: 5000 });
+        const { stdout, stderr } = await this.executeSecureCLI(candidate, ['--version']);
         
-        if (stdout && stdout.includes('q')) {
+        if (stdout && (stdout.includes('q') || stdout.includes('amazon') || stdout.includes('version'))) {
           console.log(`✅ Found Amazon Q CLI at: ${candidate}`);
-          console.log(`📋 Version output: ${stdout.trim()}`);
+          console.log(`📋 Version output: ${stdout.trim().substring(0, 200)}`); // 出力を制限
           this.cliPath = candidate;
           this.cliChecked = true;
           return { available: true, path: candidate };
@@ -156,16 +219,21 @@ export class AmazonQCLIService extends EventEmitter {
       }
     }
 
-    // whichコマンドで検索
+    // セキュアなwhichコマンド実行
     try {
       console.log('🔍 Trying with "which q" command...');
       const { stdout } = await this.execAsync('which q', { timeout: 5000 });
       if (stdout.trim()) {
         const path = stdout.trim();
-        console.log(`✅ Found Amazon Q CLI via which: ${path}`);
-        this.cliPath = path;
-        this.cliChecked = true;
-        return { available: true, path };
+        // whichの結果も検証
+        if (this.isValidCLIPath(path)) {
+          console.log(`✅ Found Amazon Q CLI via which: ${path}`);
+          this.cliPath = path;
+          this.cliChecked = true;
+          return { available: true, path };
+        } else {
+          console.warn(`🚨 which command returned invalid path: ${path}`);
+        }
       }
     } catch (error) {
       console.log('❌ "which q" failed:', error instanceof Error ? error.message : String(error));
@@ -388,7 +456,19 @@ export class AmazonQCLIService extends EventEmitter {
   /**
    * セッションの詳細統計を取得
    */
-  getSessionStats(sessionId: string): Record<string, any> | null {
+  getSessionStats(sessionId: string): {
+    sessionId: string;
+    pid?: number;
+    status: string;
+    runtime: number;
+    memoryUsage?: number;
+    cpuUsage?: number;
+    workingDir: string;
+    command: string;
+    startTime: number;
+    lastActivity: number;
+    isActive: boolean;
+  } | null {
     const session = this.sessions.get(sessionId);
     if (!session) {
       return null;
@@ -515,23 +595,29 @@ export class AmazonQCLIService extends EventEmitter {
   private setupCleanupHandlers(): void {
     // プロセス終了時のクリーンアップ
     const cleanup = () => {
-      this.terminateAllSessions();
+      this.destroy();
     };
 
     process.on('SIGINT', cleanup);
     process.on('SIGTERM', cleanup);
     process.on('exit', cleanup);
+    process.on('uncaughtException', cleanup);
+    process.on('unhandledRejection', cleanup);
 
     // 非アクティブセッションの定期クリーンアップ
-    setInterval(() => {
-      this.cleanupInactiveSessions();
+    this.cleanupInterval = setInterval(() => {
+      if (!this.isDestroyed) {
+        this.cleanupInactiveSessions();
+      }
     }, 60000); // 1分毎
   }
 
   private startResourceMonitoring(): void {
     // 定期的なリソース監視
-    setInterval(() => {
-      this.updateAllSessionResources();
+    this.resourceMonitorInterval = setInterval(() => {
+      if (!this.isDestroyed) {
+        this.updateAllSessionResources();
+      }
     }, 30000); // 30秒毎
   }
 
@@ -553,5 +639,38 @@ export class AmazonQCLIService extends EventEmitter {
         this.abortSession(sessionId, 'inactive');
       }
     }
+  }
+
+  /**
+   * リソースとイベントリスナーの完全な破棄
+   */
+  destroy(): void {
+    if (this.isDestroyed) {
+      return;
+    }
+
+    this.isDestroyed = true;
+
+    // すべてのアクティブセッションを終了
+    this.terminateAllSessions();
+
+    // インターバルの停止
+    if (this.resourceMonitorInterval) {
+      clearInterval(this.resourceMonitorInterval);
+      this.resourceMonitorInterval = undefined;
+    }
+
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+
+    // EventEmitterのリスナーをすべて削除
+    this.removeAllListeners();
+
+    // セッションマップをクリア
+    this.sessions.clear();
+
+    console.log('AmazonQCLIService destroyed and resources cleaned up');
   }
 }
