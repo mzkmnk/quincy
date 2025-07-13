@@ -525,8 +525,8 @@ export class AmazonQCLIService extends EventEmitter {
       // ANSIエスケープシーケンスを除去
       const cleanOutput = this.stripAnsiCodes(rawOutput);
       
-      // 空の出力や制御文字のみの場合はスキップ
-      if (!cleanOutput.trim()) {
+      // Amazon Q CLIの初期化メッセージや空の出力をフィルタリング
+      if (this.shouldSkipOutput(cleanOutput)) {
         return;
       }
       
@@ -561,8 +561,8 @@ export class AmazonQCLIService extends EventEmitter {
       // ANSIエスケープシーケンスを除去
       const cleanError = this.stripAnsiCodes(rawError);
       
-      // 空のエラーや制御文字のみの場合はスキップ
-      if (!cleanError.trim()) {
+      // Amazon Q CLIの初期化メッセージや空のエラーをフィルタリング
+      if (this.shouldSkipError(cleanError)) {
         return;
       }
       
@@ -723,13 +723,31 @@ export class AmazonQCLIService extends EventEmitter {
   }
 
   /**
-   * ANSIエスケープシーケンスを除去
+   * ANSIエスケープシーケンス、スピナー、その他の制御文字を除去
    */
   private stripAnsiCodes(text: string): string {
-    // ANSIエスケープシーケンスの正規表現
-    // \x1b[ から始まり、数字、セミコロン、文字で終わるパターン
-    const ansiRegex = /\x1b\[[0-9;]*[mGKHJ]/g;
-    return text.replace(ansiRegex, '');
+    let cleanText = text;
+    
+    // 1. ANSIエスケープシーケンスを除去
+    // より包括的なパターンでANSIコードをマッチ
+    const ansiRegex = /\x1b\[[0-9;]*[a-zA-Z]/g;
+    cleanText = cleanText.replace(ansiRegex, '');
+    
+    // 2. スピナー文字を除去 (ユニコードスピナー)
+    const spinnerRegex = /[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]/g;
+    cleanText = cleanText.replace(spinnerRegex, '');
+    
+    // 3. カーソル制御文字を除去
+    const cursorRegex = /\x1b\[\?25[lh]/g;
+    cleanText = cleanText.replace(cursorRegex, '');
+    
+    // 4. バックスペースとカリッジリターンを正規化
+    cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    
+    // 5. 余分な空白を正規化
+    cleanText = cleanText.replace(/[ \t]+/g, ' ');
+    
+    return cleanText;
   }
 
   /**
@@ -756,5 +774,52 @@ export class AmazonQCLIService extends EventEmitter {
       clearTimeout(session.bufferTimeout);
       session.bufferTimeout = undefined;
     }
+  }
+
+  /**
+   * 出力をスキップすべきか判定
+   */
+  private shouldSkipOutput(output: string): boolean {
+    const trimmed = output.trim();
+    
+    // 空の出力
+    if (!trimmed) {
+      return true;
+    }
+    
+    // Amazon Q CLIの初期化メッセージをスキップ
+    const skipPatterns = [
+      /^\s*$/,                                    // 空白のみ
+      /^\s*[\.•●]\s*$/,                      // ドットやブレットのみ
+      /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]\s*$/, // スピナー文字のみ
+      /^\s*[\x00-\x1f]\s*$/,                     // 制御文字のみ
+    ];
+    
+    return skipPatterns.some(pattern => pattern.test(trimmed));
+  }
+
+  /**
+   * エラーをスキップすべきか判定
+   */
+  private shouldSkipError(error: string): boolean {
+    const trimmed = error.trim();
+    
+    // 空のエラー
+    if (!trimmed) {
+      return true;
+    }
+    
+    // Amazon Q CLIの初期化メッセージや情報メッセージをスキップ
+    const skipPatterns = [
+      /^\s*$/,                                           // 空白のみ
+      /^\s*[\x00-\x1f]\s*$/,                            // 制御文字のみ
+      /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]\s*$/, // スピナー文字のみ
+      /mcp servers? initialized/i,                       // MCPサーバー初期化メッセージ
+      /ctrl-c to start chatting/i,                       // チャット開始指示
+      /press.*enter.*continue/i,                         // Enterキー指示
+      /loading|initializing/i,                           // ローディングメッセージ
+    ];
+    
+    return skipPatterns.some(pattern => pattern.test(trimmed));
   }
 }
