@@ -1,4 +1,4 @@
-import { Component, input, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, inject, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
@@ -17,6 +17,10 @@ import { ConversationMetadata } from '@quincy/shared';
           <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Amazon Q History</h3>
           @if (appStore.qHistoryLoading()) {
             <div class="text-xs text-gray-500 mt-1">Loading...</div>
+          } @else if (appStore.error()) {
+            <div class="text-xs text-red-500 mt-1 cursor-pointer" (click)="retryLoadHistory()" title="クリックして再試行">
+              {{ appStore.error() }} ⟲
+            </div>
           }
         </div>
       </div>
@@ -57,7 +61,7 @@ import { ConversationMetadata } from '@quincy/shared';
               </div>
             }
           </div>
-        } @else {
+        } @else if (!appStore.qHistoryLoading() && !appStore.error()) {
           <!-- Empty State -->
           @if (!collapsed()) {
             <div class="text-center py-8">
@@ -68,12 +72,29 @@ import { ConversationMetadata } from '@quincy/shared';
               <p class="text-xs text-gray-400 mt-1">Start conversations with Amazon Q to see history</p>
             </div>
           }
+        } @else if (appStore.error()) {
+          <!-- Error State -->
+          @if (!collapsed()) {
+            <div class="text-center py-8">
+              <svg class="w-12 h-12 text-red-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+              </svg>
+              <p class="text-sm text-red-600 mb-2">履歴取得エラー</p>
+              <p class="text-xs text-gray-500 mb-4">{{ appStore.error() }}</p>
+              <button 
+                class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                (click)="retryLoadHistory()"
+              >
+                再試行
+              </button>
+            </div>
+          }
         }
       </div>
     </div>
   `
 })
-export class ProjectListComponent implements OnInit {
+export class ProjectListComponent implements OnInit, OnDestroy {
   collapsed = input<boolean>(false);
   protected appStore = inject(AppStore);
   private webSocketService = inject(WebSocketService);
@@ -83,18 +104,23 @@ export class ProjectListComponent implements OnInit {
     this.loadAmazonQHistory();
   }
 
+  ngOnDestroy(): void {
+    // コンポーネント破棄時にリスナーをクリーンアップ
+    this.webSocketService.removeQHistoryListeners();
+  }
+
   private loadAmazonQHistory(): void {
     this.setupWebSocketListeners();
   }
 
   private setupWebSocketListeners(): void {
+    // リスナーの重複登録を防止
+    this.webSocketService.removeQHistoryListeners();
+    
     this.webSocketService.connect();
 
-    // WebSocket接続完了後に直接Amazon Q履歴を取得
-    this.webSocketService.on('connect', () => {
-      console.log('WebSocket connected, loading Amazon Q history...');
-      this.webSocketService.getAllProjectsHistory();
-    });
+    // 接続状態を確認して適切に履歴を取得
+    this.loadHistoryWithConnectionCheck();
 
     // Amazon Q履歴リストを受信
     this.webSocketService.setupQHistoryListeners(
@@ -109,6 +135,63 @@ export class ProjectListComponent implements OnInit {
         this.appStore.setAmazonQHistory(data.projects);
       }
     );
+
+    // エラーハンドリングの追加
+    this.webSocketService.on('error', (error: any) => {
+      console.error('❌ WebSocket error during history loading:', error);
+      this.appStore.setQHistoryLoading(false);
+      this.appStore.setError(`履歴の取得に失敗しました: ${error.message || '不明なエラー'}`);
+    });
+  }
+
+  /**
+   * 接続状態を確認して適切に履歴を取得
+   */
+  private loadHistoryWithConnectionCheck(): void {
+    // ローディング状態を開始
+    this.appStore.setQHistoryLoading(true);
+    
+    if (this.webSocketService.connected()) {
+      // 既に接続済みの場合は即座に履歴取得
+      console.log('🔌 WebSocket already connected, loading history immediately');
+      this.requestHistoryWithRetry();
+    } else {
+      // 未接続の場合は接続完了を待つ
+      console.log('🔌 WebSocket not connected, waiting for connection...');
+      this.webSocketService.on('connect', () => {
+        console.log('🔌 WebSocket connected, loading Amazon Q history...');
+        this.requestHistoryWithRetry();
+      });
+    }
+  }
+
+  /**
+   * リトライ機能付きの履歴取得
+   */
+  private async requestHistoryWithRetry(maxRetries = 3, retryDelay = 1000): Promise<void> {
+    let attempt = 0;
+    
+    while (attempt < maxRetries) {
+      try {
+        await this.webSocketService.getAllProjectsHistory();
+        console.log(`✅ History request successful on attempt ${attempt + 1}`);
+        return;
+      } catch (error) {
+        attempt++;
+        console.warn(`⚠️ History request failed (attempt ${attempt}/${maxRetries}):`, error);
+        
+        if (attempt >= maxRetries) {
+          console.error('❌ All history request attempts failed');
+          this.appStore.setQHistoryLoading(false);
+          this.appStore.setError('履歴の取得に失敗しました。ページを再読み込みしてください。');
+          return;
+        }
+        
+        // 指数バックオフで再試行
+        const delay = retryDelay * Math.pow(2, attempt - 1);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
   }
 
   selectQProject(project: ConversationMetadata): void {
@@ -136,5 +219,14 @@ export class ProjectListComponent implements OnInit {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  }
+
+  /**
+   * 履歴取得の再試行
+   */
+  retryLoadHistory(): void {
+    console.log('🔄 Retrying history load...');
+    this.appStore.clearError();
+    this.loadAmazonQHistory();
   }
 }

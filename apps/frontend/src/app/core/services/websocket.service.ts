@@ -85,8 +85,36 @@ export class WebSocketService {
     this.emit('q:history', { projectPath });
   }
 
-  getAllProjectsHistory(): void {
-    this.emit('q:projects');
+  getAllProjectsHistory(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket?.connected) {
+        reject(new Error('WebSocket not connected'));
+        return;
+      }
+
+      // タイムアウトを設定（10秒）
+      const timeout = setTimeout(() => {
+        reject(new Error('履歴取得がタイムアウトしました'));
+      }, 10000);
+
+      // 一時的なリスナーを設定してレスポンスを待つ
+      const onSuccess = () => {
+        clearTimeout(timeout);
+        resolve();
+      };
+
+      const onError = (error: any) => {
+        clearTimeout(timeout);
+        reject(new Error(error.message || '履歴取得エラー'));
+      };
+
+      // 一回だけのリスナーを設定
+      this.socket.once('q:history:list', onSuccess);
+      this.socket.once('error', onError);
+
+      // リクエストを送信
+      this.emit('q:projects');
+    });
   }
 
   resumeSession(projectPath: string, conversationId?: string): void {
