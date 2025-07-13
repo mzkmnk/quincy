@@ -839,6 +839,10 @@ export class AmazonQCLIService extends EventEmitter {
       /ctrl-c to start chatting/i,                       // チャット開始指示
       /press.*enter.*continue/i,                         // Enterキー指示
       /loading|initializing/i,                           // ローディングメッセージ
+      /thinking\.\.\.?/i,                                // Thinking メッセージ
+      /analyzing|processing/i,                           // 分析・処理メッセージ
+      /^\s*\d+\s+of\s+\d+\s*$/,                        // 進捗表示 (例: "1 of 2")
+      /✓\s*\w+\s+loaded\s+in\s+[\d.]+\s*s/i,           // ロード完了メッセージ
     ];
     
     return skipPatterns.some(pattern => pattern.test(trimmed));
