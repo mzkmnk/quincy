@@ -1,5 +1,6 @@
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
+import { promisify } from 'util';
 import type { 
   QCommandEvent, 
   QResponseEvent, 
@@ -30,8 +31,17 @@ export interface QProcessOptions {
 
 export class AmazonQCLIService extends EventEmitter {
   private sessions: Map<string, QProcessSession> = new Map();
-  private readonly CLI_COMMAND = 'q';
+  private readonly CLI_COMMAND = process.env.AMAZON_Q_CLI_PATH || 'q';
+  private readonly CLI_CANDIDATES = [
+    'q',
+    '/usr/local/bin/q',
+    '/opt/homebrew/bin/q',
+    process.env.HOME + '/.local/bin/q'
+  ].filter(Boolean); // undefined要素を除外
   private readonly DEFAULT_TIMEOUT = 300000; // 5分
+  private readonly execAsync = promisify(exec);
+  private cliPath: string | null = null;
+  private cliChecked: boolean = false;
 
   constructor() {
     super();
@@ -41,17 +51,84 @@ export class AmazonQCLIService extends EventEmitter {
   }
 
   /**
+   * Amazon Q CLIの存在と可用性をチェック
+   */
+  async checkCLIAvailability(): Promise<{ available: boolean; path?: string; error?: string }> {
+    if (this.cliChecked && this.cliPath) {
+      return { available: true, path: this.cliPath };
+    }
+
+    console.log('🔍 Checking Amazon Q CLI availability...');
+    console.log(`📂 Current PATH: ${process.env.PATH}`);
+    console.log(`📍 Current working directory: ${process.cwd()}`);
+
+    // 候補パスを順番にチェック
+    for (const candidate of this.CLI_CANDIDATES) {
+      try {
+        console.log(`🔍 Trying CLI candidate: ${candidate}`);
+        const { stdout, stderr } = await this.execAsync(`"${candidate}" --version`, { timeout: 5000 });
+        
+        if (stdout && stdout.includes('q')) {
+          console.log(`✅ Found Amazon Q CLI at: ${candidate}`);
+          console.log(`📋 Version output: ${stdout.trim()}`);
+          this.cliPath = candidate;
+          this.cliChecked = true;
+          return { available: true, path: candidate };
+        }
+      } catch (error) {
+        console.log(`❌ CLI candidate ${candidate} failed:`, error instanceof Error ? error.message : String(error));
+        continue;
+      }
+    }
+
+    // whichコマンドで検索
+    try {
+      console.log('🔍 Trying with "which q" command...');
+      const { stdout } = await this.execAsync('which q', { timeout: 5000 });
+      if (stdout.trim()) {
+        const path = stdout.trim();
+        console.log(`✅ Found Amazon Q CLI via which: ${path}`);
+        this.cliPath = path;
+        this.cliChecked = true;
+        return { available: true, path };
+      }
+    } catch (error) {
+      console.log('❌ "which q" failed:', error instanceof Error ? error.message : String(error));
+    }
+
+    const errorMsg = `Amazon Q CLI not found. Please install Amazon Q CLI and ensure 'q' command is available in PATH. Tried paths: ${this.CLI_CANDIDATES.join(', ')}`;
+    console.error(`❌ ${errorMsg}`);
+    this.cliChecked = true;
+    
+    return { 
+      available: false, 
+      error: errorMsg
+    };
+  }
+
+  /**
    * Amazon Q CLIプロセスを起動
    */
   async startSession(command: string, options: QProcessOptions): Promise<string> {
     const sessionId = this.generateSessionId();
     
     try {
+      // CLI可用性をチェック
+      const cliCheck = await this.checkCLIAvailability();
+      if (!cliCheck.available) {
+        throw new Error(cliCheck.error || 'Amazon Q CLI is not available');
+      }
+
+      const cliCommand = cliCheck.path || this.CLI_COMMAND;
+      console.log(`🚀 Starting Amazon Q CLI session with command: ${cliCommand}`);
+      console.log(`📂 Working directory: ${options.workingDir}`);
+
       // コマンドライン引数を構築
       const args = this.buildCommandArgs(command, options);
+      console.log(`📋 CLI arguments: ${args.join(' ')}`);
       
       // プロセスを起動
-      const childProcess = spawn(this.CLI_COMMAND, args, {
+      const childProcess = spawn(cliCommand, args, {
         cwd: options.workingDir,
         stdio: ['pipe', 'pipe', 'pipe'],
         env: {

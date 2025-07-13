@@ -22,6 +22,9 @@ import { WebSocketService } from '../../core/services/websocket.service';
             } @else if (appStore.sessionStarting()) {
               <h1 class="text-xl font-semibold text-gray-900">Starting Amazon Q Session...</h1>
               <p class="text-sm text-gray-500 mt-1">Please wait while we start your session</p>
+            } @else if (appStore.sessionError()) {
+              <h1 class="text-xl font-semibold text-red-600">Session Start Failed</h1>
+              <p class="text-sm text-red-500 mt-1">Failed to start Amazon Q session</p>
             } @else {
               <h1 class="text-xl font-semibold text-gray-900">Welcome to Quincy</h1>
               <p class="text-sm text-gray-500 mt-1">Select an Amazon Q project from the sidebar to view history or create a new project</p>
@@ -86,6 +89,36 @@ import { WebSocketService } from '../../core/services/websocket.service';
                 <p>🔗 Establishing connection</p>
                 <p>📂 Setting up project workspace</p>
               </div>
+            </div>
+          </div>
+        } @else if (appStore.sessionError()) {
+          <!-- Session Error -->
+          <div class="h-full flex items-center justify-center">
+            <div class="text-center max-w-md">
+              <div class="mb-6">
+                <svg class="w-24 h-24 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+              </div>
+              <h2 class="text-2xl font-semibold text-red-600 mb-4">Session Start Failed</h2>
+              <p class="text-gray-700 mb-6 leading-relaxed bg-red-50 border border-red-200 rounded-lg p-4">
+                {{ appStore.sessionError() }}
+              </p>
+              <div class="space-y-2 text-sm text-gray-600">
+                <p class="font-medium">💡 Troubleshooting Tips:</p>
+                <div class="text-left bg-gray-50 rounded-lg p-4">
+                  <p>1. Install Amazon Q CLI if not installed</p>
+                  <p>2. Ensure 'q' command is in your PATH</p>
+                  <p>3. Run 'q --version' in terminal to verify</p>
+                  <p>4. Restart the application after installation</p>
+                </div>
+              </div>
+              <button 
+                class="mt-6 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                (click)="clearSessionError()"
+              >
+                Try Again
+              </button>
             </div>
           </div>
         } @else if (appStore.currentQConversation()) {
@@ -220,5 +253,9 @@ export class ChatComponent implements OnInit {
     }
     // toolsが配列でない場合（念のため）
     return String(tools);
+  }
+
+  clearSessionError(): void {
+    this.appStore.setSessionError(null);
   }
 }

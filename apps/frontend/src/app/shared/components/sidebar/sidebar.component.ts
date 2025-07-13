@@ -125,6 +125,27 @@ export class SidebarComponent {
           // チャット画面に移動
           this.router.navigate(['/chat']);
         });
+
+        // エラーハンドリングのリスナーを設定
+        this.webSocketService.on('error', (error: any) => {
+          console.error('WebSocket error:', error);
+          
+          let userMessage = 'セッションの開始中にエラーが発生しました。';
+          
+          if (error.code === 'Q_CLI_NOT_AVAILABLE' || error.code === 'Q_CLI_NOT_FOUND') {
+            userMessage = 'Amazon Q CLIが見つかりません。Amazon Q CLIをインストールしてから再度お試しください。';
+          } else if (error.code === 'Q_CLI_PERMISSION_ERROR') {
+            userMessage = 'Amazon Q CLIの実行権限がありません。ファイルの権限を確認してください。';
+          } else if (error.code === 'Q_CLI_SPAWN_ERROR') {
+            userMessage = 'Amazon Q CLIプロセスの起動に失敗しました。インストールを確認してください。';
+          }
+          
+          // エラー状態をストアに保存
+          this.appStore.setSessionError(userMessage);
+          
+          // チャット画面に移動してエラーを表示
+          this.router.navigate(['/chat']);
+        });
       }
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
@@ -132,6 +153,7 @@ export class SidebarComponent {
         return;
       }
       console.error('Error selecting folder:', error);
+      this.appStore.setSessionStarting(false);
       alert('フォルダの選択中にエラーが発生しました。');
     }
   }

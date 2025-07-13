@@ -503,6 +503,18 @@ export class WebSocketService {
     try {
       console.log(`🚀 Starting new Amazon Q CLI session for project: ${data.projectPath}`);
 
+      // Amazon Q CLIの可用性をまずチェック
+      const cliCheck = await this.qCliService.checkCLIAvailability();
+      if (!cliCheck.available) {
+        console.error(`❌ Amazon Q CLI not available: ${cliCheck.error}`);
+        this.sendError(socket, 'Q_CLI_NOT_AVAILABLE', 
+          cliCheck.error || 'Amazon Q CLI is not installed or not available in PATH. Please install Amazon Q CLI first.'
+        );
+        return;
+      }
+
+      console.log(`✅ Amazon Q CLI found at: ${cliCheck.path}`);
+
       // Amazon Q CLIを指定されたプロジェクトパスで開始
       const commandData: QCommandEvent = {
         command: 'chat',
@@ -533,7 +545,27 @@ export class WebSocketService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`❌ Failed to start Amazon Q CLI session for project ${data.projectPath}:`, error);
-      this.sendError(socket, 'Q_PROJECT_START_ERROR', `Failed to start Amazon Q CLI session: ${errorMessage}`);
+      
+      // エラーの種類によって適切なエラーコードを設定
+      let errorCode = 'Q_PROJECT_START_ERROR';
+      let userMessage = `Failed to start Amazon Q CLI session: ${errorMessage}`;
+      
+      if (errorMessage.includes('ENOENT')) {
+        errorCode = 'Q_CLI_NOT_FOUND';
+        userMessage = 'Amazon Q CLI command not found. Please install Amazon Q CLI and ensure it is available in your system PATH.';
+      } else if (errorMessage.includes('EACCES')) {
+        errorCode = 'Q_CLI_PERMISSION_ERROR';
+        userMessage = 'Permission denied when trying to execute Amazon Q CLI. Please check file permissions.';
+      } else if (errorMessage.includes('spawn')) {
+        errorCode = 'Q_CLI_SPAWN_ERROR';
+        userMessage = 'Failed to start Amazon Q CLI process. Please check your installation and try again.';
+      }
+      
+      this.sendError(socket, errorCode, userMessage, {
+        originalError: errorMessage,
+        projectPath: data.projectPath,
+        cliCommand: 'q'
+      });
     }
   }
 }

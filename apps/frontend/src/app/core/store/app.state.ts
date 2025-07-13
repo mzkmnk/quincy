@@ -12,6 +12,7 @@ export interface AppState {
   currentQSession: QSessionStartedEvent | null;
   qHistoryLoading: boolean;
   sessionStarting: boolean;
+  sessionError: string | null;
   loading: boolean;
   error: string | null;
 }
@@ -26,6 +27,7 @@ const initialState: AppState = {
   currentQSession: null,
   qHistoryLoading: false,
   sessionStarting: false,
+  sessionError: null,
   loading: false,
   error: null
 };
@@ -33,7 +35,7 @@ const initialState: AppState = {
 export const AppStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withComputed(({ projects, currentProject, sessions, currentSession, amazonQHistory, currentQConversation, currentQSession, qHistoryLoading, sessionStarting }) => ({
+  withComputed(({ projects, currentProject, sessions, currentSession, amazonQHistory, currentQConversation, currentQSession, qHistoryLoading, sessionStarting, sessionError }) => ({
     hasProjects: computed(() => projects().length > 0),
     hasSessions: computed(() => sessions().length > 0),
     hasAmazonQHistory: computed(() => amazonQHistory().length > 0),
@@ -124,6 +126,9 @@ export const AppStore = signalStore(
     },
     setSessionStarting: (sessionStarting: boolean) => {
       patchState(store, { sessionStarting });
+    },
+    setSessionError: (sessionError: string | null) => {
+      patchState(store, { sessionError, sessionStarting: false });
     }
   }))
 );
