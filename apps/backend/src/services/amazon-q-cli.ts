@@ -7,6 +7,7 @@ import type {
   QCommandEvent, 
   QResponseEvent, 
   QErrorEvent, 
+  QInfoEvent,
   QCompleteEvent 
 } from '@quincy/shared';
 
@@ -27,6 +28,19 @@ export interface QProcessSession {
   errorBuffer: string;
   bufferTimeout?: NodeJS.Timeout;
   bufferFlushCount: number;
+  // 行ベースバッファリング用
+  incompleteOutputLine: string;
+  incompleteErrorLine: string;
+  // 重複メッセージ防止用
+  lastInfoMessage: string;
+  lastInfoMessageTime: number;
+  // グローバルThinking状態管理
+  isThinkingActive: boolean;
+  lastThinkingTime: number;
+  // 初期化メッセージバッファリング
+  initializationBuffer: string[];
+  initializationPhase: boolean;
+  initializationTimeout?: NodeJS.Timeout;
 }
 
 export interface QProcessOptions {
@@ -45,7 +59,7 @@ export class AmazonQCLIService extends EventEmitter {
     '/opt/homebrew/bin/q',
     process.env.HOME + '/.local/bin/q'
   ].filter(Boolean); // undefined要素を除外
-  private readonly DEFAULT_TIMEOUT = 300000; // 5分
+  private readonly DEFAULT_TIMEOUT = 0; // タイムアウト無効化（0 = 無期限）
   private readonly MAX_BUFFER_SIZE = 10 * 1024; // 10KB制限
   private readonly execAsync = promisify(exec);
   private cliPath: string | null = null;
@@ -310,10 +324,20 @@ export class AmazonQCLIService extends EventEmitter {
         options,
         outputBuffer: '',
         errorBuffer: '',
-        bufferFlushCount: 0
+        bufferFlushCount: 0,
+        incompleteOutputLine: '',
+        incompleteErrorLine: '',
+        lastInfoMessage: '',
+        lastInfoMessageTime: 0,
+        isThinkingActive: false,
+        lastThinkingTime: 0,
+        initializationBuffer: [],
+        initializationPhase: true,
+        initializationTimeout: undefined
       };
 
       this.sessions.set(sessionId, session);
+      console.log(`✅ Session created: ${sessionId} (Total sessions: ${this.sessions.size})`);
       this.setupProcessHandlers(session);
       
       // タイムアウト設定
@@ -362,14 +386,18 @@ export class AmazonQCLIService extends EventEmitter {
         }, 5000);
       }
 
-      this.sessions.delete(sessionId);
-      
       // 終了イベントを発行
       this.emit('session:aborted', {
         sessionId,
         reason,
         exitCode: 0 // 正常な中止として扱う
       });
+
+      // セッションを遅延削除（プロセス完全終了を待つ）
+      setTimeout(() => {
+        this.sessions.delete(sessionId);
+        console.log(`🗑️ Session ${sessionId} deleted after abort`);
+      }, 3000);
 
       return true;
     } catch (error) {
@@ -383,7 +411,13 @@ export class AmazonQCLIService extends EventEmitter {
    */
   async sendInput(sessionId: string, input: string): Promise<boolean> {
     const session = this.sessions.get(sessionId);
-    if (!session || !['starting', 'running'].includes(session.status)) {
+    if (!session) {
+      console.error(`Session ${sessionId} not found`);
+      return false;
+    }
+
+    if (!['starting', 'running'].includes(session.status)) {
+      console.error(`Session ${sessionId} is not active. Status: ${session.status}`);
       return false;
     }
 
@@ -391,9 +425,12 @@ export class AmazonQCLIService extends EventEmitter {
       if (session.process.stdin && !session.process.stdin.destroyed) {
         session.process.stdin.write(input);
         session.lastActivity = Date.now();
+        console.log(`✅ Input sent to session ${sessionId}: ${input.trim()}`);
         return true;
+      } else {
+        console.error(`Session ${sessionId} stdin is not available`);
+        return false;
       }
-      return false;
     } catch (error) {
       console.error(`Failed to send input to session ${sessionId}:`, error);
       return false;
@@ -404,9 +441,12 @@ export class AmazonQCLIService extends EventEmitter {
    * アクティブなセッション一覧を取得
    */
   getActiveSessions(): QProcessSession[] {
-    return Array.from(this.sessions.values()).filter(
+    const activeSessions = Array.from(this.sessions.values()).filter(
       session => ['starting', 'running'].includes(session.status)
     );
+    
+    console.log(`📊 Active sessions: ${activeSessions.length}/${this.sessions.size} total`);
+    return activeSessions;
   }
 
   /**
@@ -520,75 +560,154 @@ export class AmazonQCLIService extends EventEmitter {
   private setupProcessHandlers(session: QProcessSession): void {
     const { sessionId, process } = session;
 
-    // 標準出力の処理（バッファリング付き）
+    // 標準出力の処理（行ベースバッファリング）
     process.stdout?.on('data', (data: Buffer) => {
       session.lastActivity = Date.now();
       const rawOutput = data.toString();
       
-      // ANSIエスケープシーケンスを除去
-      const cleanOutput = this.stripAnsiCodes(rawOutput);
+      // 前回の不完全な行と結合
+      const fullText = session.incompleteOutputLine + rawOutput;
       
-      // Amazon Q CLIの初期化メッセージや空の出力をフィルタリング
-      if (this.shouldSkipOutput(cleanOutput)) {
-        return;
+      // 行単位で分割
+      const lines = fullText.split('\n');
+      
+      // 最後の要素は不完全な行の可能性があるため、次回に回す
+      session.incompleteOutputLine = lines.pop() || '';
+      
+      // 完全な行のみを処理
+      for (const line of lines) {
+        const cleanLine = this.stripAnsiCodes(line);
+        
+        // 空の行や無意味な行をスキップ
+        if (this.shouldSkipOutput(cleanLine)) {
+          continue;
+        }
+        
+        // 初期化フェーズで初期化メッセージはスキップ（stderrで処理）
+        if (session.initializationPhase && this.isInitializationMessage(cleanLine)) {
+          continue;
+        }
+        
+        // 「Thinking」メッセージの特別処理
+        if (this.isThinkingMessage(cleanLine)) {
+          if (this.shouldSkipThinking(session)) {
+            continue;
+          }
+          // Thinking状態を更新
+          this.updateThinkingState(session);
+        }
+        
+        // 直接レスポンスイベントを発行（行ベース）
+        const responseEvent: QResponseEvent = {
+          sessionId: session.sessionId,
+          data: cleanLine + '\n', // 改行を復元
+          type: 'stream'
+        };
+        
+        this.emit('q:response', responseEvent);
       }
       
-      // バッファサイズ制限チェック
-      if (session.outputBuffer.length > this.MAX_BUFFER_SIZE) {
-        // バッファが大きすぎる場合は後半を保持
-        session.outputBuffer = session.outputBuffer.slice(-this.MAX_BUFFER_SIZE / 2);
-      }
-      
-      // バッファに追加
-      session.outputBuffer += cleanOutput;
-      
-      // 既存のタイムアウトをクリア
-      if (session.bufferTimeout) {
-        clearTimeout(session.bufferTimeout);
-      }
-      
-      // 適応的タイムアウトを設定（コンテンツ長に基づく）
-      const adaptiveTimeout = this.getAdaptiveBufferTimeout(session.outputBuffer);
-      session.bufferTimeout = setTimeout(() => {
-        this.flushOutputBuffer(session);
-      }, adaptiveTimeout);
-      
-      // 改行文字がある場合は即座にフラッシュ
-      if (session.outputBuffer.includes('\n')) {
+      // 不完全な行がある場合は短時間でタイムアウト処理
+      if (session.incompleteOutputLine.trim()) {
         if (session.bufferTimeout) {
           clearTimeout(session.bufferTimeout);
-          session.bufferTimeout = undefined;
         }
-        this.flushOutputBuffer(session);
+        
+        session.bufferTimeout = setTimeout(() => {
+          this.flushIncompleteOutputLine(session);
+        }, 200); // 200ms後にフラッシュ
       }
     });
 
-    // 標準エラー出力の処理（バッファリング付き）
+    // 標準エラー出力の処理（行ベース分類付き）
     process.stderr?.on('data', (data: Buffer) => {
       session.lastActivity = Date.now();
       const rawError = data.toString();
       
-      // ANSIエスケープシーケンスを除去
-      const cleanError = this.stripAnsiCodes(rawError);
+      // 前回の不完全な行と結合
+      const fullText = session.incompleteErrorLine + rawError;
       
-      // Amazon Q CLIの初期化メッセージや空のエラーをフィルタリング
-      if (this.shouldSkipError(cleanError)) {
-        return;
+      // 行単位で分割
+      const lines = fullText.split('\n');
+      
+      // 最後の要素は不完全な行の可能性があるため、次回に回す
+      session.incompleteErrorLine = lines.pop() || '';
+      
+      // 完全な行のみを処理
+      for (const line of lines) {
+        const cleanLine = this.stripAnsiCodes(line);
+        
+        // メッセージを分類
+        const messageType = this.classifyStderrMessage(cleanLine);
+        
+        if (messageType === 'skip') {
+          continue;
+        }
+        
+        if (messageType === 'info') {
+          // 初期化フェーズの処理
+          if (session.initializationPhase && this.isInitializationMessage(cleanLine)) {
+            this.addToInitializationBuffer(session, cleanLine);
+            continue;
+          }
+          
+          // Thinkingメッセージの特別処理
+          if (this.isThinkingMessage(cleanLine)) {
+            if (this.shouldSkipThinking(session)) {
+              continue;
+            }
+            this.updateThinkingState(session);
+          } else {
+            // 通常の重複メッセージチェック
+            if (this.shouldSkipDuplicateInfo(session, cleanLine)) {
+              continue;
+            }
+          }
+          
+          // 情報メッセージとしてq:infoイベントを発行
+          const infoEvent: QInfoEvent = {
+            sessionId,
+            message: cleanLine,
+            type: this.getInfoMessageType(cleanLine)
+          };
+          
+          this.emit('q:info', infoEvent);
+        } else if (messageType === 'error') {
+          // エラーメッセージとしてq:errorイベントを発行
+          const errorEvent: QErrorEvent = {
+            sessionId,
+            error: cleanLine,
+            code: 'STDERR'
+          };
+          
+          this.emit('q:error', errorEvent);
+        }
       }
       
-      // エラーはバッファせず即座に送信
-      const errorEvent: QErrorEvent = {
-        sessionId,
-        error: cleanError,
-        code: 'STDERR'
-      };
-      
-      this.emit('q:error', errorEvent);
+      // 不完全なエラー行がある場合は短時間でタイムアウト処理
+      if (session.incompleteErrorLine.trim()) {
+        setTimeout(() => {
+          this.flushIncompleteErrorLine(session);
+        }, 200); // 200ms後にフラッシュ
+      }
     });
 
     // プロセス終了の処理
     process.on('exit', (code: number | null, signal: string | null) => {
-      // 残りのバッファをフラッシュ
+      // 残りの初期化バッファをフラッシュ
+      if (session.initializationPhase && session.initializationBuffer.length > 0) {
+        this.flushInitializationBuffer(session);
+      }
+      
+      // 残りの不完全な行をフラッシュ
+      if (session.incompleteOutputLine.trim()) {
+        this.flushIncompleteOutputLine(session);
+      }
+      if (session.incompleteErrorLine.trim()) {
+        this.flushIncompleteErrorLine(session);
+      }
+      
+      // 残りのバッファをフラッシュ（後方互換性のため）
       if (session.outputBuffer.trim()) {
         this.flushOutputBuffer(session);
       }
@@ -597,6 +716,12 @@ export class AmazonQCLIService extends EventEmitter {
       if (session.bufferTimeout) {
         clearTimeout(session.bufferTimeout);
         session.bufferTimeout = undefined;
+      }
+      
+      // 初期化タイムアウトをクリア
+      if (session.initializationTimeout) {
+        clearTimeout(session.initializationTimeout);
+        session.initializationTimeout = undefined;
       }
       
       session.status = code === 0 ? 'completed' : 'error';
@@ -611,10 +736,13 @@ export class AmazonQCLIService extends EventEmitter {
       // セッションを即座に無効化してID衝突を防ぐ
       session.status = 'terminated';
       
+      console.log(`🔄 Session ${sessionId} marked as terminated. Exit code: ${code}, Signal: ${signal}`);
+      
       // セッションをクリーンアップ（遅延実行）
       setTimeout(() => {
         this.sessions.delete(sessionId);
-      }, 5000);
+        console.log(`🗑️ Session ${sessionId} deleted after process exit`);
+      }, 10000); // 10秒に延長
     });
 
     // プロセスエラーの処理
@@ -691,15 +819,9 @@ export class AmazonQCLIService extends EventEmitter {
   }
 
   private cleanupInactiveSessions(): void {
-    const now = Date.now();
-    const INACTIVE_THRESHOLD = 30 * 60 * 1000; // 30分
-
-    for (const [sessionId, session] of this.sessions.entries()) {
-      if (now - session.lastActivity > INACTIVE_THRESHOLD) {
-        console.log(`Cleaning up inactive session: ${sessionId}`);
-        this.abortSession(sessionId, 'inactive');
-      }
-    }
+    // 時間ベースのセッション終了を無効化（ユーザー要求により）
+    // セッションは手動での終了またはプロセス終了時のみクリーンアップされます
+    console.log('⏰ Session timeout disabled - sessions will persist until manually closed');
   }
 
   /**
@@ -741,30 +863,175 @@ export class AmazonQCLIService extends EventEmitter {
   private stripAnsiCodes(text: string): string {
     let cleanText = text;
     
-    // 1. ANSIエスケープシーケンスを除去
-    // より包括的なパターンでANSIコードをマッチ
-    const ansiRegex = /\x1b\[[0-9;]*[a-zA-Z]/g;
-    cleanText = cleanText.replace(ansiRegex, '');
+    // 1. 包括的なANSIエスケープシーケンスを除去
+    // ESC[ で始まる制御シーケンス（CSI）- より包括的なパターン
+    cleanText = cleanText.replace(/\x1b\[[0-9;:]*[a-zA-Z@]/g, '');
     
-    // 2. スピナー文字を除去 (ユニコードスピナー)
-    const spinnerRegex = /[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]/g;
+    // ESC] で始まるOSCシーケンス（Operating System Command）
+    cleanText = cleanText.replace(/\x1b\][^\x07]*\x07/g, '');
+    cleanText = cleanText.replace(/\x1b\][^\x1b]*\x1b\\/g, '');
+    
+    // ESC( で始まる文字集合選択シーケンス
+    cleanText = cleanText.replace(/\x1b\([AB0]/g, '');
+    
+    // プライベートモード設定/リセット（DEC Private Mode）
+    cleanText = cleanText.replace(/\x1b\[\?[0-9]+[hl]/g, '');
+    
+    // 8ビット制御文字（C1 control characters）
+    cleanText = cleanText.replace(/[\x80-\x9F]/g, '');
+    
+    // その他のエスケープシーケンス
+    cleanText = cleanText.replace(/\x1b[NOPVWXYZ\\^_]/g, '');
+    cleanText = cleanText.replace(/\x1b[#()*/+-]/g, '');
+    
+    // 2. スピナー文字を除去（より包括的）
+    const spinnerRegex = /[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏⠿⠾⠽⠻⠺⠯⠟⠞⠜⠛⠚⠉⠈⠁]/g;
     cleanText = cleanText.replace(spinnerRegex, '');
     
-    // 3. カーソル制御文字を除去
-    const cursorRegex = /\x1b\[\?25[lh]/g;
-    cleanText = cleanText.replace(cursorRegex, '');
+    // 3. プログレスバー文字を除去
+    cleanText = cleanText.replace(/[▁▂▃▄▅▆▇█░▒▓■□▪▫▬▭▮▯―]/g, '');
     
-    // 4. バックスペースとカリッジリターンを正規化
+    // 4. その他の特殊文字
+    cleanText = cleanText.replace(/[♠♣♥♦♪♫]/g, '');
+    
+    // 5. 制御文字を除去（改行文字は除く）
+    cleanText = cleanText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+    
+    // 6. 文字列の始まりや終わりにある不完全なエスケープシーケンス
+    cleanText = cleanText.replace(/^\x1b.*?(?=[a-zA-Z0-9]|$)/g, '');
+    cleanText = cleanText.replace(/\x1b[^a-zA-Z]*$/g, '');
+    
+    // 7. ANSIカラーコードの残骸（数字の断片）を除去
+    // "787878"や"78"のような数字の並びがテキストの前に現れる場合
+    cleanText = cleanText.replace(/^[\d;]+(?=\S)/g, '');
+    
+    // 8. 数字のみの断片（"7 8"のような）を除去
+    cleanText = cleanText.replace(/^\s*\d+\s*\d*\s*$/g, '');
+    
+    // 9. 開いた括弧のみ（"[[[" のような）を除去
+    cleanText = cleanText.replace(/^\s*[\[\{]+\s*$/g, '');
+    
+    // 10. 連続する数字の断片をテキストから除去（より積極的）
+    cleanText = cleanText.replace(/(\d{2,})\s*(?=[\u2713\u2717✓✗])/g, ''); // チェックマーク前の数字
+    cleanText = cleanText.replace(/^(\d+)\s*(\S)/g, '$2'); // 行の先頭の数字を除去
+    
+    // 11. 重複するThinkingを統合（行内に複数のThinkingがある場合）
+    cleanText = cleanText.replace(/(thinking\.?\.?\.?\s*){2,}/gi, 'Thinking...');
+    
+    // 12. バックスペースとカリッジリターンを正規化
     cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     
-    // 5. 余分な空白を正規化
+    // 13. 余分な空白を正規化（ただし、意味のある構造は保持）
     cleanText = cleanText.replace(/[ \t]+/g, ' ');
+    cleanText = cleanText.replace(/\n\s+\n/g, '\n\n');
+    cleanText = cleanText.replace(/^\s+|\s+$/g, '');
     
     return cleanText;
   }
 
   /**
-   * バッファされた出力をフラッシュ
+   * 不完全な出力行をフラッシュ
+   */
+  private flushIncompleteOutputLine(session: QProcessSession): void {
+    if (!session.incompleteOutputLine.trim()) {
+      return;
+    }
+    
+    const cleanLine = this.stripAnsiCodes(session.incompleteOutputLine);
+    
+    // 無意味な行はスキップ
+    if (!this.shouldSkipOutput(cleanLine)) {
+      // 初期化フェーズで初期化メッセージはスキップ
+      if (session.initializationPhase && this.isInitializationMessage(cleanLine)) {
+        session.incompleteOutputLine = '';
+        return;
+      }
+      
+      // Thinkingメッセージの重複チェック
+      if (this.isThinkingMessage(cleanLine) && this.shouldSkipThinking(session)) {
+        // 不完全な行をクリア
+        session.incompleteOutputLine = '';
+        return;
+      }
+      
+      if (this.isThinkingMessage(cleanLine)) {
+        this.updateThinkingState(session);
+      }
+      
+      const responseEvent: QResponseEvent = {
+        sessionId: session.sessionId,
+        data: cleanLine,
+        type: 'stream'
+      };
+      
+      this.emit('q:response', responseEvent);
+    }
+    
+    // 不完全な行をクリア
+    session.incompleteOutputLine = '';
+  }
+
+  /**
+   * 不完全なエラー行をフラッシュ
+   */
+  private flushIncompleteErrorLine(session: QProcessSession): void {
+    if (!session.incompleteErrorLine.trim()) {
+      return;
+    }
+    
+    const cleanLine = this.stripAnsiCodes(session.incompleteErrorLine);
+    const messageType = this.classifyStderrMessage(cleanLine);
+    
+    if (messageType === 'info') {
+      // 初期化フェーズの処理
+      if (session.initializationPhase && this.isInitializationMessage(cleanLine)) {
+        this.addToInitializationBuffer(session, cleanLine);
+        // 不完全な行をクリア
+        session.incompleteErrorLine = '';
+        return;
+      }
+      
+      // Thinkingメッセージの特別処理
+      if (this.isThinkingMessage(cleanLine)) {
+        if (!this.shouldSkipThinking(session)) {
+          this.updateThinkingState(session);
+          
+          const infoEvent: QInfoEvent = {
+            sessionId: session.sessionId,
+            message: cleanLine,
+            type: this.getInfoMessageType(cleanLine)
+          };
+          
+          this.emit('q:info', infoEvent);
+        }
+      } else {
+        // 通常の重複メッセージチェック
+        if (!this.shouldSkipDuplicateInfo(session, cleanLine)) {
+          const infoEvent: QInfoEvent = {
+            sessionId: session.sessionId,
+            message: cleanLine,
+            type: this.getInfoMessageType(cleanLine)
+          };
+          
+          this.emit('q:info', infoEvent);
+        }
+      }
+    } else if (messageType === 'error') {
+      const errorEvent: QErrorEvent = {
+        sessionId: session.sessionId,
+        error: cleanLine,
+        code: 'STDERR'
+      };
+      
+      this.emit('q:error', errorEvent);
+    }
+    
+    // 不完全な行をクリア
+    session.incompleteErrorLine = '';
+  }
+
+  /**
+   * バッファされた出力をフラッシュ（後方互換性のため）
    */
   private flushOutputBuffer(session: QProcessSession): void {
     if (!session.outputBuffer.trim()) {
@@ -812,45 +1079,335 @@ export class AmazonQCLIService extends EventEmitter {
   }
 
   /**
-   * エラーをスキップすべきか判定
+   * メッセージが情報メッセージかエラーメッセージかを分類
    */
-  private shouldSkipError(error: string): boolean {
-    const trimmed = error.trim();
+  private classifyStderrMessage(message: string): 'info' | 'error' | 'skip' {
+    const trimmed = message.trim();
     
-    // 空のエラー
+    // 空のメッセージ
     if (!trimmed) {
-      return true;
+      return 'skip';
     }
     
-    // Amazon Q CLIの初期化メッセージや情報メッセージをスキップ
+    // 完全にスキップすべきパターン
     const skipPatterns = [
       /^\s*$/,                                           // 空白のみ
       /^\s*[\x00-\x1f]\s*$/,                            // 制御文字のみ
-      /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]\s*$/, // スピナー文字のみ
-      /mcp servers? initialized/i,                       // MCPサーバー初期化メッセージ
-      /ctrl-c to start chatting/i,                       // チャット開始指示
-      /press.*enter.*continue/i,                         // Enterキー指示
-      /loading|initializing/i,                           // ローディングメッセージ
+      /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏⠿⠾⠽⠻⠺⠯⠟⠞⠜⠛⠚⠉⠈⠁]\s*$/, // スピナー文字のみ
+      /^\s*\d+\s*\d*\s*$/,                              // 数字のみの断片
+      /^\s*[\[\{]+\s*$/,                                // 開いた括弧のみ
+      /^\s*[m\x1b]*\s*$/,                               // エスケープ文字の残骸
     ];
     
-    return skipPatterns.some(pattern => pattern.test(trimmed));
+    if (skipPatterns.some(pattern => pattern.test(trimmed))) {
+      return 'skip';
+    }
+    
+    // 情報メッセージのパターン
+    const infoPatterns = [
+      /welcome to amazon q/i,                            // Amazon Qへようこそ
+      /✓.*loaded/i,                                      // ローディング完了メッセージ
+      /github loaded/i,                                  // GitHubローディング
+      /mcp servers? initialized/i,                       // MCPサーバー初期化
+      /ctrl[\s-]?[cj]/i,                                // キーボードショートカット案内
+      /press.*enter/i,                                   // Enterキー指示
+      /loading|initializing/i,                           // ローディング/初期化
+      /starting|started/i,                               // 開始メッセージ
+      /ready|connected/i,                                // 準備完了メッセージ
+      /you are chatting with/i,                          // チャットモード案内
+      /if you want to file an issue/i,                   // フィードバック案内
+      /.*help.*commands?/i,                              // ヘルプ案内
+      /ctrl.*new.*lines?/i,                              // ショートカット案内
+      /fuzzy search/i,                                   // 検索機能案内
+      /^\/\w+/,                                          // コマンド案内（/helpなど）
+      /of \d+/,                                          // プログレス表示（"1 of 2"など）
+      /\d+\.\d+\s*s$/,                                   // 時間表示（"0.26 s"など）
+      /^thinking\.?\.?\.?$/i,                            // Thinkingメッセージ
+    ];
+    
+    if (infoPatterns.some(pattern => pattern.test(trimmed))) {
+      return 'info';
+    }
+    
+    // 明確なエラーパターン
+    const errorPatterns = [
+      /error(?!.*loaded)/i,                              // Error（ただしloadedは除く）
+      /failed/i,                                         // Failed
+      /exception/i,                                      // Exception
+      /cannot|can't/i,                                   // Cannot/Can't
+      /unable to/i,                                      // Unable to
+      /permission denied/i,                              // Permission denied
+      /access denied/i,                                  // Access denied
+      /not found/i,                                      // Not found
+      /invalid/i,                                        // Invalid
+      /timeout/i,                                        // Timeout
+      /connection.*(?:refused|reset|lost)/i,             // Connection issues
+    ];
+    
+    if (errorPatterns.some(pattern => pattern.test(trimmed))) {
+      return 'error';
+    }
+    
+    // デフォルトでは情報メッセージとして扱う
+    // Amazon Q CLIは多くの情報をstderrに出力するため
+    return 'info';
   }
 
   /**
-   * 適応的バッファタイムアウトを計算
+   * 情報メッセージのタイプを決定
    */
-  private getAdaptiveBufferTimeout(buffer: string): number {
-    const baseTimeout = 100;
-    const maxTimeout = 300;
-    const contentLength = buffer.length;
+  private getInfoMessageType(message: string): 'initialization' | 'status' | 'progress' | 'general' {
+    const trimmed = message.trim().toLowerCase();
     
-    // コンテンツ長に基づいてタイムアウトを調整
-    if (contentLength > 1000) {
-      return Math.min(maxTimeout, baseTimeout * 2);
-    } else if (contentLength > 500) {
-      return baseTimeout * 1.5;
+    if (trimmed.includes('welcome') || trimmed.includes('initialized') || trimmed.includes('starting')) {
+      return 'initialization';
     }
     
-    return baseTimeout;
+    if (trimmed.includes('loaded') || trimmed.includes('ready') || trimmed.includes('connected')) {
+      return 'status';
+    }
+    
+    if (/\d+\s*of\s*\d+/.test(trimmed) || /\d+\.\d+\s*s/.test(trimmed) || trimmed.includes('progress')) {
+      return 'progress';
+    }
+    
+    if (trimmed === 'thinking' || trimmed === 'thinking...') {
+      return 'progress';
+    }
+    
+    return 'general';
   }
+
+  /**
+   * メッセージがThinkingかどうかを判定
+   */
+  private isThinkingMessage(message: string): boolean {
+    const trimmed = message.trim().toLowerCase();
+    return trimmed === 'thinking' || trimmed === 'thinking...' || 
+           trimmed === 'thinking....' || /^thinking\.{0,4}$/i.test(trimmed);
+  }
+
+  /**
+   * 初期化メッセージかどうかを判定
+   */
+  private isInitializationMessage(message: string): boolean {
+    const trimmed = message.trim().toLowerCase();
+    
+    const initPatterns = [
+      /mcp servers? initialized/i,
+      /ctrl-c to start chatting/i,
+      /✓.*loaded in.*s$/i,
+      /welcome to amazon q/i,
+      /you can resume.*conversation/i,
+      /q chat --resume/i,
+      /\/help.*commands/i,
+      /ctrl.*new.*lines/i,
+      /ctrl.*fuzzy.*search/i,
+      /you are chatting with/i,
+      /to exit.*cli.*press/i
+    ];
+    
+    return initPatterns.some(pattern => pattern.test(trimmed));
+  }
+
+  /**
+   * 初期化フェーズが完了したかチェック
+   */
+  private isInitializationComplete(message: string): boolean {
+    const trimmed = message.trim().toLowerCase();
+    
+    // "You are chatting with" メッセージが最後の初期化メッセージ
+    return /you are chatting with/i.test(trimmed) || 
+           /to exit.*cli.*press/i.test(trimmed);
+  }
+
+  /**
+   * Thinkingメッセージをスキップすべきかチェック
+   */
+  private shouldSkipThinking(session: QProcessSession): boolean {
+    const now = Date.now();
+    
+    // 既にThinking状態がアクティブで、5秒以内の場合はスキップ
+    if (session.isThinkingActive && (now - session.lastThinkingTime) < 5000) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Thinking状態を更新
+   */
+  private updateThinkingState(session: QProcessSession): void {
+    session.isThinkingActive = true;
+    session.lastThinkingTime = Date.now();
+    
+    // 10秒後にThinking状態をリセット（次の思考プロセスのため）
+    setTimeout(() => {
+      session.isThinkingActive = false;
+    }, 10000);
+  }
+
+  /**
+   * 初期化メッセージをバッファに追加
+   */
+  private addToInitializationBuffer(session: QProcessSession, message: string): void {
+    if (!session.initializationPhase) {
+      return; // 初期化フェーズでない場合はスキップ
+    }
+    
+    // 初期化中もアクティビティを更新
+    session.lastActivity = Date.now();
+    session.initializationBuffer.push(message);
+    
+    // 初期化完了をチェック
+    if (this.isInitializationComplete(message)) {
+      // 1秒後に初期化バッファをフラッシュ（遅延メッセージを待つため）
+      if (session.initializationTimeout) {
+        clearTimeout(session.initializationTimeout);
+      }
+      
+      session.initializationTimeout = setTimeout(() => {
+        this.flushInitializationBuffer(session);
+      }, 1000);
+    } else {
+      // 通常のタイムアウト（5秒に短縮）
+      if (session.initializationTimeout) {
+        clearTimeout(session.initializationTimeout);
+      }
+      
+      session.initializationTimeout = setTimeout(() => {
+        this.flushInitializationBuffer(session);
+      }, 5000);
+    }
+  }
+
+  /**
+   * 初期化バッファをフラッシュして統合メッセージを送信
+   */
+  private flushInitializationBuffer(session: QProcessSession): void {
+    if (session.initializationBuffer.length === 0 || !session.initializationPhase) {
+      return;
+    }
+    
+    // 初期化フェーズを終了（重複防止）
+    session.initializationPhase = false;
+    
+    // メッセージを整理・統合
+    const combinedMessage = this.combineInitializationMessages(session.initializationBuffer);
+    
+    // 統合メッセージを送信
+    const infoEvent: QInfoEvent = {
+      sessionId: session.sessionId,
+      message: combinedMessage,
+      type: 'initialization'
+    };
+    
+    this.emit('q:info', infoEvent);
+    
+    // バッファをクリア
+    session.initializationBuffer = [];
+    
+    // タイムアウトをクリア
+    if (session.initializationTimeout) {
+      clearTimeout(session.initializationTimeout);
+      session.initializationTimeout = undefined;
+    }
+  }
+
+  /**
+   * 初期化メッセージを統合
+   */
+  private combineInitializationMessages(messages: string[]): string {
+    const lines: string[] = [];
+    const loadedServices: string[] = [];
+    let mcpStatus = '';
+    let welcomeMessage = '';
+    let helpInfo: string[] = [];
+    
+    for (const message of messages) {
+      const trimmed = message.trim();
+      
+      if (/✓.*loaded in.*s$/i.test(trimmed)) {
+        // ロードされたサービスを抽出
+        const match = trimmed.match(/✓\s*(.+?)\s+loaded/i);
+        if (match) {
+          loadedServices.push(match[1]);
+        }
+      } else if (/mcp servers? initialized/i.test(trimmed)) {
+        // 最後のMCPステータスを保持
+        if (trimmed.includes('✓ 2 of 2') || trimmed.includes('initialized.')) {
+          mcpStatus = 'MCP servers initialized successfully';
+        }
+      } else if (/welcome to amazon q/i.test(trimmed)) {
+        welcomeMessage = trimmed;
+      } else if (/\/help|ctrl|you are chatting with|resume.*conversation/i.test(trimmed)) {
+        helpInfo.push(trimmed);
+      }
+    }
+    
+    // 統合メッセージを構築
+    if (welcomeMessage) {
+      lines.push(welcomeMessage);
+    }
+    
+    if (mcpStatus) {
+      lines.push(mcpStatus);
+    }
+    
+    if (loadedServices.length > 0) {
+      lines.push(`Loaded services: ${loadedServices.join(', ')}`);
+    }
+    
+    if (helpInfo.length > 0) {
+      lines.push(''); // 空行
+      lines.push('Available commands:');
+      helpInfo.forEach(info => {
+        if (!info.includes('You are chatting with')) {
+          lines.push(`• ${info}`);
+        }
+      });
+      
+      // "You are chatting with" メッセージは最後に
+      const modelInfo = helpInfo.find(info => info.includes('You are chatting with'));
+      if (modelInfo) {
+        lines.push('');
+        lines.push(modelInfo);
+      }
+    }
+    
+    return lines.join('\n');
+  }
+
+  /**
+   * 重複する情報メッセージをチェック（Thinking以外用）
+   */
+  private shouldSkipDuplicateInfo(session: QProcessSession, message: string): boolean {
+    const trimmed = message.trim().toLowerCase();
+    const now = Date.now();
+    
+    // その他の繰り返しやすいメッセージの処理
+    const duplicatePatterns = [
+      /^loading/,
+      /^initializing/,
+      /^connecting/,
+      /^processing/,
+      /^please wait/
+    ];
+    
+    if (duplicatePatterns.some(pattern => pattern.test(trimmed))) {
+      // 3秒以内の同じメッセージは重複とみなす
+      if (session.lastInfoMessage === trimmed && (now - session.lastInfoMessageTime) < 3000) {
+        return true;
+      }
+      session.lastInfoMessage = trimmed;
+      session.lastInfoMessageTime = now;
+      return false;
+    }
+    
+    // 通常のメッセージは重複チェックしない
+    return false;
+  }
+
+
 }

@@ -320,9 +320,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     // Add user message to chat immediately
     this.messageList()?.addMessage(event.content, 'user');
     
-    // Add typing indicator for Amazon Q response
-    this.messageList()?.addTypingIndicator();
-    
     // Clear any previous streaming message ID
     this.streamingMessageId.set(null);
   }
@@ -341,19 +338,20 @@ export class ChatComponent implements OnInit, OnDestroy {
         
         // 意味のあるエラーのみ表示
         if (this.shouldDisplayError(data.error)) {
-          // Remove typing indicator
-          this.messageList()?.removeTypingIndicator();
           // Clear any streaming message
           this.streamingMessageId.set(null);
           // Add error message to chat
           this.messageList()?.addMessage(`Error: ${data.error}`, 'assistant');
         }
       },
+      // On Q info (information messages)
+      (data) => {
+        console.log('Received Q info:', data);
+        this.handleInfoMessage(data);
+      },
       // On Q completion
       (data) => {
         console.log('Q session completed:', data);
-        // Remove typing indicator if present
-        this.messageList()?.removeTypingIndicator();
         // Clear streaming message ID
         this.streamingMessageId.set(null);
       }
@@ -365,7 +363,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     
     if (!currentStreamingId) {
       // 新しいストリーミングメッセージを開始
-      this.messageList()?.removeTypingIndicator();
       const messageId = this.messageList()?.addMessage(content, 'assistant') || '';
       this.streamingMessageId.set(messageId);
       
@@ -396,6 +393,44 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
   
+  private handleInfoMessage(data: { sessionId: string; message: string; type?: string }): void {
+    // 情報メッセージを適切に表示
+    const messageContent = this.formatInfoMessage(data);
+    
+    if (messageContent) {
+      // メッセージリストに情報メッセージを追加（assistantタイプで情報として表示）
+      this.messageList()?.addMessage(messageContent, 'assistant');
+    }
+  }
+
+  private formatInfoMessage(data: { sessionId: string; message: string; type?: string }): string | null {
+    const trimmed = data.message.trim();
+    
+    // 空のメッセージはスキップ
+    if (!trimmed) {
+      return null;
+    }
+    
+    // 特別なメッセージの処理
+    const lowerTrimmed = trimmed.toLowerCase();
+    if (lowerTrimmed === 'thinking' || lowerTrimmed === 'thinking...') {
+      return `🤔 Thinking...`;
+    }
+    
+    // メッセージタイプに基づいてフォーマット
+    switch (data.type) {
+      case 'initialization':
+        return `ℹ️ ${trimmed}`;
+      case 'status':
+        return `✅ ${trimmed}`;
+      case 'progress':
+        return `⏳ ${trimmed}`;
+      case 'general':
+      default:
+        return `💬 ${trimmed}`;
+    }
+  }
+
   private shouldDisplayError(error: string): boolean {
     const trimmed = error.trim();
     

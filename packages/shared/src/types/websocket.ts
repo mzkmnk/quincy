@@ -28,6 +28,7 @@ export interface ClientToServerEvents {
 export interface ServerToClientEvents {
   'q:response': (data: QResponseEvent) => void;
   'q:error': (data: QErrorEvent) => void;
+  'q:info': (data: QInfoEvent) => void;
   'q:complete': (data: QCompleteEvent) => void;
   'q:history:data': (data: QHistoryDataResponse) => void;
   'q:history:list': (data: QHistoryListResponse) => void;
@@ -75,6 +76,12 @@ export interface QErrorEvent {
   sessionId: string;
   error: string;
   code?: string;
+}
+
+export interface QInfoEvent {
+  sessionId: string;
+  message: string;
+  type?: 'initialization' | 'status' | 'progress' | 'general';
 }
 
 export interface QCompleteEvent {

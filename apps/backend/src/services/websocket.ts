@@ -15,6 +15,7 @@ import type {
   QCommandEvent,
   QAbortEvent,
   QMessageEvent,
+  QInfoEvent,
   QProjectStartEvent,
   QSessionStartedEvent,
   QHistoryDataResponse,
@@ -381,6 +382,10 @@ export class WebSocketService {
       this.io.emit('q:error', data);
     });
 
+    this.qCliService.on('q:info', (data) => {
+      this.io.emit('q:info', data);
+    });
+
     this.qCliService.on('q:complete', (data) => {
       this.io.emit('q:complete', data);
     });
@@ -466,8 +471,11 @@ export class WebSocketService {
 
   private async handleQProjects(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>): Promise<void> {
     try {
+      console.log('📋 Handling Q projects list request');
+      
       if (!this.qHistoryService.isDatabaseAvailable()) {
-        this.sendError(socket, 'Q_PROJECTS_UNAVAILABLE', 'Amazon Q database is not available');
+        console.warn('❌ Amazon Q database not available for projects list');
+        this.sendError(socket, 'Q_PROJECTS_UNAVAILABLE', 'Amazon Q database is not available. Please ensure Amazon Q CLI is installed and has been used at least once.');
         return;
       }
 
@@ -478,10 +486,24 @@ export class WebSocketService {
         count: projects.length
       });
 
-      console.log(`📋 Retrieved Q projects list: ${projects.length} projects`);
+      console.log(`✅ Retrieved Q projects list: ${projects.length} projects`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      this.sendError(socket, 'Q_PROJECTS_ERROR', `Failed to get projects list: ${errorMessage}`);
+      console.error('❌ Failed to get Q projects list:', errorMessage);
+      
+      // より具体的なエラーメッセージを提供
+      let userFriendlyMessage = 'Failed to get projects list';
+      if (errorMessage.includes('データベースにアクセスできません')) {
+        userFriendlyMessage = errorMessage;
+      } else if (errorMessage.includes('ENOENT')) {
+        userFriendlyMessage = 'Amazon Q database file not found. Please use Amazon Q CLI at least once to create the database.';
+      } else if (errorMessage.includes('SQLITE_BUSY')) {
+        userFriendlyMessage = 'Amazon Q database is currently busy. Please try again in a moment.';
+      } else if (errorMessage.includes('permission')) {
+        userFriendlyMessage = 'Permission denied accessing Amazon Q database. Please check file permissions.';
+      }
+      
+      this.sendError(socket, 'Q_PROJECTS_ERROR', userFriendlyMessage);
     }
   }
 
