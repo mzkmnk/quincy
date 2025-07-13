@@ -188,20 +188,35 @@ export class WebSocketService {
   }
 
   private setupGlobalErrorHandling(): void {
+    // Socket.IOのエラー型定義
+    interface SocketIOError {
+      message?: string;
+      type?: string;
+      description?: string;
+      context?: unknown;
+      req?: unknown;
+      code?: string | number;
+    }
+
     // グローバルエラーハンドリング
-    this.io.engine.on('connection_error', (error: any) => {
+    this.io.engine.on('connection_error', (error: SocketIOError) => {
       console.error('❌ WebSocket connection error:', {
-        message: error.message,
-        type: error.type,
-        description: error.description,
+        message: error.message || 'Unknown error',
+        type: error.type || 'connection_error',
+        description: error.description || 'No description',
         context: error.context,
         timestamp: new Date().toISOString()
       });
     });
 
     // サーバーレベルのエラーハンドリング
-    this.io.on('connect_error' as any, (error: any) => {
-      console.error('❌ Socket.IO server error:', error);
+    // Socket.IOの型定義に'connect_error'が含まれていないため、型アサーションが必要
+    this.io.on('connect_error' as any, (error: SocketIOError) => {
+      console.error('❌ Socket.IO server error:', {
+        message: error.message || 'Unknown server error',
+        code: error.code,
+        timestamp: new Date().toISOString()
+      });
     });
 
     console.log('✅ Global error handling setup complete');
@@ -364,7 +379,8 @@ export class WebSocketService {
     event: K, 
     data: Parameters<ServerToClientEvents[K]>[0]
   ): void {
-    // Socket.ioの型システムの制約により、型アサーションが必要
+    // Socket.IOのBroadcastOperator型とジェネリック型の非互換性のため、型アサーションが必要
+    // これはSocket.IOライブラリの制約であり、実行時には安全
     (this.io.to(roomId) as any).emit(event, data);
   }
 
@@ -372,7 +388,8 @@ export class WebSocketService {
     event: K, 
     data: Parameters<ServerToClientEvents[K]>[0]
   ): void {
-    // Socket.ioの型システムの制約により、型アサーションが必要
+    // Socket.IOのジェネリック型システムの制約のため、型アサーションが必要
+    // これはSocket.IOライブラリの制約であり、実行時には安全
     (this.io as any).emit(event, data);
   }
 
