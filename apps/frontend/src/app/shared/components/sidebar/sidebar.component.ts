@@ -1,8 +1,9 @@
 import { Component, input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
 import { ProjectListComponent } from '../project-list/project-list.component';
+import { WebSocketService } from '../../../core/services/websocket.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -82,9 +83,56 @@ import { ProjectListComponent } from '../project-list/project-list.component';
 export class SidebarComponent {
   collapsed = input<boolean>(false);
   protected appStore = inject(AppStore);
+  private webSocketService = inject(WebSocketService);
+  private router = inject(Router);
 
-  createNewProject(): void {
-    // TODO: Implement new project creation
-    console.log('Create new project');
+  async createNewProject(): Promise<void> {
+    try {
+      // File System Access APIが利用可能かチェック
+      if (!('showDirectoryPicker' in window)) {
+        console.error('File System Access API is not supported in this browser');
+        alert('このブラウザではフォルダ選択機能がサポートされていません。Chrome/Edgeの最新版をご利用ください。');
+        return;
+      }
+
+      // フォルダ選択ダイアログを表示
+      const directoryHandle = await (window as any).showDirectoryPicker({
+        mode: 'read'
+      });
+
+      if (directoryHandle) {
+        const projectPath = directoryHandle.name;
+        console.log('Selected project path:', projectPath);
+
+        // WebSocket接続を確認
+        this.webSocketService.connect();
+
+        // セッション開始状態をセット
+        this.appStore.setSessionStarting(true);
+        this.appStore.setCurrentQConversation(null);
+
+        // プロジェクトセッションを開始
+        this.webSocketService.startProjectSession(projectPath, false);
+
+        // セッション開始の通知を受け取るリスナーを設定
+        this.webSocketService.setupProjectSessionListeners((data) => {
+          console.log('Amazon Q session started:', data);
+          
+          // セッション情報をストアに保存
+          this.appStore.setCurrentQSession(data);
+          this.appStore.setSessionStarting(false);
+          
+          // チャット画面に移動
+          this.router.navigate(['/chat']);
+        });
+      }
+    } catch (error) {
+      if ((error as Error).name === 'AbortError') {
+        console.log('User cancelled folder selection');
+        return;
+      }
+      console.error('Error selecting folder:', error);
+      alert('フォルダの選択中にエラーが発生しました。');
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { signal, computed } from '@angular/core';
 import { signalStore, withState, withComputed, withMethods, patchState } from '@ngrx/signals';
-import type { Project, Session, ConversationMetadata, AmazonQConversation } from '@quincy/shared';
+import type { Project, Session, ConversationMetadata, AmazonQConversation, QSessionStartedEvent } from '@quincy/shared';
 
 export interface AppState {
   projects: Project[];
@@ -9,7 +9,9 @@ export interface AppState {
   currentSession: Session | null;
   amazonQHistory: ConversationMetadata[];
   currentQConversation: AmazonQConversation | null;
+  currentQSession: QSessionStartedEvent | null;
   qHistoryLoading: boolean;
+  sessionStarting: boolean;
   loading: boolean;
   error: string | null;
 }
@@ -21,7 +23,9 @@ const initialState: AppState = {
   currentSession: null,
   amazonQHistory: [],
   currentQConversation: null,
+  currentQSession: null,
   qHistoryLoading: false,
+  sessionStarting: false,
   loading: false,
   error: null
 };
@@ -29,7 +33,7 @@ const initialState: AppState = {
 export const AppStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withComputed(({ projects, currentProject, sessions, currentSession, amazonQHistory, currentQConversation, qHistoryLoading }) => ({
+  withComputed(({ projects, currentProject, sessions, currentSession, amazonQHistory, currentQConversation, currentQSession, qHistoryLoading, sessionStarting }) => ({
     hasProjects: computed(() => projects().length > 0),
     hasSessions: computed(() => sessions().length > 0),
     hasAmazonQHistory: computed(() => amazonQHistory().length > 0),
@@ -44,6 +48,7 @@ export const AppStore = signalStore(
     isProjectSelected: computed(() => currentProject() !== null),
     isSessionSelected: computed(() => currentSession() !== null),
     isQConversationSelected: computed(() => currentQConversation() !== null),
+    isQSessionActive: computed(() => currentQSession() !== null),
   })),
   withMethods((store) => ({
     setProjects: (projects: Project[]) => {
@@ -113,6 +118,12 @@ export const AppStore = signalStore(
     },
     clearError: () => {
       patchState(store, { error: null });
+    },
+    setCurrentQSession: (currentQSession: QSessionStartedEvent | null) => {
+      patchState(store, { currentQSession });
+    },
+    setSessionStarting: (sessionStarting: boolean) => {
+      patchState(store, { sessionStarting });
     }
   }))
 );

@@ -11,6 +11,7 @@ export interface ClientToServerEvents {
   'q:history': (data: { projectPath: string }) => void;
   'q:projects': () => void;
   'q:resume': (data: { projectPath: string; conversationId?: string }) => void;
+  'q:project:start': (data: QProjectStartEvent) => void;
   'shell:init': (data: ShellInitEvent) => void;
   'shell:input': (data: ShellInputEvent) => void;
   'shell:resize': (data: ShellResizeEvent) => void;
@@ -29,6 +30,7 @@ export interface ServerToClientEvents {
   'q:complete': (data: QCompleteEvent) => void;
   'q:history:data': (data: QHistoryDataResponse) => void;
   'q:history:list': (data: QHistoryListResponse) => void;
+  'q:session:started': (data: QSessionStartedEvent) => void;
   'project:created': (data: { project: Project }) => void;
   'project:updated': (data: { project: Project }) => void;
   'project:deleted': (data: { projectId: string }) => void;
@@ -72,6 +74,17 @@ export interface QErrorEvent {
 export interface QCompleteEvent {
   sessionId: string;
   exitCode: number;
+}
+
+export interface QProjectStartEvent {
+  projectPath: string;
+  resume?: boolean;
+}
+
+export interface QSessionStartedEvent {
+  sessionId: string;
+  projectPath: string;
+  model?: string;
 }
 
 // Amazon Q履歴関連の型定義

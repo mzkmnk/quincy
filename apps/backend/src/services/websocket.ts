@@ -15,6 +15,8 @@ import type {
   RoomLeftEvent,
   QCommandEvent,
   QAbortEvent,
+  QProjectStartEvent,
+  QSessionStartedEvent,
   QHistoryDataResponse,
   QHistoryListResponse,
   AmazonQConversation,
@@ -152,6 +154,15 @@ export class WebSocketService {
           return;
         }
         await this.handleQResume(socket, data);
+      });
+
+      // Handle Amazon Q project start
+      socket.on('q:project:start', async (data: QProjectStartEvent) => {
+        if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
+          this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          return;
+        }
+        await this.handleQProjectStart(socket, data);
       });
 
       // Handle ping
@@ -486,5 +497,43 @@ export class WebSocketService {
 
   public async terminateAllQSessions(): Promise<void> {
     await this.qCliService.terminateAllSessions();
+  }
+
+  private async handleQProjectStart(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QProjectStartEvent): Promise<void> {
+    try {
+      console.log(`🚀 Starting new Amazon Q CLI session for project: ${data.projectPath}`);
+
+      // Amazon Q CLIを指定されたプロジェクトパスで開始
+      const commandData: QCommandEvent = {
+        command: 'chat',
+        workingDir: data.projectPath,
+        resume: data.resume || false
+      };
+
+      const sessionId = await this.qCliService.startSession(commandData.command, {
+        workingDir: commandData.workingDir,
+        model: commandData.model,
+        resume: commandData.resume
+      });
+
+      // セッション開始の通知
+      const sessionStartedEvent: QSessionStartedEvent = {
+        sessionId,
+        projectPath: data.projectPath,
+        model: commandData.model
+      };
+
+      socket.emit('q:session:started', sessionStartedEvent);
+      socket.emit('session:created', {
+        sessionId,
+        projectId: socket.data.sessionId || 'unknown'
+      });
+
+      console.log(`✅ Amazon Q CLI session started: ${sessionId} for project: ${data.projectPath}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Failed to start Amazon Q CLI session for project ${data.projectPath}:`, error);
+      this.sendError(socket, 'Q_PROJECT_START_ERROR', `Failed to start Amazon Q CLI session: ${errorMessage}`);
+    }
   }
 }
