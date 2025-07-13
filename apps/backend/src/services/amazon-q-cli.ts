@@ -15,7 +15,7 @@ export interface QProcessSession {
   process: ChildProcess;
   workingDir: string;
   startTime: number;
-  status: 'starting' | 'running' | 'completed' | 'error' | 'aborted';
+  status: 'starting' | 'running' | 'completed' | 'error' | 'aborted' | 'terminated';
   lastActivity: number;
   pid?: number;
   memoryUsage?: number;
@@ -26,6 +26,7 @@ export interface QProcessSession {
   outputBuffer: string;
   errorBuffer: string;
   bufferTimeout?: NodeJS.Timeout;
+  bufferFlushCount: number;
 }
 
 export interface QProcessOptions {
@@ -45,6 +46,7 @@ export class AmazonQCLIService extends EventEmitter {
     process.env.HOME + '/.local/bin/q'
   ].filter(Boolean); // undefined要素を除外
   private readonly DEFAULT_TIMEOUT = 300000; // 5分
+  private readonly MAX_BUFFER_SIZE = 10 * 1024; // 10KB制限
   private readonly execAsync = promisify(exec);
   private cliPath: string | null = null;
   private cliChecked: boolean = false;
@@ -307,7 +309,8 @@ export class AmazonQCLIService extends EventEmitter {
         command,
         options,
         outputBuffer: '',
-        errorBuffer: ''
+        errorBuffer: '',
+        bufferFlushCount: 0
       };
 
       this.sessions.set(sessionId, session);
@@ -380,7 +383,7 @@ export class AmazonQCLIService extends EventEmitter {
    */
   async sendInput(sessionId: string, input: string): Promise<boolean> {
     const session = this.sessions.get(sessionId);
-    if (!session || session.status !== 'running') {
+    if (!session || !['starting', 'running'].includes(session.status)) {
       return false;
     }
 
@@ -530,6 +533,12 @@ export class AmazonQCLIService extends EventEmitter {
         return;
       }
       
+      // バッファサイズ制限チェック
+      if (session.outputBuffer.length > this.MAX_BUFFER_SIZE) {
+        // バッファが大きすぎる場合は後半を保持
+        session.outputBuffer = session.outputBuffer.slice(-this.MAX_BUFFER_SIZE / 2);
+      }
+      
       // バッファに追加
       session.outputBuffer += cleanOutput;
       
@@ -538,10 +547,11 @@ export class AmazonQCLIService extends EventEmitter {
         clearTimeout(session.bufferTimeout);
       }
       
-      // 新しいタイムアウトを設定（100ms後にバッファをフラッシュ）
+      // 適応的タイムアウトを設定（コンテンツ長に基づく）
+      const adaptiveTimeout = this.getAdaptiveBufferTimeout(session.outputBuffer);
       session.bufferTimeout = setTimeout(() => {
         this.flushOutputBuffer(session);
-      }, 100);
+      }, adaptiveTimeout);
       
       // 改行文字がある場合は即座にフラッシュ
       if (session.outputBuffer.includes('\n')) {
@@ -597,6 +607,9 @@ export class AmazonQCLIService extends EventEmitter {
       };
       
       this.emit('q:complete', completeEvent);
+      
+      // セッションを即座に無効化してID衝突を防ぐ
+      session.status = 'terminated';
       
       // セッションをクリーンアップ（遅延実行）
       setTimeout(() => {
@@ -821,5 +834,23 @@ export class AmazonQCLIService extends EventEmitter {
     ];
     
     return skipPatterns.some(pattern => pattern.test(trimmed));
+  }
+
+  /**
+   * 適応的バッファタイムアウトを計算
+   */
+  private getAdaptiveBufferTimeout(buffer: string): number {
+    const baseTimeout = 100;
+    const maxTimeout = 300;
+    const contentLength = buffer.length;
+    
+    // コンテンツ長に基づいてタイムアウトを調整
+    if (contentLength > 1000) {
+      return Math.min(maxTimeout, baseTimeout * 2);
+    } else if (contentLength > 500) {
+      return baseTimeout * 1.5;
+    }
+    
+    return baseTimeout;
   }
 }

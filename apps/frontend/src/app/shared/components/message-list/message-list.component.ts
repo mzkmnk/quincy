@@ -92,7 +92,7 @@ import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.c
 export class MessageListComponent implements AfterViewChecked {
   @ViewChild('messageContainer') messageContainer!: ElementRef<HTMLDivElement>;
   
-  private shouldScrollToBottom = false;
+  private scrollToBottomRequest = signal(false);
   protected appStore = inject(AppStore);
   
   private getWelcomeMessage(): ChatMessage[] {
@@ -141,7 +141,7 @@ export class MessageListComponent implements AfterViewChecked {
     };
     
     this.appStore.addChatMessage(newMessage);
-    this.shouldScrollToBottom = true;
+    this.scrollToBottomRequest.set(true);
     
     return messageId;
   }
@@ -158,7 +158,7 @@ export class MessageListComponent implements AfterViewChecked {
     };
     
     this.appStore.addChatMessage(typingMessage);
-    this.shouldScrollToBottom = true;
+    this.scrollToBottomRequest.set(true);
   }
 
   removeTypingIndicator(): void {
@@ -166,9 +166,9 @@ export class MessageListComponent implements AfterViewChecked {
   }
   
   ngAfterViewChecked(): void {
-    if (this.shouldScrollToBottom) {
+    if (this.scrollToBottomRequest()) {
       this.scrollToBottom();
-      this.shouldScrollToBottom = false;
+      this.scrollToBottomRequest.set(false);
     }
   }
   
@@ -189,7 +189,7 @@ export class MessageListComponent implements AfterViewChecked {
   
   // メッセージが更新されたときに呼び出される
   markForScrollUpdate(): void {
-    this.shouldScrollToBottom = true;
+    this.scrollToBottomRequest.set(true);
   }
   
   getMessageCount(): number {

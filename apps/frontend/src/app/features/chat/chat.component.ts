@@ -219,6 +219,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   // Local state
   isActiveChat = signal(false);
   streamingMessageId = signal<string | null>(null);
+  messageIndexMap = new Map<string, number>(); // メッセージID → インデックスマップ
   
   constructor() {
     // Monitor session changes to update chat state
@@ -367,17 +368,30 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.messageList()?.removeTypingIndicator();
       const messageId = this.messageList()?.addMessage(content, 'assistant') || '';
       this.streamingMessageId.set(messageId);
-    } else {
-      // 既存のメッセージにコンテンツを結合
-      const currentMessages = this.appStore.chatMessages();
-      const messageIndex = currentMessages.findIndex(m => m.id === currentStreamingId);
       
-      if (messageIndex !== -1) {
+      // インデックスマップを更新
+      this.updateMessageIndexMap();
+    } else {
+      // 最適化された検索でメッセージを更新
+      const messageIndex = this.messageIndexMap.get(currentStreamingId);
+      const currentMessages = this.appStore.chatMessages();
+      
+      if (messageIndex !== undefined && messageIndex < currentMessages.length && 
+          currentMessages[messageIndex].id === currentStreamingId) {
         const updatedContent = currentMessages[messageIndex].content + content;
         this.appStore.updateChatMessage(currentStreamingId, { content: updatedContent });
         
         // ストリーミング更新時にスクロール更新をトリガー
         this.messageList()?.markForScrollUpdate();
+      } else {
+        // インデックスマップが古い場合は再構築
+        this.updateMessageIndexMap();
+        const newMessageIndex = this.messageIndexMap.get(currentStreamingId);
+        if (newMessageIndex !== undefined && newMessageIndex < currentMessages.length) {
+          const updatedContent = currentMessages[newMessageIndex].content + content;
+          this.appStore.updateChatMessage(currentStreamingId, { content: updatedContent });
+          this.messageList()?.markForScrollUpdate();
+        }
       }
     }
   }
@@ -402,5 +416,16 @@ export class ChatComponent implements OnInit, OnDestroy {
     ];
     
     return !skipPatterns.some(pattern => pattern.test(trimmed));
+  }
+  
+  /**
+   * メッセージIDインデックスマップを更新
+   */
+  private updateMessageIndexMap(): void {
+    this.messageIndexMap.clear();
+    const messages = this.appStore.chatMessages();
+    messages.forEach((message, index) => {
+      this.messageIndexMap.set(message.id, index);
+    });
   }
 }

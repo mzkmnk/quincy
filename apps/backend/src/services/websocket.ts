@@ -126,12 +126,13 @@ export class WebSocketService {
       });
 
       // Handle Amazon Q message sending
-      socket.on('q:message', async (data: QMessageEvent) => {
+      socket.on('q:message', async (data: QMessageEvent, ack?: (response: { success: boolean; error?: string }) => void) => {
         if (!socket.data.authenticated && process.env.NODE_ENV === 'production') {
           this.sendError(socket, 'UNAUTHORIZED', 'Authentication required');
+          if (ack) ack({ success: false, error: 'Authentication required' });
           return;
         }
-        await this.handleQMessage(socket, data);
+        await this.handleQMessage(socket, data, ack);
       });
 
       // Handle Amazon Q CLI abort
@@ -630,7 +631,7 @@ export class WebSocketService {
     }
   }
 
-  private async handleQMessage(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QMessageEvent): Promise<void> {
+  private async handleQMessage(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QMessageEvent, ack?: (response: { success: boolean; error?: string }) => void): Promise<void> {
     try {
       console.log(`💬 Sending message to Amazon Q session ${data.sessionId}: ${data.message}`);
       
@@ -638,14 +639,17 @@ export class WebSocketService {
       const success = await this.qCliService.sendInput(data.sessionId, data.message + '\n');
       
       if (!success) {
-        this.sendError(socket, 'Q_MESSAGE_ERROR', `Session ${data.sessionId} not found or not active`, {
+        const errorMsg = `Session ${data.sessionId} not found or not active`;
+        this.sendError(socket, 'Q_MESSAGE_ERROR', errorMsg, {
           sessionId: data.sessionId,
           message: data.message
         });
+        if (ack) ack({ success: false, error: errorMsg });
         return;
       }
       
       console.log(`✅ Message sent to Amazon Q session: ${data.sessionId}`);
+      if (ack) ack({ success: true });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`❌ Failed to send message to Amazon Q session ${data.sessionId}:`, error);
@@ -655,6 +659,7 @@ export class WebSocketService {
         message: data.message,
         originalError: errorMessage
       });
+      if (ack) ack({ success: false, error: errorMessage });
     }
   }
 }
