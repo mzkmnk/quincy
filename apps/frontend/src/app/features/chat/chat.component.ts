@@ -205,30 +205,6 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
           </div>
         }
       </div>
-
-      <!-- Additional Information Panel -->
-      @if (appStore.currentQConversation()) {
-        <div class="border-t border-gray-200 bg-gray-50 p-4">
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <span class="font-medium text-gray-600">Conversation ID:</span>
-              <p class="text-gray-800 font-mono text-xs truncate">{{ appStore.currentQConversation()?.conversation_id }}</p>
-            </div>
-            <div>
-              <span class="font-medium text-gray-600">Model:</span>
-              <p class="text-gray-800">{{ appStore.currentQConversation()?.model }}</p>
-            </div>
-            <div>
-              <span class="font-medium text-gray-600">Messages:</span>
-              <p class="text-gray-800">{{ appStore.currentQConversation()?.transcript?.length || 0 }}</p>
-            </div>
-            <div>
-              <span class="font-medium text-gray-600">Tools:</span>
-              <p class="text-gray-800">{{ getToolsDisplay(appStore.currentQConversation()?.tools) }}</p>
-            </div>
-          </div>
-        </div>
-      }
     </div>
   `
 })
