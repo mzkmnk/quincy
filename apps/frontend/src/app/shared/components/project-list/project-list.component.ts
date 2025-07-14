@@ -4,16 +4,14 @@ import { Router } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { ConversationMetadata } from '@quincy/shared';
-import { DataView } from 'primeng/dataview';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import { Message } from 'primeng/message';
 import { Button } from 'primeng/button';
 import { Avatar } from 'primeng/avatar';
-import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-project-list',
-  imports: [CommonModule, DataView, ProgressSpinner, Message, Button, Avatar],
+  imports: [CommonModule, ProgressSpinner, Message, Button, Avatar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex-1 flex-col">
@@ -46,12 +44,8 @@ import { MessageService } from 'primeng/api';
         (wheel)="onWheel($event)"
       >
         @if (appStore.hasAmazonQHistory()) {
-          <p-dataView 
-            [value]="appStore.amazonQHistory()"
-            [layout]="'list'"
-            class="w-full"
-          >
-            <ng-template let-project pTemplate="listItem">
+          <div class="w-full">
+            @for (project of appStore.amazonQHistory(); track project.conversation_id) {
               <div
                 class="group cursor-pointer rounded-lg transition-all duration-200 hover:bg-surface-50 mb-1"
                 [class.bg-blue-50]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
@@ -80,8 +74,8 @@ import { MessageService } from 'primeng/api';
                   </div>
                 }
               </div>
-            </ng-template>
-          </p-dataView>
+            }
+          </div>
         } @else if (!appStore.qHistoryLoading() && !appStore.error()) {
           <!-- Empty State -->
           @if (!collapsed()) {
@@ -116,7 +110,6 @@ export class ProjectListComponent implements OnInit, OnDestroy {
   protected appStore = inject(AppStore);
   private webSocketService = inject(WebSocketService);
   private router = inject(Router);
-  private messageService = inject(MessageService);
 
   ngOnInit(): void {
     this.loadAmazonQHistory();

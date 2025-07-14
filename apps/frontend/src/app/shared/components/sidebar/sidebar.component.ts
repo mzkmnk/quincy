@@ -16,7 +16,7 @@ import { Button } from 'primeng/button';
           icon="pi pi-plus"
           severity="secondary"
           [outlined]="true"
-          class="w-full"
+          styleClass="w-full"
           [class.hidden]="collapsed()"
           (onClick)="createNewProject()"
         />
