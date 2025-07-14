@@ -4,12 +4,10 @@ import { AppStore } from '../../core/store/app.state';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { MessageListComponent } from '../../shared/components/message-list/message-list.component';
 import { MessageInputComponent } from '../../shared/components/message-input/message-input.component';
-import { UserMessageComponent } from '../../shared/components/user-message/user-message.component';
-import { AmazonQMessageComponent } from '../../shared/components/amazon-q-message/amazon-q-message.component';
 
 @Component({
   selector: 'app-chat',
-  imports: [CommonModule, MessageListComponent, MessageInputComponent, UserMessageComponent, AmazonQMessageComponent],
+  imports: [CommonModule, MessageListComponent, MessageInputComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="h-full flex flex-col bg-white">
@@ -157,36 +155,21 @@ import { AmazonQMessageComponent } from '../../shared/components/amazon-q-messag
         } @else if (appStore.currentQConversation()) {
           <!-- Amazon Q Conversation History (Read-Only) -->
           <div class="flex-1 overflow-y-auto pb-20">
-            <div class="p-4 space-y-4">
-              @if (appStore.qHistoryLoading()) {
-                <div class="text-center py-8">
-                  <div class="text-lg text-gray-600">Loading conversation history...</div>
-                </div>
-              } @else if (appStore.currentQConversation()?.transcript) {
-                @for (message of appStore.currentQConversation()!.transcript; track $index; let isEven = $even) {
-                  <div class="message-block">
-                    @if (isEven) {
-                      <app-user-message 
-                        [content]="message"
-                        [showTimestamp]="false"
-                        [showAvatar]="false"
-                      />
-                    } @else {
-                      <app-amazon-q-message 
-                        [content]="message"
-                        [showHeader]="false"
-                        [withBackground]="false"
-                      />
-                    }
-                  </div>
-                }
-              } @else {
-                <div class="text-center text-gray-500 py-8">
-                  <div class="text-lg mb-2">📭 No conversation transcript available</div>
-                  <div class="text-sm">This project may not have any Amazon Q conversation history.</div>
-                </div>
-              }
-            </div>
+            @if (appStore.qHistoryLoading()) {
+              <div class="text-center py-8">
+                <div class="text-lg text-gray-600">Loading conversation history...</div>
+              </div>
+            } @else if (appStore.currentQConversation()?.transcript) {
+              <app-message-list 
+                [historyMode]="true"
+                [historyMessages]="appStore.currentQConversation()!.transcript"
+              ></app-message-list>
+            } @else {
+              <div class="text-center text-gray-500 py-8">
+                <div class="text-lg mb-2">📭 No conversation transcript available</div>
+                <div class="text-sm">This project may not have any Amazon Q conversation history.</div>
+              </div>
+            }
           </div>
           
           <!-- Resume Session Button - Sticky to bottom -->
