@@ -51,18 +51,6 @@ import { WebSocketService } from '../../../core/services/websocket.service';
         (dragleave)="onDragLeave($event)"
         (drop)="onDrop($event)"
       >
-        <!-- File Upload Button -->
-        <button
-          type="button"
-          class="flex-shrink-0 p-2 text-gray-400 hover:text-gray-600 transition-colors rounded"
-          (click)="fileInput.click()"
-          title="Attach files"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-          </svg>
-        </button>
-
         <!-- Text Input -->
         <textarea
           #messageTextarea
@@ -97,24 +85,6 @@ import { WebSocketService } from '../../../core/services/websocket.service';
             </svg>
           }
         </button>
-
-        <!-- Hidden File Input -->
-        <input
-          #fileInput
-          type="file"
-          multiple
-          class="hidden"
-          (change)="onFileSelect($event)"
-          accept=".txt,.pdf,.doc,.docx,.md,.json,.csv,.png,.jpg,.jpeg,.gif"
-        >
-      </div>
-
-      <!-- Helper Text -->
-      <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
-        <span>Press Enter to send, Shift+Enter for new line</span>
-        @if (messageText.length > 0) {
-          <span>{{ messageText.length }} characters</span>
-        }
       </div>
     </div>
   `
@@ -125,10 +95,10 @@ export class MessageInputComponent {
 
   protected appStore = inject(AppStore);
   private websocket = inject(WebSocketService);
-  
+
   // Events
-  messageSent = output<{content: string; files: File[]}>();
-  
+  messageSent = output<{ content: string; files: File[] }>();
+
   messageText = '';
   sending = signal(false);
   isDragging = signal(false);
@@ -151,25 +121,25 @@ export class MessageInputComponent {
     }
 
     this.sending.set(true);
-    
+
     try {
       console.log('Sending message to Amazon Q:', content);
-      
+
       // Emit message sent event for parent component to handle
       this.messageSent.emit({ content, files });
-      
+
       // Send message to Amazon Q CLI via WebSocket
       await this.websocket.sendQMessage(currentSession.sessionId, content);
-      
+
       // Clear input
       this.messageText = '';
       this.attachedFiles.set([]);
-      
+
       // Reset textarea height
       if (this.messageTextarea) {
         this.messageTextarea.nativeElement.style.height = 'auto';
       }
-      
+
     } catch (error) {
       console.error('Failed to send message:', error);
       // TODO: Show error toast to user
@@ -198,7 +168,7 @@ export class MessageInputComponent {
   }
 
   removeFile(fileToRemove: File): void {
-    this.attachedFiles.update(files => 
+    this.attachedFiles.update(files =>
       files.filter(file => file !== fileToRemove)
     );
   }
@@ -219,7 +189,7 @@ export class MessageInputComponent {
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDragging.set(false);
-    
+
     if (event.dataTransfer?.files) {
       const droppedFiles = Array.from(event.dataTransfer.files);
       this.attachedFiles.update(existing => [...existing, ...droppedFiles]);

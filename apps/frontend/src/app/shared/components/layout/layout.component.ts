@@ -41,7 +41,7 @@ import { WebSocketService } from '../../../core/services/websocket.service';
         </div>
 
         <!-- Sidebar Content -->
-        <div class="flex-1 overflow-y-auto">
+        <div class="flex-1 h-0">
           <app-sidebar 
             [collapsed]="sidebarCollapsed()"
             (newProjectRequested)="showProjectModal()"
@@ -133,10 +133,9 @@ export class LayoutComponent {
       // WebSocket接続を確認
       this.webSocketService.connect();
 
-      // セッション開始状態をセット
+      // 現在の表示状態をクリアしてセッション開始状態をセット
+      this.appStore.clearCurrentView();
       this.appStore.setSessionStarting(true);
-      this.appStore.setCurrentQConversation(null);
-      this.appStore.setSessionError(null); // エラー状態をクリア
 
       // プロジェクトセッションを開始
       this.webSocketService.startProjectSession(projectPath, resume);
@@ -145,9 +144,8 @@ export class LayoutComponent {
       this.webSocketService.setupProjectSessionListeners((data) => {
         console.log('Amazon Q session started:', data);
         
-        // セッション情報をストアに保存
-        this.appStore.setCurrentQSession(data);
-        this.appStore.setSessionStarting(false);
+        // アクティブセッションモードに切り替え
+        this.appStore.switchToActiveSession(data);
         
         // チャット画面に移動
         this.router.navigate(['/chat']);

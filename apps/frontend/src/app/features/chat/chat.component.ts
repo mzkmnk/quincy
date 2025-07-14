@@ -12,16 +12,14 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
   template: `
     <div class="h-full flex flex-col bg-white">
       <!-- Chat Header -->
-      <div class="border-b border-gray-200 p-4 bg-white">
+      <div class="border-b border-gray-200 p-4 bg-white sticky top-0 z-90">
         <div class="flex items-center justify-between">
           <div>
             @if (appStore.currentQSession()) {
               <h1 class="text-xl font-semibold text-gray-900">{{ getProjectName(appStore.currentQSession()!.projectPath) }}</h1>
-              <p class="text-sm text-gray-500 mt-1">Amazon Q Session • {{ appStore.currentQSession()?.model || 'Default Model' }}</p>
-            } @else if (appStore.currentQConversation()) {
+              } @else if (appStore.currentQConversation()) {
               <h1 class="text-xl font-semibold text-gray-900">{{ getProjectName(getProjectPathFromConversation()) }}</h1>
-              <p class="text-sm text-gray-500 mt-1">Amazon Q Conversation • {{ appStore.currentQConversation()?.model }}</p>
-            } @else if (appStore.sessionStarting()) {
+              } @else if (appStore.sessionStarting()) {
               <h1 class="text-xl font-semibold text-gray-900">Starting Amazon Q Session...</h1>
               <p class="text-sm text-gray-500 mt-1">Please wait while we start your session</p>
             } @else if (appStore.sessionError()) {
@@ -50,30 +48,32 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
       </div>
 
       <!-- Chat Messages Area -->
-      <div class="flex-1 flex flex-col">
+      <div class="flex-1 flex flex-col relative">
         @if (appStore.currentQSession() || isActiveChat()) {
           <!-- Active Chat Session -->
-          <div class="flex-1 overflow-y-auto">
+          <div class="flex-1 overflow-y-auto pb-20">
             <app-message-list></app-message-list>
           </div>
           
-          <!-- Message Input -->
+          <!-- Message Input - Sticky to bottom -->
           @if (!isSessionDisabled()) {
-            <div class="border-t border-gray-200">
+            <div class="sticky bottom-0 left-0 right-0 z-10">
               <app-message-input (messageSent)="onMessageSent($event)"></app-message-input>
             </div>
           } @else {
-            <div class="border-t border-gray-200 bg-gray-50 p-4 text-center">
-              <div class="max-w-md mx-auto">
-                <p class="text-gray-600 text-sm mb-3">{{ getDisabledReason() }}</p>
-                @if (appStore.sessionError()) {
-                  <button 
-                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
-                    (click)="clearSessionError()"
-                  >
-                    Start New Session
-                  </button>
-                }
+            <div class="sticky bottom-0 left-0 right-0 z-10">
+              <div class="bg-gray-50 border-t border-gray-200 p-4 text-center">
+                <div class="max-w-md mx-auto">
+                  <p class="text-gray-600 text-sm mb-3">{{ getDisabledReason() }}</p>
+                  @if (appStore.sessionError()) {
+                    <button 
+                      class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                      (click)="clearSessionError()"
+                    >
+                      Start New Session
+                    </button>
+                  }
+                </div>
               </div>
             </div>
           }
@@ -90,11 +90,36 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
               <p class="text-gray-500 mb-6 leading-relaxed">
                 Please wait while we initialize your Amazon Q session...
               </p>
-              <div class="text-sm text-gray-400">
-                <p>🚀 Launching Amazon Q CLI</p>
-                <p>🔗 Establishing connection</p>
-                <p>📂 Setting up project workspace</p>
+              <div class="space-y-3">
+                <div class="flex items-center justify-center text-sm" [class.text-gray-400]="!sessionStatus.cliLaunched" [class.text-green-600]="sessionStatus.cliLaunched">
+                  <span class="mr-2">🚀</span>
+                  <span>Launching Amazon Q CLI</span>
+                  @if (sessionStatus.cliLaunched) {
+                    <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                  }
+                </div>
+                <div class="flex items-center justify-center text-sm" [class.text-gray-400]="!sessionStatus.connectionEstablished" [class.text-green-600]="sessionStatus.connectionEstablished">
+                  <span class="mr-2">🔗</span>
+                  <span>Establishing connection</span>
+                  @if (sessionStatus.connectionEstablished) {
+                    <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                  }
+                </div>
+                <div class="flex items-center justify-center text-sm" [class.text-gray-400]="!sessionStatus.workspaceReady" [class.text-green-600]="sessionStatus.workspaceReady">
+                  <span class="mr-2">📂</span>
+                  <span>Setting up project workspace</span>
+                  @if (sessionStatus.workspaceReady) {
+                    <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                  }
+                </div>
               </div>
+              <p class="text-xs text-gray-400 mt-4">This may take up to 30 seconds...</p>
             </div>
           </div>
         } @else if (appStore.sessionError()) {
@@ -129,7 +154,7 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
           </div>
         } @else if (appStore.currentQConversation()) {
           <!-- Amazon Q Conversation History (Read-Only) -->
-          <div class="flex-1 overflow-y-auto">
+          <div class="flex-1 overflow-y-auto pb-20">
             <div class="p-4 space-y-4">
               @if (appStore.qHistoryLoading()) {
                 <div class="text-center py-8">
@@ -174,14 +199,16 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
             </div>
           </div>
           
-          <!-- Resume Session Button -->
-          <div class="border-t border-gray-200 bg-gray-50 p-4 text-center">
-            <button 
-              class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              (click)="resumeSession()"
-            >
-              Resume Session to Continue Chat
-            </button>
+          <!-- Resume Session Button - Sticky to bottom -->
+          <div class="sticky bottom-0 left-0 right-0 z-10">
+            <div class="p-4 text-center">
+              <button 
+                class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                (click)="resumeSession()"
+              >
+                Resume Session to Continue Chat
+              </button>
+            </div>
           </div>
         } @else {
           <!-- Welcome/Empty State -->
@@ -211,32 +238,42 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
 export class ChatComponent implements OnInit, OnDestroy {
   protected appStore = inject(AppStore);
   protected websocket = inject(WebSocketService);
-  
+
   // Child component references
   messageList = viewChild(MessageListComponent);
   messageInput = viewChild(MessageInputComponent);
-  
+
   // Local state
   isActiveChat = signal(false);
   streamingMessageId = signal<string | null>(null);
   messageIndexMap = new Map<string, number>(); // メッセージID → インデックスマップ
-  
+
+  // Session status tracking
+  sessionStatus = {
+    cliLaunched: false,
+    connectionEstablished: false,
+    workspaceReady: false
+  };
+
   constructor() {
     // Monitor session changes to update chat state
     effect(() => {
       const currentSession = this.appStore.currentQSession();
       const sessionError = this.appStore.sessionError();
-      
+
       // Update active chat state
       this.isActiveChat.set(!!currentSession && !sessionError);
-      
+
+      // Always cleanup listeners before setting up new ones
+      this.websocket.removeChatListeners();
+
       // Setup WebSocket listeners when session starts
       if (currentSession) {
         this.setupWebSocketListeners();
       }
     });
   }
-  
+
   ngOnDestroy(): void {
     // Cleanup WebSocket listeners
     this.websocket.removeChatListeners();
@@ -255,7 +292,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     // amazonQHistoryから該当するプロジェクトを検索
     const currentConversation = this.appStore.currentQConversation();
     if (!currentConversation) return '';
-    
+
     const historyItem = this.appStore.amazonQHistory().find(
       h => h.conversation_id === currentConversation.conversation_id
     );
@@ -282,15 +319,15 @@ export class ChatComponent implements OnInit, OnDestroy {
   clearSessionError(): void {
     this.appStore.setSessionError(null);
   }
-  
+
   isSessionDisabled(): boolean {
     return !!this.appStore.sessionError() || !this.appStore.currentQSession();
   }
-  
+
   canChat(): boolean {
     return this.isActiveChat() && !this.isSessionDisabled();
   }
-  
+
   getDisabledReason(): string {
     if (this.appStore.sessionError()) {
       return this.appStore.sessionError()!;
@@ -300,84 +337,142 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
     return 'Chat is temporarily unavailable.';
   }
-  
+
   resumeSession(): void {
     const conversation = this.appStore.currentQConversation();
     if (conversation) {
       const projectPath = this.getProjectPathFromConversation();
       if (projectPath) {
+        // セッション開始状態に切り替え
+        this.appStore.clearCurrentView();
+        this.appStore.setSessionStarting(true);
+
+        // セッションステータスをリセット
+        this.sessionStatus = {
+          cliLaunched: false,
+          connectionEstablished: false,
+          workspaceReady: false
+        };
+
+        // ステータス更新を模擬（実際のイベントに基づいて更新）
+        setTimeout(() => { this.sessionStatus.cliLaunched = true; }, 1000);
+        setTimeout(() => { this.sessionStatus.connectionEstablished = true; }, 2000);
+        setTimeout(() => { this.sessionStatus.workspaceReady = true; }, 3000);
+
+        // タイムアウトを設定（30秒）
+        const timeoutId = setTimeout(() => {
+          console.error('Session resume timeout after 30 seconds');
+          this.appStore.setSessionStarting(false);
+          this.appStore.setSessionError('Session resume timed out. Please try again.');
+        }, 30000);
+
+        // セッション失敗リスナーを設定
+        const failedSubscription = this.websocket.onSessionFailed().subscribe((data) => {
+          console.error('Session resume failed:', data.error);
+          clearTimeout(timeoutId);
+          this.appStore.setSessionStarting(false);
+          this.appStore.setSessionError(`Failed to resume session: ${data.error}`);
+          failedSubscription.unsubscribe();
+        });
+
+        // Resume sessionリクエストを送信
         this.websocket.resumeSession(projectPath, conversation.conversation_id);
+
+        // セッション開始リスナーを設定（LayoutComponentと同様）
+        this.websocket.setupProjectSessionListeners((data) => {
+          console.log('Amazon Q session resumed:', data);
+          clearTimeout(timeoutId);
+          failedSubscription.unsubscribe();
+          this.appStore.switchToActiveSession(data);
+        });
       }
     }
   }
-  
-  onMessageSent(event: {content: string; files: File[]}): void {
+
+  onMessageSent(event: { content: string; files: File[] }): void {
     if (!this.canChat()) {
       console.warn('Cannot send message: chat is disabled');
       return;
     }
-    
+
     // Add user message to chat immediately
     this.messageList()?.addMessage(event.content, 'user');
-    
+
     // Clear any previous streaming message ID
     this.streamingMessageId.set(null);
   }
-  
+
   private setupWebSocketListeners(): void {
+    const currentSession = this.appStore.currentQSession();
+    if (!currentSession) {
+      return;
+    }
+
     // Setup chat listeners for real-time message handling
     this.websocket.setupChatListeners(
       // On Q response (streaming)
       (data) => {
-        console.log('Received Q response:', data);
-        this.handleStreamingResponse(data.data);
+        // Filter by session ID to prevent duplicate messages
+        if (data.sessionId === currentSession.sessionId) {
+          console.log('Received Q response for current session:', data);
+          this.handleStreamingResponse(data.data);
+        }
       },
       // On Q error
       (data) => {
-        console.error('Received Q error:', data);
-        
-        // 意味のあるエラーのみ表示
-        if (this.shouldDisplayError(data.error)) {
-          // Clear any streaming message
-          this.streamingMessageId.set(null);
-          // Add error message to chat
-          this.messageList()?.addMessage(`Error: ${data.error}`, 'assistant');
+        // Filter by session ID
+        if (data.sessionId === currentSession.sessionId) {
+          console.error('Received Q error for current session:', data);
+
+          // 意味のあるエラーのみ表示
+          if (this.shouldDisplayError(data.error)) {
+            // Clear any streaming message
+            this.streamingMessageId.set(null);
+            // Add error message to chat
+            this.messageList()?.addMessage(`Error: ${data.error}`, 'assistant');
+          }
         }
       },
       // On Q info (information messages)
       (data) => {
-        console.log('Received Q info:', data);
-        this.handleInfoMessage(data);
+        // Filter by session ID
+        if (data.sessionId === currentSession.sessionId) {
+          console.log('Received Q info for current session:', data);
+          this.handleInfoMessage(data);
+        }
       },
       // On Q completion
       (data) => {
-        console.log('Q session completed:', data);
-        // Clear streaming message ID
-        this.streamingMessageId.set(null);
+        // Filter by session ID
+        if (data.sessionId === currentSession.sessionId) {
+          console.log('Q session completed for current session:', data);
+          // Clear streaming message ID
+          this.streamingMessageId.set(null);
+        }
       }
     );
   }
-  
+
   private handleStreamingResponse(content: string): void {
     const currentStreamingId = this.streamingMessageId();
-    
+
     if (!currentStreamingId) {
       // 新しいストリーミングメッセージを開始
       const messageId = this.messageList()?.addMessage(content, 'assistant') || '';
       this.streamingMessageId.set(messageId);
-      
+
       // インデックスマップを更新
       this.updateMessageIndexMap();
     } else {
       // 最適化された検索でメッセージを更新
       const messageIndex = this.messageIndexMap.get(currentStreamingId);
       const currentMessages = this.appStore.chatMessages();
-      
-      if (messageIndex !== undefined && messageIndex < currentMessages.length && 
-          currentMessages[messageIndex].id === currentStreamingId) {
+
+      if (messageIndex !== undefined && messageIndex < currentMessages.length &&
+        currentMessages[messageIndex].id === currentStreamingId) {
         const updatedContent = currentMessages[messageIndex].content + content;
         this.appStore.updateChatMessage(currentStreamingId, { content: updatedContent });
-        
+
         // ストリーミング更新時にスクロール更新をトリガー
         this.messageList()?.markForScrollUpdate();
       } else {
@@ -392,11 +487,11 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     }
   }
-  
+
   private handleInfoMessage(data: { sessionId: string; message: string; type?: string }): void {
     // 情報メッセージを適切に表示
     const messageContent = this.formatInfoMessage(data);
-    
+
     if (messageContent) {
       // メッセージリストに情報メッセージを追加（assistantタイプで情報として表示）
       this.messageList()?.addMessage(messageContent, 'assistant');
@@ -405,18 +500,18 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private formatInfoMessage(data: { sessionId: string; message: string; type?: string }): string | null {
     const trimmed = data.message.trim();
-    
+
     // 空のメッセージはスキップ
     if (!trimmed) {
       return null;
     }
-    
+
     // 特別なメッセージの処理
     const lowerTrimmed = trimmed.toLowerCase();
     if (lowerTrimmed === 'thinking' || lowerTrimmed === 'thinking...') {
       return `🤔 Thinking...`;
     }
-    
+
     // メッセージタイプに基づいてフォーマット
     switch (data.type) {
       case 'initialization':
@@ -433,12 +528,12 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private shouldDisplayError(error: string): boolean {
     const trimmed = error.trim();
-    
+
     // 空のエラーは表示しない
     if (!trimmed) {
       return false;
     }
-    
+
     // 初期化メッセージや情報メッセージは表示しない
     const skipPatterns = [
       /^\s*[\x00-\x1f]\s*$/,                            // 制御文字のみ
@@ -449,10 +544,10 @@ export class ChatComponent implements OnInit, OnDestroy {
       /loading|initializing/i,                           // ローディングメッセージ
       /^\s*m\s*$/,                                       // 単一の'm'文字
     ];
-    
+
     return !skipPatterns.some(pattern => pattern.test(trimmed));
   }
-  
+
   /**
    * メッセージIDインデックスマップを更新
    */

@@ -294,6 +294,9 @@ export class AmazonQCLIService extends EventEmitter {
       const cliCommand = cliCheck.path || this.CLI_COMMAND;
       console.log(`🚀 Starting Amazon Q CLI session with command: ${cliCommand}`);
       console.log(`📂 Working directory: ${validatedWorkingDir}`);
+      if (options.resume) {
+        console.log('🔄 Resume mode: Restoring previous conversation');
+      }
 
       // コマンドライン引数を構築
       const args = this.buildCommandArgs(command, options);
@@ -386,6 +389,9 @@ export class AmazonQCLIService extends EventEmitter {
         }, 5000);
       }
 
+      // Thinking状態をリセット
+      session.isThinkingActive = false;
+      
       // 終了イベントを発行
       this.emit('session:aborted', {
         sessionId,
@@ -541,18 +547,14 @@ export class AmazonQCLIService extends EventEmitter {
   private buildCommandArgs(command: string, options: QProcessOptions): string[] {
     const args: string[] = [];
     
-    // モデル指定
-    if (options.model) {
-      args.push('--model', options.model);
-    }
+    // コマンドを最初に追加（例: chat）
+    args.push(...command.split(' ').filter(arg => arg.length > 0));
     
     // resume指定
     if (options.resume) {
+      console.log('📋 Resume option detected, adding --resume flag');
       args.push('--resume');
     }
-    
-    // コマンド追加
-    args.push(...command.split(' ').filter(arg => arg.length > 0));
     
     return args;
   }
@@ -736,6 +738,9 @@ export class AmazonQCLIService extends EventEmitter {
       // セッションを即座に無効化してID衝突を防ぐ
       session.status = 'terminated';
       
+      // Thinking状態をリセット
+      session.isThinkingActive = false;
+      
       console.log(`🔄 Session ${sessionId} marked as terminated. Exit code: ${code}, Signal: ${signal}`);
       
       // セッションをクリーンアップ（遅延実行）
@@ -763,7 +768,7 @@ export class AmazonQCLIService extends EventEmitter {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('Process start timeout'));
-      }, 10000); // 10秒でタイムアウト
+      }, 30000); // 30秒でタイムアウト
 
       process.on('spawn', () => {
         clearTimeout(timeout);
@@ -1225,14 +1230,8 @@ export class AmazonQCLIService extends EventEmitter {
    * Thinkingメッセージをスキップすべきかチェック
    */
   private shouldSkipThinking(session: QProcessSession): boolean {
-    const now = Date.now();
-    
-    // 既にThinking状態がアクティブで、5秒以内の場合はスキップ
-    if (session.isThinkingActive && (now - session.lastThinkingTime) < 5000) {
-      return true;
-    }
-    
-    return false;
+    // 既にThinking状態がアクティブの場合は常にスキップ（1回のみ表示）
+    return session.isThinkingActive;
   }
 
   /**
@@ -1242,10 +1241,7 @@ export class AmazonQCLIService extends EventEmitter {
     session.isThinkingActive = true;
     session.lastThinkingTime = Date.now();
     
-    // 10秒後にThinking状態をリセット（次の思考プロセスのため）
-    setTimeout(() => {
-      session.isThinkingActive = false;
-    }, 10000);
+    // Thinking状態はセッション終了まで維持（1回のみ表示のため）
   }
 
   /**
@@ -1271,14 +1267,14 @@ export class AmazonQCLIService extends EventEmitter {
         this.flushInitializationBuffer(session);
       }, 1000);
     } else {
-      // 通常のタイムアウト（5秒に短縮）
+      // 通常のタイムアウト（15秒に延長）
       if (session.initializationTimeout) {
         clearTimeout(session.initializationTimeout);
       }
       
       session.initializationTimeout = setTimeout(() => {
         this.flushInitializationBuffer(session);
-      }, 5000);
+      }, 15000); // 15秒に延長
     }
   }
 

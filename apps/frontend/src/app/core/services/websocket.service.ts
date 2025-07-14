@@ -1,5 +1,6 @@
 import { Injectable, Signal, WritableSignal, signal, computed } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
+import { Observable } from 'rxjs';
 import type { ConversationMetadata, AmazonQConversation, QProjectStartEvent, QSessionStartedEvent } from '@quincy/shared';
 
 export interface ConnectionState {
@@ -24,6 +25,11 @@ export class WebSocketService {
   readonly error: Signal<string | null> = computed(() => this.connectionState().error);
 
   private readonly backendUrl = 'http://localhost:3000';
+  
+  // リスナーの重複防止用フラグ
+  private chatListenersSetup = false;
+  private historyListenersSetup = false;
+  private projectSessionListenersSetup = false;
 
   connect(): void {
     if (this.socket?.connected) {
@@ -132,26 +138,56 @@ export class WebSocketService {
     onHistoryData: (data: { projectPath: string; conversation: AmazonQConversation | null; message?: string }) => void,
     onHistoryList: (data: { projects: ConversationMetadata[]; count: number }) => void
   ): void {
+    // 重複セットアップを防止
+    if (this.historyListenersSetup) {
+      this.removeQHistoryListeners();
+    }
+    
     this.on('q:history:data', onHistoryData);
     this.on('q:history:list', onHistoryList);
+    
+    this.historyListenersSetup = true;
   }
 
   // Amazon Q履歴イベントリスナーの削除
   removeQHistoryListeners(): void {
     this.off('q:history:data');
     this.off('q:history:list');
+    this.historyListenersSetup = false;
   }
 
   // プロジェクトセッション開始イベントリスナーのセットアップ
   setupProjectSessionListeners(
     onSessionStarted: (data: QSessionStartedEvent) => void
   ): void {
+    // 重複セットアップを防止
+    if (this.projectSessionListenersSetup) {
+      this.removeProjectSessionListeners();
+    }
+    
     this.on('q:session:started', onSessionStarted);
+    
+    this.projectSessionListenersSetup = true;
   }
 
   // プロジェクトセッション開始イベントリスナーの削除
   removeProjectSessionListeners(): void {
     this.off('q:session:started');
+    this.projectSessionListenersSetup = false;
+  }
+
+  // セッション失敗イベントのリスナー
+  onSessionFailed(): Observable<{ error: string }> {
+    return new Observable((subscriber) => {
+      const handler = (data: { error: string }) => {
+        subscriber.next(data);
+      };
+      this.on('q:session:failed', handler);
+      
+      return () => {
+        this.off('q:session:failed', handler);
+      };
+    });
   }
 
   // Amazon Q チャット関連のメソッド
@@ -181,10 +217,17 @@ export class WebSocketService {
     onInfo: (data: { sessionId: string; message: string; type?: string }) => void,
     onComplete: (data: { sessionId: string; exitCode: number }) => void
   ): void {
+    // 重複セットアップを防止
+    if (this.chatListenersSetup) {
+      this.removeChatListeners();
+    }
+    
     this.on('q:response', onResponse);
     this.on('q:error', onError);
     this.on('q:info', onInfo);
     this.on('q:complete', onComplete);
+    
+    this.chatListenersSetup = true;
   }
 
   // チャット関連イベントリスナーの削除
@@ -193,6 +236,7 @@ export class WebSocketService {
     this.off('q:error');
     this.off('q:info');
     this.off('q:complete');
+    this.chatListenersSetup = false;
   }
 
   // セッション中止

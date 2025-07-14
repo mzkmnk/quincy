@@ -32,6 +32,8 @@ export class WebSocketService {
   private userRooms: Map<string, Set<string>> = new Map();
   private qCliService: AmazonQCLIService;
   private qHistoryService: AmazonQHistoryService;
+  // セッションIDとソケットIDのマッピング
+  private sessionToSockets: Map<string, Set<string>> = new Map();
 
   constructor(httpServer: HTTPServer) {
     this.io = new SocketIOServer(httpServer, {
@@ -294,6 +296,9 @@ export class WebSocketService {
     // Remove from connected users
     this.connectedUsers.delete(socket.id);
     
+    // Clean up session mapping
+    this.cleanupSocketFromSessions(socket.id);
+    
     // Clean up room tracking
     if (this.userRooms.has(socket.id)) {
       const userRooms = this.userRooms.get(socket.id)!;
@@ -375,26 +380,34 @@ export class WebSocketService {
   private setupQCLIEventHandlers(): void {
     // Amazon Q CLIサービスからのイベントをWebSocketクライアントに転送
     this.qCliService.on('q:response', (data) => {
-      this.io.emit('q:response', data);
+      // セッションに紐付いたソケットのみに配信
+      this.emitToSession(data.sessionId, 'q:response', data);
     });
 
     this.qCliService.on('q:error', (data) => {
-      this.io.emit('q:error', data);
+      // セッションに紐付いたソケットのみに配信
+      this.emitToSession(data.sessionId, 'q:error', data);
     });
 
     this.qCliService.on('q:info', (data) => {
-      this.io.emit('q:info', data);
+      // セッションに紐付いたソケットのみに配信
+      this.emitToSession(data.sessionId, 'q:info', data);
     });
 
     this.qCliService.on('q:complete', (data) => {
-      this.io.emit('q:complete', data);
+      // セッションに紐付いたソケットのみに配信
+      this.emitToSession(data.sessionId, 'q:complete', data);
+      // セッション終了時にマッピングをクリーンアップ
+      this.cleanupSession(data.sessionId);
     });
 
     this.qCliService.on('session:aborted', (data) => {
-      this.io.emit('q:complete', {
+      this.emitToSession(data.sessionId, 'q:complete', {
         sessionId: data.sessionId,
         exitCode: data.exitCode || 0
       });
+      // セッション終了時にマッピングをクリーンアップ
+      this.cleanupSession(data.sessionId);
     });
   }
 
@@ -406,11 +419,22 @@ export class WebSocketService {
         resume: data.resume
       });
 
+      // セッションIDとソケットIDを紐付け
+      this.addSocketToSession(sessionId, socket.id);
+
       // セッション作成の通知
       socket.emit('session:created', {
         sessionId,
         projectId: socket.data.sessionId || 'unknown'
       });
+
+      // セッション開始の通知（フロントエンドが待っているイベント）
+      const sessionStartedEvent: QSessionStartedEvent = {
+        sessionId,
+        projectPath: data.workingDir,
+        model: data.model
+      };
+      socket.emit('q:session:started', sessionStartedEvent);
 
       console.log(`🤖 Amazon Q CLI session started: ${sessionId} for socket ${socket.id}`);
     } catch (error) {
@@ -509,19 +533,27 @@ export class WebSocketService {
 
   private async handleQResume(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectPath: string; conversationId?: string }): Promise<void> {
     try {
+      console.log(`📋 Starting resume session for project: ${data.projectPath}`);
+      
       if (!this.qHistoryService.isDatabaseAvailable()) {
+        console.error('❌ Amazon Q database is not available');
         this.sendError(socket, 'Q_RESUME_UNAVAILABLE', 'Amazon Q database is not available');
+        socket.emit('q:session:failed', { error: 'Database not available' });
         return;
       }
 
       // Check if conversation exists
+      console.log('🔍 Checking conversation history...');
       const conversation = await this.qHistoryService.getProjectHistory(data.projectPath);
       if (!conversation) {
+        console.error('❌ No conversation history found');
         this.sendError(socket, 'Q_RESUME_NO_HISTORY', 'No conversation history found for this project');
+        socket.emit('q:session:failed', { error: 'No conversation history' });
         return;
       }
 
       // Start Amazon Q CLI with resume option
+      console.log('🚀 Starting Amazon Q CLI with resume option...');
       const commandData: QCommandEvent = {
         command: 'chat',
         workingDir: data.projectPath,
@@ -530,10 +562,12 @@ export class WebSocketService {
 
       await this.handleQCommand(socket, commandData);
       
-      console.log(`🔄 Amazon Q CLI session resumed for project: ${data.projectPath}`);
+      console.log(`✅ Amazon Q CLI session resumed successfully for project: ${data.projectPath}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Failed to resume session: ${errorMessage}`, error);
       this.sendError(socket, 'Q_RESUME_ERROR', `Failed to resume session: ${errorMessage}`);
+      socket.emit('q:session:failed', { error: errorMessage });
     }
   }
 
@@ -574,6 +608,9 @@ export class WebSocketService {
         model: commandData.model,
         resume: commandData.resume
       });
+
+      // セッションIDとソケットIDを紐付け
+      this.addSocketToSession(sessionId, socket.id);
 
       // セッション開始の通知
       const sessionStartedEvent: QSessionStartedEvent = {
@@ -646,5 +683,63 @@ export class WebSocketService {
       });
       if (ack) ack({ success: false, error: errorMessage });
     }
+  }
+
+  /**
+   * セッションIDとソケットIDを紐付け
+   */
+  private addSocketToSession(sessionId: string, socketId: string): void {
+    if (!this.sessionToSockets.has(sessionId)) {
+      this.sessionToSockets.set(sessionId, new Set());
+    }
+    this.sessionToSockets.get(sessionId)!.add(socketId);
+    console.log(`📌 Mapped socket ${socketId} to session ${sessionId}`);
+  }
+
+  /**
+   * セッションに紐付いたソケットにイベントを配信
+   */
+  private emitToSession<K extends keyof ServerToClientEvents>(
+    sessionId: string,
+    event: K,
+    data: Parameters<ServerToClientEvents[K]>[0]
+  ): void {
+    const socketIds = this.sessionToSockets.get(sessionId);
+    if (socketIds) {
+      console.log(`📤 Emitting ${event} to session ${sessionId} (${socketIds.size} sockets)`);
+      socketIds.forEach(socketId => {
+        const socket = this.io.sockets.sockets.get(socketId);
+        if (socket) {
+          (socket as any).emit(event, data);
+        }
+      });
+    } else {
+      console.warn(`⚠️ No sockets found for session ${sessionId}`);
+    }
+  }
+
+  /**
+   * セッション終了時のクリーンアップ
+   */
+  private cleanupSession(sessionId: string): void {
+    this.sessionToSockets.delete(sessionId);
+    console.log(`🧹 Cleaned up session ${sessionId}`);
+  }
+
+  /**
+   * ソケット切断時のクリーンアップ
+   */
+  private cleanupSocketFromSessions(socketId: string): void {
+    this.sessionToSockets.forEach((socketIds, sessionId) => {
+      if (socketIds.has(socketId)) {
+        socketIds.delete(socketId);
+        console.log(`🔌 Removed socket ${socketId} from session ${sessionId}`);
+        // セッションにソケットが残っていない場合は削除
+        if (socketIds.size === 0) {
+          this.sessionToSockets.delete(sessionId);
+          console.log(`🗑️ Session ${sessionId} has no more sockets, removed`);
+        }
+      }
+    });
   }
 }
