@@ -3,17 +3,16 @@ import { CommonModule } from '@angular/common';
 import { AppStore, ChatMessage } from '../../../core/store/app.state';
 import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.component';
 import { ScrollPanel } from 'primeng/scrollpanel';
-import { Avatar } from 'primeng/avatar';
 import { Button } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-message-list',
-  imports: [CommonModule, TypingIndicatorComponent, ScrollPanel, Avatar, Button],
+  imports: [CommonModule, TypingIndicatorComponent, ScrollPanel, Button],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p-scrollPanel [style]="{ height: '100%' }" class="p-4">
-      <div class="space-y-4" #messageContainer>
+      <div class="space-y-6" #messageContainer>
         @if (messages().length === 0) {
           <!-- Empty conversation state -->
           <div class="text-center py-12">
@@ -25,65 +24,50 @@ import { MessageService } from 'primeng/api';
           </div>
         } @else {
           @for (message of messages(); track message.id) {
-            <div 
-              class="flex gap-3"
-              [class.justify-end]="message.sender === 'user'"
-            >
-              <!-- Assistant Avatar -->
-              @if (message.sender === 'assistant') {
-                <div class="flex-shrink-0">
-                  <p-avatar 
-                    icon="pi pi-android"
-                    size="normal"
-                    [style]="{ backgroundColor: '#dbeafe', color: '#2563eb' }"
-                  />
-                </div>
-              }
-
-              <!-- Message Content -->
-              <div class="flex-1 max-w-3xl">
-                <div 
-                  class="rounded-lg px-4 py-3"
-                  [class.bg-blue-500]="message.sender === 'user'"
-                  [class.text-white]="message.sender === 'user'"
-                  [class.bg-surface-100]="message.sender === 'assistant'"
-                  [class.text-surface-900]="message.sender === 'assistant'"
-                >
-                  @if (message.isTyping) {
-                    <app-typing-indicator></app-typing-indicator>
-                  } @else {
-                    <div class="whitespace-pre-wrap break-words">{{ message.content }}</div>
-                  }
-                </div>
-                
-                <!-- Message Meta -->
-                <div class="flex items-center justify-between mt-1 px-1">
-                  <span class="text-xs text-surface-500">
-                    {{ formatTime(message.timestamp) }}
-                  </span>
-                  
-                  @if (message.sender === 'assistant' && !message.isTyping) {
-                    <p-button 
-                      icon="pi pi-copy"
-                      [text]="true"
-                      [rounded]="true"
-                      size="small"
-                      (onClick)="copyMessage(message.content)"
-                      title="Copy message"
-                      severity="secondary"
-                    />
-                  }
-                </div>
-              </div>
-
-              <!-- User Avatar -->
+            <div class="message-block">
               @if (message.sender === 'user') {
-                <div class="flex-shrink-0">
-                  <p-avatar 
-                    icon="pi pi-user"
-                    size="normal"
-                    [style]="{ backgroundColor: '#dcfce7', color: '#16a34a' }"
-                  />
+                <!-- User Question - Emphasized -->
+                <div class="mb-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm">
+                      <i class="pi pi-user"></i>
+                    </div>
+                    <span class="font-semibold text-gray-800">You</span>
+                    <span class="text-xs text-gray-500">{{ formatTime(message.timestamp) }}</span>
+                  </div>
+                  <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                    <div class="font-medium text-gray-900 whitespace-pre-wrap break-words">{{ message.content }}</div>
+                  </div>
+                </div>
+              } @else {
+                <!-- Assistant Answer - Document-like -->
+                <div class="mb-6">
+                  <div class="flex items-center gap-2 mb-3">
+                    <div class="w-7 h-7 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm">
+                      <i class="pi pi-android"></i>
+                    </div>
+                    <span class="font-semibold text-gray-800">Amazon Q</span>
+                    <span class="text-xs text-gray-500">{{ formatTime(message.timestamp) }}</span>
+                    @if (!message.isTyping) {
+                      <p-button 
+                        icon="pi pi-copy"
+                        [text]="true"
+                        [rounded]="true"
+                        size="small"
+                        (onClick)="copyMessage(message.content)"
+                        title="Copy message"
+                        severity="secondary"
+                        class="ml-auto"
+                      />
+                    }
+                  </div>
+                  <div class="prose prose-gray max-w-none">
+                    @if (message.isTyping) {
+                      <app-typing-indicator></app-typing-indicator>
+                    } @else {
+                      <div class="text-gray-700 leading-relaxed whitespace-pre-wrap break-words">{{ message.content }}</div>
+                    }
+                  </div>
                 </div>
               }
             </div>
