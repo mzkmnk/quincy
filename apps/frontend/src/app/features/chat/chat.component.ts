@@ -160,10 +160,7 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
                 <div class="text-lg text-gray-600">Loading conversation history...</div>
               </div>
             } @else if (appStore.currentQConversation()?.transcript) {
-              <app-message-list 
-                [historyMode]="true"
-                [historyMessages]="appStore.currentQConversation()!.transcript"
-              ></app-message-list>
+              <app-message-list></app-message-list>
             } @else {
               <div class="text-center text-gray-500 py-8">
                 <div class="text-lg mb-2">📭 No conversation transcript available</div>
