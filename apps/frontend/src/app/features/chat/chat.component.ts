@@ -59,21 +59,25 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
           
           <!-- Message Input - Sticky to bottom -->
           @if (!isSessionDisabled()) {
-            <div class="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
-              <app-message-input (messageSent)="onMessageSent($event)"></app-message-input>
+            <div class="sticky bottom-0 left-0 right-0 z-10">
+              <div class="bg-white border-t border-gray-200">
+                <app-message-input (messageSent)="onMessageSent($event)"></app-message-input>
+              </div>
             </div>
           } @else {
-            <div class="sticky bottom-0 left-0 right-0 bg-gray-50 border-t border-gray-200 p-4 text-center z-10">
-              <div class="max-w-md mx-auto">
-                <p class="text-gray-600 text-sm mb-3">{{ getDisabledReason() }}</p>
-                @if (appStore.sessionError()) {
-                  <button 
-                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
-                    (click)="clearSessionError()"
-                  >
-                    Start New Session
-                  </button>
-                }
+            <div class="sticky bottom-0 left-0 right-0 z-10">
+              <div class="bg-gray-50 border-t border-gray-200 p-4 text-center">
+                <div class="max-w-md mx-auto">
+                  <p class="text-gray-600 text-sm mb-3">{{ getDisabledReason() }}</p>
+                  @if (appStore.sessionError()) {
+                    <button 
+                      class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                      (click)="clearSessionError()"
+                    >
+                      Start New Session
+                    </button>
+                  }
+                </div>
               </div>
             </div>
           }
@@ -200,13 +204,15 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
           </div>
           
           <!-- Resume Session Button - Sticky to bottom -->
-          <div class="sticky bottom-0 left-0 right-0 bg-gray-50 border-t border-gray-200 p-4 text-center z-10">
-            <button 
-              class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              (click)="resumeSession()"
-            >
-              Resume Session to Continue Chat
-            </button>
+          <div class="sticky bottom-0 left-0 right-0 z-10">
+            <div class="bg-gray-50 border-t border-gray-200 p-4 text-center">
+              <button 
+                class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                (click)="resumeSession()"
+              >
+                Resume Session to Continue Chat
+              </button>
+            </div>
           </div>
         } @else {
           <!-- Welcome/Empty State -->
