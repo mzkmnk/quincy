@@ -1,6 +1,10 @@
 import { Component, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Button } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
+import { InputText } from 'primeng/inputtext';
+import { Checkbox } from 'primeng/checkbox';
 
 export interface ProjectPathSelection {
   path: string;
@@ -9,120 +13,96 @@ export interface ProjectPathSelection {
 
 @Component({
   selector: 'app-project-path-modal',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Button, Dialog, InputText, Checkbox],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="fixed inset-0 z-[9999] overflow-y-auto" [class.hidden]="!isVisible()">
-      <!-- Backdrop -->
-      <div class="fixed inset-0 bg-black opacity-25 transition-opacity" (click)="close()"></div>
+    <p-dialog 
+      [(visible)]="isVisible" 
+      [modal]="true" 
+      header="新規プロジェクト作成"
+      [style]="{ width: '50rem' }"
+      [closable]="true"
+      (onHide)="close()">
       
-      <!-- Modal -->
-      <div class="relative flex min-h-full items-center justify-center p-6">
-        <div class="relative w-full max-w-2xl transform overflow-hidden rounded-xl bg-white p-8 shadow-2xl transition-all z-10">
-          <div class="flex items-center justify-between mb-8">
-            <div>
-              <h3 class="text-2xl font-bold text-gray-900">新規プロジェクト作成</h3>
-              <p class="text-gray-600 mt-2">Amazon Q CLIを使用して新しいプロジェクトセッションを開始します</p>
-            </div>
-            <button 
-              class="text-gray-400 hover:text-gray-600 transition-colors p-2"
-              (click)="close()"
-            >
-              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
-          </div>
+      <p class="mb-6 text-surface-600">Amazon Q CLIを使用して新しいプロジェクトセッションを開始します</p>
+      
+      <!-- Path Input -->
+      <div class="mb-6">
+        <label class="block text-lg font-medium mb-3">
+          プロジェクトパス <span class="text-red-500">*</span>
+        </label>
+        <input 
+          pInputText 
+          type="text"
+          [(ngModel)]="projectPath"
+          placeholder="/Users/username/my-project"
+          class="w-full"
+          [class.ng-invalid]="pathError()"
+          (input)="validatePath()"
+          (keydown.enter)="startProject()"
+        />
+        @if (pathError()) {
+          <small class="text-red-500 block mt-2">{{ pathError() }}</small>
+        }
+      </div>
 
-          <div class="space-y-6">
-            <!-- Path Input -->
-            <div>
-              <label class="block text-lg font-medium text-gray-700 mb-3">
-                プロジェクトパス <span class="text-red-500">*</span>
-              </label>
-              <div class="relative">
-                <input
-                  type="text"
-                  [(ngModel)]="projectPath"
-                  placeholder="/Users/username/my-project"
-                  class="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50 focus:bg-white placeholder:text-gray-500"
-                  [class.border-red-500]="pathError()"
-                  [class.bg-red-50]="pathError()"
-                  (input)="validatePath()"
-                  (keydown.enter)="startProject()"
-                />
-              </div>
-              @if (pathError()) {
-                <p class="mt-2 text-sm text-red-600 font-medium">{{ pathError() }}</p>
-              }
-            </div>
+      <!-- Resume Option -->
+      <div class="mb-6 p-4 bg-surface-100 rounded-lg">
+        <div class="flex items-center mb-3">
+          <p-checkbox 
+            [(ngModel)]="resumeSession" 
+            [binary]="true"
+            inputId="resume"
+            class="mr-3"
+          />
+          <label for="resume" class="text-base font-medium">
+            既存のセッションを再開する（--resumeオプション）
+          </label>
+        </div>
+        <p class="text-sm text-surface-600 ml-8">
+          プロジェクト内の以前の会話履歴を引き継いでセッションを開始します
+        </p>
+      </div>
 
-            <!-- Resume Option -->
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="flex items-center">
-                <input
-                  type="checkbox"
-                  id="resume"
-                  [(ngModel)]="resumeSession"
-                  class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label for="resume" class="ml-3 text-base text-gray-700 font-medium">
-                  既存のセッションを再開する（--resumeオプション）
-                </label>
-              </div>
-              <p class="mt-2 ml-8 text-sm text-gray-600">
-                プロジェクト内の以前の会話履歴を引き継いでセッションを開始します
-              </p>
-            </div>
-
-            <!-- Hints -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-5">
-              <div class="flex">
-                <svg class="w-6 h-6 text-blue-500 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <div class="ml-4">
-                  <p class="text-base font-semibold text-blue-800">💡 パス入力のヒント</p>
-                  <ul class="mt-3 space-y-2 text-sm text-blue-700">
-                    <li class="flex items-center">
-                      <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
-                      <span>絶対パスを入力してください（相対パス不可）</span>
-                    </li>
-                    <li class="flex items-center">
-                      <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
-                      <span>例: <code class="bg-blue-100 px-2 py-1 rounded text-xs">/Users/username/projects/my-app</code></span>
-                    </li>
-                    <li class="flex items-center">
-                      <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
-                      <span>プロジェクトのルートディレクトリを指定してください</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <!-- Buttons -->
-            <div class="flex justify-end space-x-4 pt-6">
-              <button
-                type="button"
-                class="px-6 py-3 text-base font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
-                (click)="close()"
-              >
-                キャンセル
-              </button>
-              <button
-                type="button"
-                class="px-8 py-3 text-base font-semibold text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg hover:shadow-xl"
-                [disabled]="!isValidPath()"
-                (click)="startProject()"
-              >
-                🚀 プロジェクト開始
-              </button>
-            </div>
+      <!-- Hints -->
+      <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex">
+          <i class="pi pi-info-circle text-blue-500 text-xl mr-3 mt-1"></i>
+          <div>
+            <p class="text-base font-semibold text-blue-800 mb-3">💡 パス入力のヒント</p>
+            <ul class="space-y-2 text-sm text-blue-700">
+              <li class="flex items-center">
+                <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                <span>絶対パスを入力してください（相対パス不可）</span>
+              </li>
+              <li class="flex items-center">
+                <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                <span>例: <code class="bg-blue-100 px-2 py-1 rounded text-xs">/Users/username/projects/my-app</code></span>
+              </li>
+              <li class="flex items-center">
+                <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                <span>プロジェクトのルートディレクトリを指定してください</span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
-    </div>
+
+      <ng-template pTemplate="footer">
+        <p-button 
+          label="キャンセル" 
+          icon="pi pi-times" 
+          severity="secondary"
+          (onClick)="close()"
+        />
+        <p-button 
+          label="🚀 プロジェクト開始" 
+          icon="pi pi-play" 
+          [disabled]="!isValidPath()"
+          (onClick)="startProject()"
+        />
+      </ng-template>
+    </p-dialog>
   `
 })
 export class ProjectPathModalComponent {

@@ -4,23 +4,37 @@ import { Router } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { ConversationMetadata } from '@quincy/shared';
+import { DataView } from 'primeng/dataview';
+import { ProgressSpinner } from 'primeng/progressspinner';
+import { Message } from 'primeng/message';
+import { Button } from 'primeng/button';
+import { Avatar } from 'primeng/avatar';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-project-list',
-  imports: [CommonModule],
+  imports: [CommonModule, DataView, ProgressSpinner, Message, Button, Avatar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex-1 flex-col">
       <!-- Fixed Header -->
       <div class="flex-shrink-0 p-4 pb-2" [class.p-2]="collapsed()">
         <div class="mb-3" [class.hidden]="collapsed()">
-          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Amazon Q History</h3>
+          <h3 class="text-xs font-semibold text-surface-400 uppercase tracking-wider">Amazon Q History</h3>
           @if (appStore.qHistoryLoading()) {
-            <div class="text-xs text-gray-500 mt-1">Loading...</div>
-          } @else if (appStore.error()) {
-            <div class="text-xs text-red-500 mt-1 cursor-pointer" (click)="retryLoadHistory()" title="クリックして再試行">
-              {{ appStore.error() }} ⟲
+            <div class="flex items-center gap-2 text-xs text-surface-500 mt-1">
+              <p-progressSpinner [style]="{ width: '12px', height: '12px' }" strokeWidth="6" />
+              Loading...
             </div>
+          } @else if (appStore.error()) {
+            <p-message 
+              severity="error" 
+              [text]="appStore.error()" 
+              [closable]="false"
+              class="mt-1 text-xs cursor-pointer"
+              (click)="retryLoadHistory()"
+              title="クリックして再試行"
+            />
           }
         </div>
       </div>
@@ -32,67 +46,64 @@ import { ConversationMetadata } from '@quincy/shared';
         (wheel)="onWheel($event)"
       >
         @if (appStore.hasAmazonQHistory()) {
-          <div class="flex flex-col w-full space-y-1">
-            @if(!collapsed()){
-              @for (project of appStore.amazonQHistory(); track project.conversation_id) {
-                <div
-                  class="group cursor-pointer rounded-lg transition-all duration-200 hover:bg-gray-50"
-                  [class.bg-blue-50]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                  (click)="selectQProject(project)"
-                >
-                  @if (!collapsed()) {
-                    <div class="p-3">
-                      <h4 class="text-sm font-medium text-gray-900 truncate">
-                        {{ getProjectName(project.projectPath) }}
-                      </h4>
-                    </div>
-                  } @else {
-                    <!-- Collapsed View -->
-                    <div 
-                      class="p-2 flex items-center justify-center"
-                      [title]="getProjectName(project.projectPath)"
-                    >
-                      <div 
-                        class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold"
-                        [class.bg-blue-100]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                        [class.text-blue-600]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                        [class.bg-gray-100]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
-                        [class.text-gray-600]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
-                      >
-                        {{ getProjectInitials(getProjectName(project.projectPath)) }}
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-            }
-          </div>
+          <p-dataView 
+            [value]="appStore.amazonQHistory()"
+            [layout]="'list'"
+            class="w-full"
+          >
+            <ng-template let-project pTemplate="listItem">
+              <div
+                class="group cursor-pointer rounded-lg transition-all duration-200 hover:bg-surface-50 mb-1"
+                [class.bg-blue-50]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                (click)="selectQProject(project)"
+              >
+                @if (!collapsed()) {
+                  <div class="p-3">
+                    <h4 class="text-sm font-medium text-surface-900 truncate">
+                      {{ getProjectName(project.projectPath) }}
+                    </h4>
+                  </div>
+                } @else {
+                  <!-- Collapsed View -->
+                  <div 
+                    class="p-2 flex items-center justify-center"
+                    [title]="getProjectName(project.projectPath)"
+                  >
+                    <p-avatar 
+                      [label]="getProjectInitials(getProjectName(project.projectPath))"
+                      [size]="'small'"
+                      [style]="{ 
+                        backgroundColor: project.conversation_id === appStore.currentQConversation()?.conversation_id ? '#dbeafe' : '#f3f4f6',
+                        color: project.conversation_id === appStore.currentQConversation()?.conversation_id ? '#2563eb' : '#6b7280'
+                      }"
+                    />
+                  </div>
+                }
+              </div>
+            </ng-template>
+          </p-dataView>
         } @else if (!appStore.qHistoryLoading() && !appStore.error()) {
           <!-- Empty State -->
           @if (!collapsed()) {
             <div class="text-center py-8">
-              <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-              </svg>
-              <p class="text-sm text-gray-500">No Amazon Q history</p>
-              <p class="text-xs text-gray-400 mt-1">Start conversations with Amazon Q to see history</p>
+              <i class="pi pi-comments text-surface-300 text-4xl mb-4 block"></i>
+              <p class="text-sm text-surface-500">No Amazon Q history</p>
+              <p class="text-xs text-surface-400 mt-1">Start conversations with Amazon Q to see history</p>
             </div>
           }
         } @else if (appStore.error()) {
           <!-- Error State -->
           @if (!collapsed()) {
             <div class="text-center py-8">
-              <svg class="w-12 h-12 text-red-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-              </svg>
+              <i class="pi pi-exclamation-triangle text-red-300 text-4xl mb-4 block"></i>
               <p class="text-sm text-red-600 mb-2">履歴取得エラー</p>
-              <p class="text-xs text-gray-500 mb-4">{{ appStore.error() }}</p>
-              <button 
-                class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
-                (click)="retryLoadHistory()"
-              >
-                再試行
-              </button>
+              <p class="text-xs text-surface-500 mb-4">{{ appStore.error() }}</p>
+              <p-button 
+                label="再試行"
+                icon="pi pi-refresh"
+                size="small"
+                (onClick)="retryLoadHistory()"
+              />
             </div>
           }
         }
@@ -105,6 +116,7 @@ export class ProjectListComponent implements OnInit, OnDestroy {
   protected appStore = inject(AppStore);
   private webSocketService = inject(WebSocketService);
   private router = inject(Router);
+  private messageService = inject(MessageService);
 
   ngOnInit(): void {
     this.loadAmazonQHistory();

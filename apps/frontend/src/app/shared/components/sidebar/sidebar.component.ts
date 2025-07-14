@@ -1,34 +1,33 @@
 import { Component, input, ChangeDetectionStrategy, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProjectListComponent } from '../project-list/project-list.component';
+import { Button } from 'primeng/button';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [CommonModule, ProjectListComponent],
+  imports: [CommonModule, ProjectListComponent, Button],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="h-full flex flex-col">
       <!-- New Project Button -->
       <div class="p-4">
-        <button
-          class="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-gray-600 hover:border-blue-300 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center gap-2"
+        <p-button
+          label="New Project"
+          icon="pi pi-plus"
+          severity="secondary"
+          [outlined]="true"
+          class="w-full"
           [class.hidden]="collapsed()"
-          (click)="createNewProject()"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          New Project
-        </button>
-        <button
-          class="w-full p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center"
+          (onClick)="createNewProject()"
+        />
+        <p-button
+          icon="pi pi-plus"
+          severity="secondary"
+          [outlined]="true"
+          class="w-full"
           [class.hidden]="!collapsed()"
-          (click)="createNewProject()"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-        </button>
+          (onClick)="createNewProject()"
+        />
       </div>
 
       <!-- Projects List -->

@@ -3,36 +3,36 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
+import { Menubar } from 'primeng/menubar';
+import { Badge } from 'primeng/badge';
 
 @Component({
   selector: 'app-navigation',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, Menubar, Badge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <nav class="bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 right-0 z-50 h-16">
-      <div class="max-w-screen-xl mx-auto px-8 flex items-center justify-between h-full">
-        <div class="flex items-center">
-          <a routerLink="/chat" class="no-underline">
-            <h1 class="m-0 text-2xl font-semibold text-blue-500">Quincy</h1>
-          </a>
+    <p-menubar class="fixed top-0 left-0 right-0 z-50">
+      <ng-template pTemplate="start">
+        <a routerLink="/chat" class="no-underline">
+          <h1 class="m-0 text-2xl font-semibold text-blue-500">Quincy</h1>
+        </a>
+      </ng-template>
+      
+      <ng-template pTemplate="end">
+        <div class="flex items-center gap-2 text-sm">
+          <i 
+            class="pi pi-circle-fill text-xs"
+            [class.text-green-500]="websocket.connected()"
+            [class.text-orange-500]="websocket.connecting()"
+            [class.animate-pulse]="websocket.connecting()"
+            [class.text-red-500]="!websocket.connected() && !websocket.connecting()"
+          ></i>
+          <span class="text-surface-600 font-medium hidden md:inline">
+            {{ websocket.connected() ? 'Connected' : websocket.connecting() ? 'Connecting' : 'Disconnected' }}
+          </span>
         </div>
-        
-        <div class="flex items-center">
-          <div class="flex items-center gap-2 text-sm">
-            <span 
-              class="w-2 h-2 rounded-full bg-gray-300 transition-colors duration-200"
-              [class.bg-green-500]="websocket.connected()"
-              [class.bg-orange-500]="websocket.connecting()"
-              [class.animate-pulse]="websocket.connecting()"
-              [class.bg-red-500]="!websocket.connected() && !websocket.connecting()"
-            ></span>
-            <span class="text-gray-600 font-medium hidden md:inline">
-              {{ websocket.connected() ? 'Connected' : websocket.connecting() ? 'Connecting' : 'Disconnected' }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </nav>
+      </ng-template>
+    </p-menubar>
   `,
   styles: [`
     @reference "tailwindcss";
