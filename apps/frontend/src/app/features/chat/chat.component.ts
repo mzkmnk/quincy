@@ -60,9 +60,7 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
           <!-- Message Input - Sticky to bottom -->
           @if (!isSessionDisabled()) {
             <div class="sticky bottom-0 left-0 right-0 z-10">
-              <div class="bg-white border-t border-gray-200">
-                <app-message-input (messageSent)="onMessageSent($event)"></app-message-input>
-              </div>
+              <app-message-input (messageSent)="onMessageSent($event)"></app-message-input>
             </div>
           } @else {
             <div class="sticky bottom-0 left-0 right-0 z-10">
@@ -205,7 +203,7 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
           
           <!-- Resume Session Button - Sticky to bottom -->
           <div class="sticky bottom-0 left-0 right-0 z-10">
-            <div class="bg-gray-50 border-t border-gray-200 p-4 text-center">
+            <div class="p-4 text-center">
               <button 
                 class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                 (click)="resumeSession()"
@@ -242,42 +240,42 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
 export class ChatComponent implements OnInit, OnDestroy {
   protected appStore = inject(AppStore);
   protected websocket = inject(WebSocketService);
-  
+
   // Child component references
   messageList = viewChild(MessageListComponent);
   messageInput = viewChild(MessageInputComponent);
-  
+
   // Local state
   isActiveChat = signal(false);
   streamingMessageId = signal<string | null>(null);
   messageIndexMap = new Map<string, number>(); // メッセージID → インデックスマップ
-  
+
   // Session status tracking
   sessionStatus = {
     cliLaunched: false,
     connectionEstablished: false,
     workspaceReady: false
   };
-  
+
   constructor() {
     // Monitor session changes to update chat state
     effect(() => {
       const currentSession = this.appStore.currentQSession();
       const sessionError = this.appStore.sessionError();
-      
+
       // Update active chat state
       this.isActiveChat.set(!!currentSession && !sessionError);
-      
+
       // Always cleanup listeners before setting up new ones
       this.websocket.removeChatListeners();
-      
+
       // Setup WebSocket listeners when session starts
       if (currentSession) {
         this.setupWebSocketListeners();
       }
     });
   }
-  
+
   ngOnDestroy(): void {
     // Cleanup WebSocket listeners
     this.websocket.removeChatListeners();
@@ -296,7 +294,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     // amazonQHistoryから該当するプロジェクトを検索
     const currentConversation = this.appStore.currentQConversation();
     if (!currentConversation) return '';
-    
+
     const historyItem = this.appStore.amazonQHistory().find(
       h => h.conversation_id === currentConversation.conversation_id
     );
@@ -323,15 +321,15 @@ export class ChatComponent implements OnInit, OnDestroy {
   clearSessionError(): void {
     this.appStore.setSessionError(null);
   }
-  
+
   isSessionDisabled(): boolean {
     return !!this.appStore.sessionError() || !this.appStore.currentQSession();
   }
-  
+
   canChat(): boolean {
     return this.isActiveChat() && !this.isSessionDisabled();
   }
-  
+
   getDisabledReason(): string {
     if (this.appStore.sessionError()) {
       return this.appStore.sessionError()!;
@@ -341,7 +339,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
     return 'Chat is temporarily unavailable.';
   }
-  
+
   resumeSession(): void {
     const conversation = this.appStore.currentQConversation();
     if (conversation) {
@@ -350,26 +348,26 @@ export class ChatComponent implements OnInit, OnDestroy {
         // セッション開始状態に切り替え
         this.appStore.clearCurrentView();
         this.appStore.setSessionStarting(true);
-        
+
         // セッションステータスをリセット
         this.sessionStatus = {
           cliLaunched: false,
           connectionEstablished: false,
           workspaceReady: false
         };
-        
+
         // ステータス更新を模擬（実際のイベントに基づいて更新）
         setTimeout(() => { this.sessionStatus.cliLaunched = true; }, 1000);
         setTimeout(() => { this.sessionStatus.connectionEstablished = true; }, 2000);
         setTimeout(() => { this.sessionStatus.workspaceReady = true; }, 3000);
-        
+
         // タイムアウトを設定（30秒）
         const timeoutId = setTimeout(() => {
           console.error('Session resume timeout after 30 seconds');
           this.appStore.setSessionStarting(false);
           this.appStore.setSessionError('Session resume timed out. Please try again.');
         }, 30000);
-        
+
         // セッション失敗リスナーを設定
         const failedSubscription = this.websocket.onSessionFailed().subscribe((data) => {
           console.error('Session resume failed:', data.error);
@@ -378,10 +376,10 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.appStore.setSessionError(`Failed to resume session: ${data.error}`);
           failedSubscription.unsubscribe();
         });
-        
+
         // Resume sessionリクエストを送信
         this.websocket.resumeSession(projectPath, conversation.conversation_id);
-        
+
         // セッション開始リスナーを設定（LayoutComponentと同様）
         this.websocket.setupProjectSessionListeners((data) => {
           console.log('Amazon Q session resumed:', data);
@@ -392,26 +390,26 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     }
   }
-  
-  onMessageSent(event: {content: string; files: File[]}): void {
+
+  onMessageSent(event: { content: string; files: File[] }): void {
     if (!this.canChat()) {
       console.warn('Cannot send message: chat is disabled');
       return;
     }
-    
+
     // Add user message to chat immediately
     this.messageList()?.addMessage(event.content, 'user');
-    
+
     // Clear any previous streaming message ID
     this.streamingMessageId.set(null);
   }
-  
+
   private setupWebSocketListeners(): void {
     const currentSession = this.appStore.currentQSession();
     if (!currentSession) {
       return;
     }
-    
+
     // Setup chat listeners for real-time message handling
     this.websocket.setupChatListeners(
       // On Q response (streaming)
@@ -427,7 +425,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         // Filter by session ID
         if (data.sessionId === currentSession.sessionId) {
           console.error('Received Q error for current session:', data);
-          
+
           // 意味のあるエラーのみ表示
           if (this.shouldDisplayError(data.error)) {
             // Clear any streaming message
@@ -456,27 +454,27 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     );
   }
-  
+
   private handleStreamingResponse(content: string): void {
     const currentStreamingId = this.streamingMessageId();
-    
+
     if (!currentStreamingId) {
       // 新しいストリーミングメッセージを開始
       const messageId = this.messageList()?.addMessage(content, 'assistant') || '';
       this.streamingMessageId.set(messageId);
-      
+
       // インデックスマップを更新
       this.updateMessageIndexMap();
     } else {
       // 最適化された検索でメッセージを更新
       const messageIndex = this.messageIndexMap.get(currentStreamingId);
       const currentMessages = this.appStore.chatMessages();
-      
-      if (messageIndex !== undefined && messageIndex < currentMessages.length && 
-          currentMessages[messageIndex].id === currentStreamingId) {
+
+      if (messageIndex !== undefined && messageIndex < currentMessages.length &&
+        currentMessages[messageIndex].id === currentStreamingId) {
         const updatedContent = currentMessages[messageIndex].content + content;
         this.appStore.updateChatMessage(currentStreamingId, { content: updatedContent });
-        
+
         // ストリーミング更新時にスクロール更新をトリガー
         this.messageList()?.markForScrollUpdate();
       } else {
@@ -491,11 +489,11 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     }
   }
-  
+
   private handleInfoMessage(data: { sessionId: string; message: string; type?: string }): void {
     // 情報メッセージを適切に表示
     const messageContent = this.formatInfoMessage(data);
-    
+
     if (messageContent) {
       // メッセージリストに情報メッセージを追加（assistantタイプで情報として表示）
       this.messageList()?.addMessage(messageContent, 'assistant');
@@ -504,18 +502,18 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private formatInfoMessage(data: { sessionId: string; message: string; type?: string }): string | null {
     const trimmed = data.message.trim();
-    
+
     // 空のメッセージはスキップ
     if (!trimmed) {
       return null;
     }
-    
+
     // 特別なメッセージの処理
     const lowerTrimmed = trimmed.toLowerCase();
     if (lowerTrimmed === 'thinking' || lowerTrimmed === 'thinking...') {
       return `🤔 Thinking...`;
     }
-    
+
     // メッセージタイプに基づいてフォーマット
     switch (data.type) {
       case 'initialization':
@@ -532,12 +530,12 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private shouldDisplayError(error: string): boolean {
     const trimmed = error.trim();
-    
+
     // 空のエラーは表示しない
     if (!trimmed) {
       return false;
     }
-    
+
     // 初期化メッセージや情報メッセージは表示しない
     const skipPatterns = [
       /^\s*[\x00-\x1f]\s*$/,                            // 制御文字のみ
@@ -548,10 +546,10 @@ export class ChatComponent implements OnInit, OnDestroy {
       /loading|initializing/i,                           // ローディングメッセージ
       /^\s*m\s*$/,                                       // 単一の'm'文字
     ];
-    
+
     return !skipPatterns.some(pattern => pattern.test(trimmed));
   }
-  
+
   /**
    * メッセージIDインデックスマップを更新
    */
