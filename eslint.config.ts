@@ -2,7 +2,12 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import angular from '@angular-eslint/eslint-plugin';
 import angularTemplate from '@angular-eslint/eslint-plugin-template';
+import angularTemplateParser from '@angular-eslint/template-parser';
 import prettier from 'eslint-config-prettier';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default tseslint.config(
   // Base ESLint recommended rules
@@ -33,7 +38,7 @@ export default tseslint.config(
       parser: tseslint.parser,
       parserOptions: {
         project: ['./apps/*/tsconfig.json'],
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: __dirname,
       },
     },
     rules: {
@@ -104,7 +109,7 @@ export default tseslint.config(
   {
     files: ['apps/frontend/**/*.html'],
     languageOptions: {
-      parser: angularTemplate.parser,
+      parser: angularTemplateParser,
     },
     plugins: {
       '@angular-eslint/template': angularTemplate,
@@ -164,8 +169,15 @@ export default tseslint.config(
   // Configuration files
   {
     files: ['**/*.config.ts', '**/*.config.js'],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: false,
+      },
+    },
     rules: {
       '@typescript-eslint/no-var-requires': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
     },
   },
 

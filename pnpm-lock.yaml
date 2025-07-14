@@ -17,9 +17,15 @@ importers:
       '@angular-eslint/template-parser':
         specifier: ^20.1.1
         version: 20.1.1(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3)
+      '@eslint/js':
+        specifier: ^9.31.0
+        version: 9.31.0
       '@types/eslint':
         specifier: ^9.6.1
         version: 9.6.1
+      '@types/node':
+        specifier: ^20.19.6
+        version: 20.19.6
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.36.0
         version: 8.36.0(@typescript-eslint/parser@8.36.0(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3)
