@@ -4,10 +4,12 @@ import { AppStore } from '../../core/store/app.state';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { MessageListComponent } from '../../shared/components/message-list/message-list.component';
 import { MessageInputComponent } from '../../shared/components/message-input/message-input.component';
+import { UserMessageComponent } from '../../shared/components/user-message/user-message.component';
+import { AmazonQMessageComponent } from '../../shared/components/amazon-q-message/amazon-q-message.component';
 
 @Component({
   selector: 'app-chat',
-  imports: [CommonModule, MessageListComponent, MessageInputComponent],
+  imports: [CommonModule, MessageListComponent, MessageInputComponent, UserMessageComponent, AmazonQMessageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="h-full flex flex-col bg-white">
@@ -164,25 +166,17 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
                 @for (message of appStore.currentQConversation()!.transcript; track $index; let isEven = $even) {
                   <div class="message-block">
                     @if (isEven) {
-                      <!-- User Message - Right aligned with speech bubble -->
-                      <div class="flex justify-end mb-4">
-                        <div class="flex items-end gap-2 max-w-xl">
-                          <div class="bg-gray-100 text-white rounded-2xl px-4 py-3 shadow-sm">
-                            <div class="whitespace-pre-wrap text-gray-700 break-words">{{ message }}</div>
-                          </div>
-                          <!-- TODO: customize icon -->
-                          <!-- <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm flex-shrink-0">
-                            <i class="pi pi-user"></i>
-                          </div> -->
-                        </div>
-                      </div>
+                      <app-user-message 
+                        [content]="message"
+                        [showTimestamp]="false"
+                        [showAvatar]="false"
+                      />
                     } @else {
-                      <!-- Amazon Q Answer - Center aligned Q&A style -->
-                      <div class="flex justify-center mb-6">
-                        <div class="w-full max-w-4xl">
-                          <div class="text-gray-700 leading-relaxed whitespace-pre-wrap break-words prose prose-gray max-w-none">{{ message }}</div>
-                        </div>
-                      </div>
+                      <app-amazon-q-message 
+                        [content]="message"
+                        [showHeader]="false"
+                        [withBackground]="false"
+                      />
                     }
                   </div>
                 }
