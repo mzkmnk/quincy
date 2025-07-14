@@ -1,6 +1,9 @@
-# Getting Started
+# Getting Started（開発者向け）
 
 Quincyは、Amazon Q CLIプロセスの管理とプロジェクト管理のためのモダンなツールです。フロントエンドにAngular 20、バックエンドにHono frameworkを使用しています。
+
+> **ユーザー向けの使用方法については[ユーザーガイド](/user-guide/)をご覧ください。**
+> このページは開発環境のセットアップと開発者向けの情報を含みます。
 
 ## 前提条件
 
@@ -103,5 +106,9 @@ pnpm install
 
 ## 次のステップ
 
+### ユーザー向け
+- [ユーザーガイド](/user-guide/) - GUIアプリケーションの使用方法
+
+### 開発者向け
 - [API Reference](/api/backend) - バックエンドAPIの詳細
 - [Frontend Components](/api/frontend) - フロントエンドコンポーネントの使用方法

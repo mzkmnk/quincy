@@ -11,7 +11,10 @@ hero:
     alt: Quincy Logo
   actions:
     - theme: brand
-      text: Getting Started
+      text: ユーザーガイド
+      link: /user-guide/
+    - theme: alt
+      text: 開発者ガイド
       link: /getting-started
     - theme: alt
       text: View on GitHub
