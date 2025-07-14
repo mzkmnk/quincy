@@ -26,47 +26,50 @@ import { MessageService } from 'primeng/api';
           @for (message of messages(); track message.id) {
             <div class="message-block">
               @if (message.sender === 'user') {
-                <!-- User Question - Emphasized -->
-                <div class="mb-4">
-                  <div class="flex items-center gap-2 mb-2">
-                    <div class="w-7 h-7 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm">
+                <!-- User Message - Right aligned with speech bubble -->
+                <div class="flex justify-end mb-4">
+                  <div class="flex items-end gap-2 max-w-xl">
+                    <div class="bg-blue-500 text-white rounded-lg px-4 py-3 shadow-sm">
+                      <div class="whitespace-pre-wrap break-words">{{ message.content }}</div>
+                      <div class="text-xs text-blue-100 mt-1 text-right">
+                        {{ formatTime(message.timestamp) }}
+                      </div>
+                    </div>
+                    <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm flex-shrink-0">
                       <i class="pi pi-user"></i>
                     </div>
-                    <span class="font-semibold text-gray-800">You</span>
-                    <span class="text-xs text-gray-500">{{ formatTime(message.timestamp) }}</span>
-                  </div>
-                  <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
-                    <div class="font-medium text-gray-900 whitespace-pre-wrap break-words">{{ message.content }}</div>
                   </div>
                 </div>
               } @else {
-                <!-- Assistant Answer - Document-like -->
-                <div class="mb-6">
-                  <div class="flex items-center gap-2 mb-3">
-                    <div class="w-7 h-7 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm">
-                      <i class="pi pi-android"></i>
+                <!-- Assistant Answer - Center aligned Q&A style -->
+                <div class="flex justify-center mb-6">
+                  <div class="w-full max-w-4xl">
+                    <div class="flex items-center gap-2 mb-3 justify-center">
+                      <div class="w-7 h-7 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm">
+                        <i class="pi pi-android"></i>
+                      </div>
+                      <span class="font-semibold text-gray-800">Amazon Q</span>
+                      <span class="text-xs text-gray-500">{{ formatTime(message.timestamp) }}</span>
+                      @if (!message.isTyping) {
+                        <p-button 
+                          icon="pi pi-copy"
+                          [text]="true"
+                          [rounded]="true"
+                          size="small"
+                          (onClick)="copyMessage(message.content)"
+                          title="Copy message"
+                          severity="secondary"
+                          class="ml-auto"
+                        />
+                      }
                     </div>
-                    <span class="font-semibold text-gray-800">Amazon Q</span>
-                    <span class="text-xs text-gray-500">{{ formatTime(message.timestamp) }}</span>
-                    @if (!message.isTyping) {
-                      <p-button 
-                        icon="pi pi-copy"
-                        [text]="true"
-                        [rounded]="true"
-                        size="small"
-                        (onClick)="copyMessage(message.content)"
-                        title="Copy message"
-                        severity="secondary"
-                        class="ml-auto"
-                      />
-                    }
-                  </div>
-                  <div class="prose prose-gray max-w-none">
-                    @if (message.isTyping) {
-                      <app-typing-indicator></app-typing-indicator>
-                    } @else {
-                      <div class="text-gray-700 leading-relaxed whitespace-pre-wrap break-words">{{ message.content }}</div>
-                    }
+                    <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-purple-500">
+                      @if (message.isTyping) {
+                        <app-typing-indicator></app-typing-indicator>
+                      } @else {
+                        <div class="text-gray-700 leading-relaxed whitespace-pre-wrap break-words prose prose-gray max-w-none">{{ message.content }}</div>
+                      }
+                    </div>
                   </div>
                 </div>
               }

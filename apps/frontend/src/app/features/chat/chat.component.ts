@@ -162,32 +162,35 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
                 </div>
               } @else if (appStore.currentQConversation()?.transcript) {
                 @for (message of appStore.currentQConversation()!.transcript; track $index; let isEven = $even) {
-                  <div class="mb-4">
-                    <div class="flex items-start gap-3">
-                      <div class="flex-shrink-0">
-                        @if (isEven) {
-                          <!-- User Message -->
-                          <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
+                  <div class="message-block">
+                    @if (isEven) {
+                      <!-- User Message - Right aligned with speech bubble -->
+                      <div class="flex justify-end mb-4">
+                        <div class="flex items-end gap-2 max-w-xl">
+                          <div class="bg-blue-500 text-white rounded-lg px-4 py-3 shadow-sm">
+                            <div class="whitespace-pre-wrap break-words">{{ message }}</div>
                           </div>
-                        } @else {
-                          <!-- Amazon Q Message -->
-                          <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                            </svg>
+                          <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm flex-shrink-0">
+                            <i class="pi pi-user"></i>
                           </div>
-                        }
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <div class="text-sm font-medium text-gray-900 mb-1">
-                          {{ isEven ? 'You' : 'Amazon Q' }}
                         </div>
-                        <div class="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-3">{{ message }}</div>
                       </div>
-                    </div>
+                    } @else {
+                      <!-- Amazon Q Answer - Center aligned Q&A style -->
+                      <div class="flex justify-center mb-6">
+                        <div class="w-full max-w-4xl">
+                          <div class="flex items-center gap-2 mb-3 justify-center">
+                            <div class="w-7 h-7 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm">
+                              <i class="pi pi-android"></i>
+                            </div>
+                            <span class="font-semibold text-gray-800">Amazon Q</span>
+                          </div>
+                          <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-purple-500">
+                            <div class="text-gray-700 leading-relaxed whitespace-pre-wrap break-words prose prose-gray max-w-none">{{ message }}</div>
+                          </div>
+                        </div>
+                      </div>
+                    }
                   </div>
                 }
               } @else {
