@@ -12,16 +12,14 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
   template: `
     <div class="h-full flex flex-col bg-white">
       <!-- Chat Header -->
-      <div class="border-b border-gray-200 p-4 bg-white">
+      <div class="border-b border-gray-200 p-4 bg-white sticky top-0 z-90">
         <div class="flex items-center justify-between">
           <div>
             @if (appStore.currentQSession()) {
               <h1 class="text-xl font-semibold text-gray-900">{{ getProjectName(appStore.currentQSession()!.projectPath) }}</h1>
-              <p class="text-sm text-gray-500 mt-1">Amazon Q Session • {{ appStore.currentQSession()?.model || 'Default Model' }}</p>
-            } @else if (appStore.currentQConversation()) {
+              } @else if (appStore.currentQConversation()) {
               <h1 class="text-xl font-semibold text-gray-900">{{ getProjectName(getProjectPathFromConversation()) }}</h1>
-              <p class="text-sm text-gray-500 mt-1">Amazon Q Conversation • {{ appStore.currentQConversation()?.model }}</p>
-            } @else if (appStore.sessionStarting()) {
+              } @else if (appStore.sessionStarting()) {
               <h1 class="text-xl font-semibold text-gray-900">Starting Amazon Q Session...</h1>
               <p class="text-sm text-gray-500 mt-1">Please wait while we start your session</p>
             } @else if (appStore.sessionError()) {
