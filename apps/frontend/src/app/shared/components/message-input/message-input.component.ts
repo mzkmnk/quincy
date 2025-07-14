@@ -45,21 +45,43 @@ import { WebSocketService } from '../../../core/services/websocket.service';
       }
 
       <!-- Input Area -->
-       <!-- TODO: テキストエリアを真ん中にする -->
       <div 
-        class="flex items-end gap-2 p-3 border w-190 border-gray-200 rounded-3xl bg-white focus-within:border-blue-500 transition-colors"
+        class="flex items-center gap-2 p-3 border w-190 border-gray-200 rounded-3xl bg-white focus-within:border-blue-500 transition-colors"
         (dragover)="onDragOver($event)"
         (dragleave)="onDragLeave($event)"
         (drop)="onDrop($event)"
       >
+        <!-- File Input (Hidden) -->
+        <input
+          #fileInput
+          type="file"
+          multiple
+          class="hidden"
+          (change)="onFileSelect($event)"
+          accept="*/*"
+        />
+
+        <!-- File Upload Button -->
+        <button
+          type="button"
+          (click)="fileInput.click()"
+          class="flex-shrink-0 p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"
+          [disabled]="sending()"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+          </svg>
+        </button>
+
         <!-- Text Input -->
         <textarea
           #messageTextarea
           [(ngModel)]="messageText"
           (keydown)="onKeyDown($event)"
+          (input)="adjustTextareaHeight()"
           placeholder="このプロジェクトについて教えてください。"
           class="flex-1 resize-none border-0 bg-transparent focus:ring-0 focus:outline-none text-gray-900 placeholder-gray-500 max-h-32 min-h-[40px]"
-          rows="3"
+          rows="1"
           [disabled]="sending()"
         ></textarea>
 
