@@ -45,8 +45,9 @@ import { WebSocketService } from '../../../core/services/websocket.service';
       }
 
       <!-- Input Area -->
+       <!-- TODO: テキストエリアを真ん中にする -->
       <div 
-        class="flex items-end gap-2 p-3 border border-gray-200 rounded-lg bg-white focus-within:border-blue-500 transition-colors"
+        class="flex items-end gap-2 p-3 border w-190 border-gray-200 rounded-3xl bg-white focus-within:border-blue-500 transition-colors"
         (dragover)="onDragOver($event)"
         (dragleave)="onDragLeave($event)"
         (drop)="onDrop($event)"
@@ -56,9 +57,9 @@ import { WebSocketService } from '../../../core/services/websocket.service';
           #messageTextarea
           [(ngModel)]="messageText"
           (keydown)="onKeyDown($event)"
-          placeholder="Type your message..."
+          placeholder="このプロジェクトについて教えてください。"
           class="flex-1 resize-none border-0 bg-transparent focus:ring-0 focus:outline-none text-gray-900 placeholder-gray-500 max-h-32 min-h-[40px]"
-          rows="1"
+          rows="3"
           [disabled]="sending()"
         ></textarea>
 
@@ -67,7 +68,7 @@ import { WebSocketService } from '../../../core/services/websocket.service';
           type="button"
           (click)="sendMessage()"
           [disabled]="!canSend()"
-          class="flex-shrink-0 p-2 rounded-lg transition-all duration-200"
+          class="flex-shrink-0 p-2 rounded-full transition-all duration-200"
           [class.bg-blue-500]="canSend()"
           [class.text-white]="canSend()"
           [class.hover:bg-blue-600]="canSend()"
