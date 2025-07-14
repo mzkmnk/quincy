@@ -389,7 +389,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  onMessageSent(event: { content: string; files: File[] }): void {
+  onMessageSent(event: { content: string }): void {
     if (!this.canChat()) {
       console.warn('Cannot send message: chat is disabled');
       return;
