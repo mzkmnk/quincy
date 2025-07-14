@@ -22,6 +22,7 @@ export interface ProjectPathSelection {
       header="新規プロジェクト作成"
       [style]="{ width: '50rem' }"
       [closable]="true"
+      [draggable]="false"
       (onHide)="close()">
       
       <p class="mb-6 text-surface-600">Amazon Q CLIを使用して新しいプロジェクトセッションを開始します</p>
@@ -88,7 +89,7 @@ export interface ProjectPathSelection {
         </div>
       </div>
 
-      <ng-template pTemplate="footer">
+      <div class="flex gap-2 justify-end">
         <p-button 
           label="キャンセル" 
           icon="pi pi-times" 
@@ -101,7 +102,7 @@ export interface ProjectPathSelection {
           [disabled]="!isValidPath()"
           (onClick)="startProject()"
         />
-      </ng-template>
+      </div>
     </p-dialog>
   `
 })

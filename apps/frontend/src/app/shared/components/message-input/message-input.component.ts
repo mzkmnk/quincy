@@ -3,16 +3,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
-import { Button } from 'primeng/button';
+import { ButtonModule } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { MessageService } from 'primeng/api';
+import { TextareaModule } from 'primeng/textarea';
 
 @Component({
   selector: 'app-message-input',
-  imports: [CommonModule, FormsModule, Button, Tag],
+  imports: [CommonModule, FormsModule, ButtonModule, Tag, TextareaModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="p-4">
+    <div class="p-4 flex items-center justify-center">
       <!-- File Upload Area (when dragging) -->
       @if (isDragging()) {
         <div class="border-2 border-dashed border-blue-300 rounded-lg p-8 mb-4 bg-blue-50 text-center">
@@ -44,36 +45,31 @@ import { MessageService } from 'primeng/api';
       }
 
       <!-- Input Area -->
-      <div 
-        class="flex items-end gap-2"
-        (dragover)="onDragOver($event)"
-        (dragleave)="onDragLeave($event)"
-        (drop)="onDrop($event)"
-      >
+      <div class="flex gap-2 flex-col w-9/12 bg-white border-1 border-gray-200 rounded-3xl p-2">
         <!-- Text Input -->
-        <p-textarea
+        <textarea
           #messageTextarea
           [(ngModel)]="messageText"
           (keydown)="onKeyDown($event)"
-          placeholder="Type your message..."
-          class="flex-1 resize-none"
+          placeholder="このプロジェクトについて教えて下さい。"
+          class="m-2 focus:outline-none resize-none placeholder:text-gray-500"
           rows="1"
-          [disabled]="sending()"
-          [style]="{ maxHeight: '128px' }"
-        ></p-textarea>
+        ></textarea>
 
-        <!-- Send Button -->
-        <p-button
-          (onClick)="sendMessage()"
-          [disabled]="!canSend()"
-          [loading]="sending()"
-          icon="pi pi-send"
-          [rounded]="true"
-          [text]="false"
-          [raised]="true"
-          severity="primary"
-          size="small"
-        />
+        <!-- Text Input Footer -->
+        <div class="flex w-full justify-end">
+          <p-button
+            (onClick)="sendMessage()"
+            [disabled]="!canSend()"
+            [loading]="sending()"
+            icon="pi pi-arrow-up"
+            [rounded]="true"
+            [text]="false"
+            [raised]="true"
+            severity="contrast"
+            size="small"
+          />
+        </div>
       </div>
     </div>
   `
@@ -89,19 +85,19 @@ export class MessageInputComponent {
   // Events
   messageSent = output<{ content: string; files: File[] }>();
 
-  messageText = '';
+  messageText = signal<string>('');
   sending = signal(false);
   isDragging = signal(false);
   attachedFiles = signal<File[]>([]);
 
   canSend(): boolean {
-    return (this.messageText.trim().length > 0 || this.attachedFiles().length > 0) && !this.sending();
+    return (this.messageText().trim().length > 0 || this.attachedFiles().length > 0) && !this.sending();
   }
 
   async sendMessage(): Promise<void> {
     if (!this.canSend()) return;
 
-    const content = this.messageText.trim();
+    const content = this.messageText().trim();
     const files = this.attachedFiles();
     const currentSession = this.appStore.currentQSession();
 
@@ -122,7 +118,7 @@ export class MessageInputComponent {
       await this.websocket.sendQMessage(currentSession.sessionId, content);
 
       // Clear input
-      this.messageText = '';
+      this.messageText.set('');
       this.attachedFiles.set([]);
 
       // Reset textarea height
