@@ -262,6 +262,9 @@ export class ChatComponent implements OnInit, OnDestroy {
       // Update active chat state
       this.isActiveChat.set(!!currentSession && !sessionError);
       
+      // Always cleanup listeners before setting up new ones
+      this.websocket.removeChatListeners();
+      
       // Setup WebSocket listeners when session starts
       if (currentSession) {
         this.setupWebSocketListeners();
@@ -398,35 +401,52 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
   
   private setupWebSocketListeners(): void {
+    const currentSession = this.appStore.currentQSession();
+    if (!currentSession) {
+      return;
+    }
+    
     // Setup chat listeners for real-time message handling
     this.websocket.setupChatListeners(
       // On Q response (streaming)
       (data) => {
-        console.log('Received Q response:', data);
-        this.handleStreamingResponse(data.data);
+        // Filter by session ID to prevent duplicate messages
+        if (data.sessionId === currentSession.sessionId) {
+          console.log('Received Q response for current session:', data);
+          this.handleStreamingResponse(data.data);
+        }
       },
       // On Q error
       (data) => {
-        console.error('Received Q error:', data);
-        
-        // 意味のあるエラーのみ表示
-        if (this.shouldDisplayError(data.error)) {
-          // Clear any streaming message
-          this.streamingMessageId.set(null);
-          // Add error message to chat
-          this.messageList()?.addMessage(`Error: ${data.error}`, 'assistant');
+        // Filter by session ID
+        if (data.sessionId === currentSession.sessionId) {
+          console.error('Received Q error for current session:', data);
+          
+          // 意味のあるエラーのみ表示
+          if (this.shouldDisplayError(data.error)) {
+            // Clear any streaming message
+            this.streamingMessageId.set(null);
+            // Add error message to chat
+            this.messageList()?.addMessage(`Error: ${data.error}`, 'assistant');
+          }
         }
       },
       // On Q info (information messages)
       (data) => {
-        console.log('Received Q info:', data);
-        this.handleInfoMessage(data);
+        // Filter by session ID
+        if (data.sessionId === currentSession.sessionId) {
+          console.log('Received Q info for current session:', data);
+          this.handleInfoMessage(data);
+        }
       },
       // On Q completion
       (data) => {
-        console.log('Q session completed:', data);
-        // Clear streaming message ID
-        this.streamingMessageId.set(null);
+        // Filter by session ID
+        if (data.sessionId === currentSession.sessionId) {
+          console.log('Q session completed for current session:', data);
+          // Clear streaming message ID
+          this.streamingMessageId.set(null);
+        }
       }
     );
   }
