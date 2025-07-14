@@ -4,11 +4,10 @@ import { RouterModule } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { Menubar } from 'primeng/menubar';
-import { Badge } from 'primeng/badge';
 
 @Component({
   selector: 'app-navigation',
-  imports: [CommonModule, RouterModule, Menubar, Badge],
+  imports: [CommonModule, RouterModule, Menubar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p-menubar class="fixed top-0 left-0 right-0 z-50">

@@ -4,14 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { Button } from 'primeng/button';
-import { InputTextarea } from 'primeng/inputtextarea';
-import { FileUpload } from 'primeng/fileupload';
 import { Tag } from 'primeng/tag';
 import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-message-input',
-  imports: [CommonModule, FormsModule, Button, InputTextarea, FileUpload, Tag],
+  imports: [CommonModule, FormsModule, Button, Tag],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="p-4">
@@ -32,9 +30,14 @@ import { MessageService } from 'primeng/api';
                 [value]="file.name" 
                 icon="pi pi-file"
                 severity="info"
-                [removable]="true"
-                (onRemove)="removeFile(file)"
-              />
+              >
+                <button 
+                  (click)="removeFile(file)"
+                  class="ml-2 text-xs text-red-500 hover:text-red-700"
+                >
+                  ×
+                </button>
+              </p-tag>
             }
           </div>
         </div>
@@ -48,18 +51,16 @@ import { MessageService } from 'primeng/api';
         (drop)="onDrop($event)"
       >
         <!-- Text Input -->
-        <textarea
+        <p-textarea
           #messageTextarea
-          pInputTextarea
           [(ngModel)]="messageText"
           (keydown)="onKeyDown($event)"
           placeholder="Type your message..."
           class="flex-1 resize-none"
           rows="1"
           [disabled]="sending()"
-          [autoResize]="true"
           [style]="{ maxHeight: '128px' }"
-        ></textarea>
+        ></p-textarea>
 
         <!-- Send Button -->
         <p-button

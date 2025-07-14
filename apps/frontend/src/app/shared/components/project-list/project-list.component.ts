@@ -29,7 +29,7 @@ import { MessageService } from 'primeng/api';
           } @else if (appStore.error()) {
             <p-message 
               severity="error" 
-              [text]="appStore.error()" 
+              [text]="appStore.error() || ''" 
               [closable]="false"
               class="mt-1 text-xs cursor-pointer"
               (click)="retryLoadHistory()"
@@ -71,7 +71,7 @@ import { MessageService } from 'primeng/api';
                   >
                     <p-avatar 
                       [label]="getProjectInitials(getProjectName(project.projectPath))"
-                      [size]="'small'"
+                      size="normal"
                       [style]="{ 
                         backgroundColor: project.conversation_id === appStore.currentQConversation()?.conversation_id ? '#dbeafe' : '#f3f4f6',
                         color: project.conversation_id === appStore.currentQConversation()?.conversation_id ? '#2563eb' : '#6b7280'

@@ -5,12 +5,11 @@ import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.c
 import { ScrollPanel } from 'primeng/scrollpanel';
 import { Avatar } from 'primeng/avatar';
 import { Button } from 'primeng/button';
-import { Card } from 'primeng/card';
 import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-message-list',
-  imports: [CommonModule, TypingIndicatorComponent, ScrollPanel, Avatar, Button, Card],
+  imports: [CommonModule, TypingIndicatorComponent, ScrollPanel, Avatar, Button],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p-scrollPanel [style]="{ height: '100%' }" class="p-4">

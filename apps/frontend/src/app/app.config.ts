@@ -6,6 +6,8 @@ import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
 
 import { routes } from './app.routes';
+import Aura from '@primeuix/themes/aura';
+import { providePrimeNG } from 'primeng/config';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,6 +16,11 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),
     provideAnimations(),
+    providePrimeNG({
+      theme: {
+        preset: Aura
+      }
+    }),
     MessageService,
     ConfirmationService
   ]
