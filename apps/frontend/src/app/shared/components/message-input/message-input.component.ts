@@ -131,7 +131,12 @@ export class MessageInputComponent {
 
     } catch (error) {
       console.error('Failed to send message:', error);
-      // TODO: Show error toast to user
+      this.messageService.add({
+        severity: 'error',
+        summary: 'エラー',
+        detail: 'メッセージの送信に失敗しました',
+        life: 5000
+      });
     } finally {
       this.sending.set(false);
     }
