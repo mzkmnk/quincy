@@ -389,6 +389,9 @@ export class AmazonQCLIService extends EventEmitter {
         }, 5000);
       }
 
+      // Thinking状態をリセット
+      session.isThinkingActive = false;
+      
       // 終了イベントを発行
       this.emit('session:aborted', {
         sessionId,
@@ -734,6 +737,9 @@ export class AmazonQCLIService extends EventEmitter {
       
       // セッションを即座に無効化してID衝突を防ぐ
       session.status = 'terminated';
+      
+      // Thinking状態をリセット
+      session.isThinkingActive = false;
       
       console.log(`🔄 Session ${sessionId} marked as terminated. Exit code: ${code}, Signal: ${signal}`);
       
@@ -1224,14 +1230,8 @@ export class AmazonQCLIService extends EventEmitter {
    * Thinkingメッセージをスキップすべきかチェック
    */
   private shouldSkipThinking(session: QProcessSession): boolean {
-    const now = Date.now();
-    
-    // 既にThinking状態がアクティブで、5秒以内の場合はスキップ
-    if (session.isThinkingActive && (now - session.lastThinkingTime) < 5000) {
-      return true;
-    }
-    
-    return false;
+    // 既にThinking状態がアクティブの場合は常にスキップ（1回のみ表示）
+    return session.isThinkingActive;
   }
 
   /**
@@ -1241,10 +1241,7 @@ export class AmazonQCLIService extends EventEmitter {
     session.isThinkingActive = true;
     session.lastThinkingTime = Date.now();
     
-    // 10秒後にThinking状態をリセット（次の思考プロセスのため）
-    setTimeout(() => {
-      session.isThinkingActive = false;
-    }, 10000);
+    // Thinking状態はセッション終了まで維持（1回のみ表示のため）
   }
 
   /**
