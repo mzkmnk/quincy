@@ -14,30 +14,30 @@ import { TextareaModule } from 'primeng/textarea';
   template: `
     <div class="p-4 flex items-center justify-center">
       <!-- Input Area -->
-      <div class="flex gap-2 flex-col w-9/12 bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+      <div class="flex gap-2 flex-col w-9/12 bg-white border-1 border-gray-200 rounded-3xl p-2">
         <!-- Text Input -->
         <textarea
           #messageTextarea
           [(ngModel)]="messageText"
           (keydown)="onKeyDown($event)"
           placeholder="このプロジェクトについて教えて下さい。"
-          class="min-h-[24px] max-h-[128px] w-full resize-none bg-transparent px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none"
+          class="m-2 focus:outline-none resize-none placeholder:text-gray-500"
           rows="1"
         ></textarea>
 
         <!-- Text Input Footer -->
         <div class="flex w-full justify-end">
-          <button
-            (click)="sendMessage()"
+          <p-button
+            (onClick)="sendMessage()"
             [disabled]="!canSend()"
-            class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
-          >
-            @if (sending()) {
-              <i class="pi pi-spin pi-spinner text-xs"></i>
-            } @else {
-              <i class="pi pi-arrow-up text-xs"></i>
-            }
-          </button>
+            [loading]="sending()"
+            icon="pi pi-arrow-up"
+            [rounded]="true"
+            [text]="false"
+            [raised]="true"
+            severity="contrast"
+            size="small"
+          />
         </div>
       </div>
     </div>
