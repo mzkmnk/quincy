@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 import { TextareaModule } from 'primeng/textarea';
+import { CheckboxModule } from 'primeng/checkbox';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { Router } from '@angular/router';
@@ -15,7 +16,7 @@ export interface PathSelection {
 
 @Component({
   selector: 'app-path-selector',
-  imports: [CommonModule, FormsModule, ButtonModule, TextareaModule],
+  imports: [CommonModule, FormsModule, ButtonModule, TextareaModule, CheckboxModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: "min-w-full"
@@ -24,16 +25,41 @@ export interface PathSelection {
     <div class="flex items-center justify-center">
       <div class="flex w-8/12"> 
         <!-- Path Input Area -->
-        <div class="flex gap-2 flex-col w-full bg-white border-1 border-gray-200 rounded-3xl p-2 mb-4">
+        <div class="flex gap-4 flex-col w-full bg-white border-1 border-gray-200 rounded-3xl p-4 mb-4">
           <!-- Path Input -->
-          <textarea
-            #pathTextarea
-            [(ngModel)]="projectPath"
-            (keydown)="onKeyDown($event)"
-            placeholder="プロジェクトのパスを入力してください（例: /Users/username/my-project）"
-            class="m-2 focus:outline-none resize-none placeholder:text-gray-500"
-            rows="1"
-          ></textarea>
+          <div>
+            <textarea
+              #pathTextarea
+              [(ngModel)]="projectPath"
+              (keydown)="onKeyDown($event)"
+              (input)="validatePath()"
+              placeholder="プロジェクトのパスを入力してください（例: /Users/username/my-project）"
+              class="w-full focus:outline-none resize-none placeholder:text-gray-500 border-0 p-2"
+              [class.border-red-300]="pathError()"
+              rows="1"
+            ></textarea>
+            @if (pathError()) {
+              <small class="text-red-500 block mt-1 ml-2">{{ pathError() }}</small>
+            }
+          </div>
+
+          <!-- Resume Option -->
+          <div class="p-3 bg-gray-50 rounded-lg">
+            <div class="flex items-center">
+              <p-checkbox 
+                [(ngModel)]="resumeSession" 
+                [binary]="true"
+                inputId="resume"
+                class="mr-3"
+              />
+              <label for="resume" class="text-sm font-medium">
+                既存のセッションを再開する（--resumeオプション）
+              </label>
+            </div>
+            <p class="text-xs text-gray-600 ml-7 mt-1">
+              プロジェクト内の以前の会話履歴を引き継いでセッションを開始します
+            </p>
+          </div>
 
           <!-- Input Footer -->
           <div class="flex w-full justify-end">
@@ -67,9 +93,43 @@ export class PathSelectorComponent {
 
   projectPath = signal<string>('');
   starting = signal(false);
+  resumeSession = signal<boolean>(false);
+  pathError = signal<string | null>(null);
 
   canStart(): boolean {
-    return this.projectPath().trim().length > 0 && !this.starting();
+    return this.isValidPath() && !this.starting();
+  }
+
+  isValidPath(): boolean {
+    return this.projectPath().trim().length > 0 && !this.pathError();
+  }
+
+  validatePath(): void {
+    const path = this.projectPath().trim();
+
+    if (!path) {
+      this.pathError.set('パスを入力してください');
+      return;
+    }
+
+    if (path.length < 2) {
+      this.pathError.set('有効なパスを入力してください');
+      return;
+    }
+
+    // 絶対パスチェック（Unix/Linux/Mac）
+    if (!path.startsWith('/') && !path.match(/^[A-Za-z]:\\/)) {
+      this.pathError.set('絶対パスを入力してください（例: /Users/username/project）');
+      return;
+    }
+
+    // 危険な文字列チェック
+    if (path.includes('..') || path.includes('//')) {
+      this.pathError.set('無効な文字が含まれています');
+      return;
+    }
+
+    this.pathError.set(null);
   }
 
   async startProject(): Promise<void> {
@@ -89,7 +149,7 @@ export class PathSelectorComponent {
       this.appStore.setSessionStarting(true);
 
       // プロジェクトセッションを開始
-      this.websocket.startProjectSession(path, false);
+      this.websocket.startProjectSession(path, this.resumeSession());
 
       // セッション開始の通知を受け取るリスナーを設定
       this.websocket.setupProjectSessionListeners((data) => {

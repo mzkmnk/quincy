@@ -1,14 +1,13 @@
-import { Component, signal, inject, viewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
-import { ProjectPathModalComponent, ProjectPathSelection } from '../project-path-modal/project-path-modal.component';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule, RouterOutlet, SidebarComponent, ProjectPathModalComponent],
+  imports: [CommonModule, RouterOutlet, SidebarComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="min-h-screen flex bg-gray-50">
@@ -82,11 +81,6 @@ import { WebSocketService } from '../../../core/services/websocket.service';
         </div>
       </main>
 
-      <!-- Project Path Modal (全画面表示) -->
-      <app-project-path-modal 
-        (confirmed)="onProjectPathConfirmed($event)"
-        (cancelled)="onProjectPathCancelled()"
-      />
     </div>
   `
 })
@@ -94,11 +88,6 @@ export class LayoutComponent {
   protected sidebarCollapsed = signal(false);
   protected mobileMenuHidden = signal(true);
   protected window = window;
-  protected appStore = inject(AppStore);
-  private webSocketService = inject(WebSocketService);
-  private router = inject(Router);
-  
-  projectPathModal = viewChild.required(ProjectPathModalComponent);
 
   toggleSidebar(): void {
     this.sidebarCollapsed.update(collapsed => !collapsed);
@@ -110,74 +99,5 @@ export class LayoutComponent {
 
   closeMobileMenu(): void {
     this.mobileMenuHidden.set(true);
-  }
-
-  showProjectModal(): void {
-    this.projectPathModal().show();
-  }
-
-  onProjectPathConfirmed(selection: ProjectPathSelection): void {
-    console.log('Project path confirmed:', selection);
-    this.startProjectSession(selection.path, selection.resume);
-  }
-
-  onProjectPathCancelled(): void {
-    console.log('Project path selection cancelled');
-  }
-
-  private startProjectSession(projectPath: string, resume: boolean): void {
-    try {
-      console.log('Starting project session:', { projectPath, resume });
-
-      // WebSocket接続を確認
-      this.webSocketService.connect();
-
-      // 現在の表示状態をクリアしてセッション開始状態をセット
-      this.appStore.clearCurrentView();
-      this.appStore.setSessionStarting(true);
-
-      // プロジェクトセッションを開始
-      this.webSocketService.startProjectSession(projectPath, resume);
-
-      // セッション開始の通知を受け取るリスナーを設定
-      this.webSocketService.setupProjectSessionListeners((data) => {
-        console.log('Amazon Q session started:', data);
-        
-        // アクティブセッションモードに切り替え
-        this.appStore.switchToActiveSession(data);
-        
-        // チャット画面に移動
-        this.router.navigate(['/chat']);
-      });
-
-      // エラーハンドリングのリスナーを設定
-      this.webSocketService.on('error', (error: { code?: string; message?: string; [key: string]: unknown }) => {
-        console.error('WebSocket error:', error);
-        
-        let userMessage = 'セッションの開始中にエラーが発生しました。';
-        
-        if (error.code === 'Q_CLI_NOT_AVAILABLE' || error.code === 'Q_CLI_NOT_FOUND') {
-          userMessage = 'Amazon Q CLIが見つかりません。Amazon Q CLIをインストールしてから再度お試しください。';
-        } else if (error.code === 'Q_CLI_PERMISSION_ERROR') {
-          userMessage = 'Amazon Q CLIの実行権限がありません。ファイルの権限を確認してください。';
-        } else if (error.code === 'Q_CLI_SPAWN_ERROR') {
-          userMessage = 'Amazon Q CLIプロセスの起動に失敗しました。インストールを確認してください。';
-        }
-        
-        // エラー状態をストアに保存
-        this.appStore.setSessionError(userMessage);
-        
-        // チャット画面に移動してエラーを表示
-        this.router.navigate(['/chat']);
-      });
-
-      // チャット画面に移動（ローディング状態を表示）
-      this.router.navigate(['/chat']);
-
-    } catch (error) {
-      console.error('Error starting project session:', error);
-      this.appStore.setSessionError('プロジェクトセッションの開始中にエラーが発生しました。');
-      this.router.navigate(['/chat']);
-    }
   }
 }
