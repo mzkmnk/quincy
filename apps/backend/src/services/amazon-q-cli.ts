@@ -1,8 +1,5 @@
-import { spawn, ChildProcess, exec } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
-import { promisify } from 'util';
-import { access, stat } from 'fs/promises';
-import { resolve, normalize, isAbsolute } from 'path';
 import type { 
   QCommandEvent, 
   QResponseEvent, 
@@ -10,60 +7,42 @@ import type {
   QInfoEvent,
   QCompleteEvent 
 } from '@quincy/shared';
+import type {
+  QProcessSession,
+  QProcessOptions,
+  CLICheckResult,
+  PathValidationResult,
+  SessionStats,
+  MessageType,
+  InfoMessageType
+} from './amazon-q-cli/types';
+import { stripAnsiCodes } from './amazon-q-cli/ansi-stripper';
+import { validateProjectPath } from './amazon-q-cli/path-validator';
+import { CLIDetector } from './amazon-q-cli/cli-detector';
+import { SessionManager } from './amazon-q-cli/session-manager';
+import { OutputProcessor } from './amazon-q-cli/output-processor';
+import { MessageClassifier } from './amazon-q-cli/message-classifier';
+import { ProcessManager } from './amazon-q-cli/process-manager';
 
-export interface QProcessSession {
-  sessionId: string;
-  process: ChildProcess;
-  workingDir: string;
-  startTime: number;
-  status: 'starting' | 'running' | 'completed' | 'error' | 'aborted' | 'terminated';
-  lastActivity: number;
-  pid?: number;
-  memoryUsage?: number;
-  cpuUsage?: number;
-  command: string;
-  options: QProcessOptions;
-  // レスポンスバッファリング用
-  outputBuffer: string;
-  errorBuffer: string;
-  bufferTimeout?: NodeJS.Timeout;
-  bufferFlushCount: number;
-  // 行ベースバッファリング用
-  incompleteOutputLine: string;
-  incompleteErrorLine: string;
-  // 重複メッセージ防止用
-  lastInfoMessage: string;
-  lastInfoMessageTime: number;
-  // グローバルThinking状態管理
-  isThinkingActive: boolean;
-  lastThinkingTime: number;
-  // 初期化メッセージバッファリング
-  initializationBuffer: string[];
-  initializationPhase: boolean;
-  initializationTimeout?: NodeJS.Timeout;
-}
-
-export interface QProcessOptions {
-  workingDir: string;
-  model?: string;
-  resume?: boolean;
-  timeout?: number;
-}
+// Re-export types for backward compatibility
+export type {
+  QProcessSession,
+  QProcessOptions,
+  CLICheckResult,
+  PathValidationResult,
+  SessionStats,
+  MessageType,
+  InfoMessageType
+} from './amazon-q-cli/types';
 
 export class AmazonQCLIService extends EventEmitter {
-  private sessions: Map<string, QProcessSession> = new Map();
-  private readonly CLI_COMMAND = process.env.AMAZON_Q_CLI_PATH || 'q';
-  private readonly CLI_CANDIDATES = [
-    'q',
-    '/usr/local/bin/q',
-    '/opt/homebrew/bin/q',
-    process.env.HOME + '/.local/bin/q'
-  ].filter(Boolean); // undefined要素を除外
+  private readonly sessionManager = new SessionManager();
   private readonly DEFAULT_TIMEOUT = 0; // タイムアウト無効化（0 = 無期限）
   private readonly MAX_BUFFER_SIZE = 10 * 1024; // 10KB制限
-  private readonly execAsync = promisify(exec);
-  private cliPath: string | null = null;
-  private cliChecked: boolean = false;
+  private readonly cliDetector = new CLIDetector();
+  private readonly outputProcessor = new OutputProcessor();
+  private readonly messageClassifier = new MessageClassifier();
+  private readonly processManager = new ProcessManager();
   
   // メモリリーク対策：タイマーとリスナーの管理
   private resourceMonitorInterval?: NodeJS.Timeout;
@@ -77,207 +56,23 @@ export class AmazonQCLIService extends EventEmitter {
     this.startResourceMonitoring();
   }
 
-  /**
-   * プロジェクトパスの検証
-   */
-  async validateProjectPath(projectPath: string): Promise<{ valid: boolean; error?: string; normalizedPath?: string }> {
-    try {
-      console.log(`🔍 Validating project path: ${projectPath}`);
-
-      // 基本的なバリデーション
-      if (!projectPath || typeof projectPath !== 'string') {
-        return { valid: false, error: 'Project path is required and must be a string' };
-      }
-
-      const trimmedPath = projectPath.trim();
-      if (!trimmedPath) {
-        return { valid: false, error: 'Project path cannot be empty' };
-      }
-
-      // 絶対パスチェック
-      if (!isAbsolute(trimmedPath)) {
-        return { valid: false, error: 'Project path must be an absolute path' };
-      }
-
-      // パスの正規化（../ などの解決）
-      const normalizedPath = normalize(resolve(trimmedPath));
-      console.log(`📍 Normalized path: ${normalizedPath}`);
-
-      // セキュリティチェック：危険なパス
-      const dangerousPaths = [
-        '/',
-        '/etc',
-        '/bin',
-        '/usr/bin',
-        '/sbin',
-        '/usr/sbin',
-        '/var',
-        '/tmp',
-        '/System',
-        '/Applications'
-      ];
-
-      if (dangerousPaths.some(dangerous => normalizedPath === dangerous || normalizedPath.startsWith(dangerous + '/'))) {
-        return { valid: false, error: 'Access to system directories is not allowed for security reasons' };
-      }
-
-      // パストラバーサル攻撃チェック
-      if (normalizedPath.includes('..') || normalizedPath !== trimmedPath.replace(/\/+/g, '/')) {
-        return { valid: false, error: 'Invalid path: path traversal detected' };
-      }
-
-      // ディレクトリの存在確認
-      try {
-        await access(normalizedPath);
-        const stats = await stat(normalizedPath);
-        
-        if (!stats.isDirectory()) {
-          return { valid: false, error: 'Path exists but is not a directory' };
-        }
-
-        console.log(`✅ Path validation successful: ${normalizedPath}`);
-        return { valid: true, normalizedPath };
-
-      } catch (accessError) {
-        console.log(`❌ Path does not exist or is not accessible: ${normalizedPath}`);
-        return { valid: false, error: `Directory does not exist or is not accessible: ${normalizedPath}` };
-      }
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Path validation error:`, error);
-      return { valid: false, error: `Path validation failed: ${errorMessage}` };
-    }
-  }
 
   /**
    * Amazon Q CLIの存在と可用性をチェック
    */
-  /**
-   * CLIパスが安全かどうかを検証
-   */
-  private isValidCLIPath(path: string): boolean {
-    // 空文字列や未定義をチェック
-    if (!path || typeof path !== 'string') {
-      return false;
-    }
-
-    // 許可されたパスパターンのみ実行を許可
-    const allowedPatterns = [
-      /^q$/,                                    // PATH内の'q'コマンド
-      /^\/usr\/local\/bin\/q$/,                // 標準的なインストール場所
-      /^\/opt\/homebrew\/bin\/q$/,             // Apple Silicon Mac
-      /^\/home\/[a-zA-Z0-9_-]+\/\.local\/bin\/q$/,  // ユーザーローカル
-      new RegExp(`^${process.env.HOME?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/\\.local/bin/q$`) // ホームディレクトリ
-    ].filter(Boolean);
-
-    const isAllowed = allowedPatterns.some(pattern => pattern.test(path));
-    
-    // 危険な文字列をチェック
-    const dangerousChars = [';', '&', '|', '`', '$', '(', ')', '{', '}', '[', ']', '<', '>', '"', "'"];
-    const hasDangerousChars = dangerousChars.some(char => path.includes(char));
-    
-    if (hasDangerousChars) {
-      console.warn(`🚨 Dangerous characters detected in CLI path: ${path}`);
-      return false;
-    }
-
-    return isAllowed;
-  }
-
-  /**
-   * セキュアなCLI実行
-   */
-  private async executeSecureCLI(cliPath: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
-    if (!this.isValidCLIPath(cliPath)) {
-      throw new Error(`Invalid CLI path for security reasons: ${cliPath}`);
-    }
-
-    // 引数も検証
-    const safeArgs = args.filter(arg => {
-      // 基本的な引数のみ許可
-      return typeof arg === 'string' && arg.length < 100 && !/[;|&`$()]/.test(arg);
-    });
-
-    if (safeArgs.length !== args.length) {
-      throw new Error('Invalid arguments detected for security reasons');
-    }
-
-    return this.execAsync(`"${cliPath}" ${safeArgs.join(' ')}`, { timeout: 5000 });
-  }
-
-  async checkCLIAvailability(): Promise<{ available: boolean; path?: string; error?: string }> {
-    if (this.cliChecked && this.cliPath) {
-      return { available: true, path: this.cliPath };
-    }
-
-    console.log('🔍 Checking Amazon Q CLI availability...');
-    console.log(`📂 Current PATH: ${process.env.PATH?.substring(0, 200)}...`); // PATH情報を制限
-    console.log(`📍 Current working directory: ${process.cwd()}`);
-
-    // 候補パスを順番にチェック
-    for (const candidate of this.CLI_CANDIDATES) {
-      if (!this.isValidCLIPath(candidate)) {
-        console.log(`🚨 Skipping invalid CLI path: ${candidate}`);
-        continue;
-      }
-
-      try {
-        console.log(`🔍 Trying CLI candidate: ${candidate}`);
-        const { stdout, stderr } = await this.executeSecureCLI(candidate, ['--version']);
-        
-        if (stdout && (stdout.includes('q') || stdout.includes('amazon') || stdout.includes('version'))) {
-          console.log(`✅ Found Amazon Q CLI at: ${candidate}`);
-          console.log(`📋 Version output: ${stdout.trim().substring(0, 200)}`); // 出力を制限
-          this.cliPath = candidate;
-          this.cliChecked = true;
-          return { available: true, path: candidate };
-        }
-      } catch (error) {
-        console.log(`❌ CLI candidate ${candidate} failed:`, error instanceof Error ? error.message : String(error));
-        continue;
-      }
-    }
-
-    // セキュアなwhichコマンド実行
-    try {
-      console.log('🔍 Trying with "which q" command...');
-      const { stdout } = await this.execAsync('which q', { timeout: 5000 });
-      if (stdout.trim()) {
-        const path = stdout.trim();
-        // whichの結果も検証
-        if (this.isValidCLIPath(path)) {
-          console.log(`✅ Found Amazon Q CLI via which: ${path}`);
-          this.cliPath = path;
-          this.cliChecked = true;
-          return { available: true, path };
-        } else {
-          console.warn(`🚨 which command returned invalid path: ${path}`);
-        }
-      }
-    } catch (error) {
-      console.log('❌ "which q" failed:', error instanceof Error ? error.message : String(error));
-    }
-
-    const errorMsg = `Amazon Q CLI not found. Please install Amazon Q CLI and ensure 'q' command is available in PATH. Tried paths: ${this.CLI_CANDIDATES.join(', ')}`;
-    console.error(`❌ ${errorMsg}`);
-    this.cliChecked = true;
-    
-    return { 
-      available: false, 
-      error: errorMsg
-    };
+  async checkCLIAvailability(): Promise<CLICheckResult> {
+    return this.cliDetector.checkCLIAvailability();
   }
 
   /**
    * Amazon Q CLIプロセスを起動
    */
   async startSession(command: string, options: QProcessOptions): Promise<string> {
-    const sessionId = this.generateSessionId();
+    const sessionId = this.sessionManager.generateSessionId();
     
     try {
       // プロジェクトパスの検証
-      const pathValidation = await this.validateProjectPath(options.workingDir);
+      const pathValidation = await validateProjectPath(options.workingDir);
       if (!pathValidation.valid) {
         throw new Error(`Invalid project path: ${pathValidation.error}`);
       }
@@ -291,7 +86,7 @@ export class AmazonQCLIService extends EventEmitter {
         throw new Error(cliCheck.error || 'Amazon Q CLI is not available');
       }
 
-      const cliCommand = cliCheck.path || this.CLI_COMMAND;
+      const cliCommand = cliCheck.path || this.cliDetector.getCLICommand();
       console.log(`🚀 Starting Amazon Q CLI session with command: ${cliCommand}`);
       console.log(`📂 Working directory: ${validatedWorkingDir}`);
       if (options.resume) {
@@ -299,20 +94,10 @@ export class AmazonQCLIService extends EventEmitter {
       }
 
       // コマンドライン引数を構築
-      const args = this.buildCommandArgs(command, options);
-      console.log(`📋 CLI arguments: ${args.join(' ')}`);
+      const args = this.processManager.buildCommandArgs(command, options);
       
       // プロセスを起動
-      const childProcess = spawn(cliCommand, args, {
-        cwd: validatedWorkingDir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        env: {
-          ...process.env,
-          // Amazon Q CLI用の環境変数設定
-          AWS_PAGER: '',
-          NO_COLOR: '1'
-        }
-      });
+      const childProcess = this.processManager.spawnProcess(cliCommand, args, validatedWorkingDir);
 
       // セッション情報を登録
       const session: QProcessSession = {
@@ -339,27 +124,26 @@ export class AmazonQCLIService extends EventEmitter {
         initializationTimeout: undefined
       };
 
-      this.sessions.set(sessionId, session);
-      console.log(`✅ Session created: ${sessionId} (Total sessions: ${this.sessions.size})`);
+      this.sessionManager.addSession(session);
       this.setupProcessHandlers(session);
       
       // タイムアウト設定
       if (options.timeout !== undefined || this.DEFAULT_TIMEOUT > 0) {
         const timeout = options.timeout || this.DEFAULT_TIMEOUT;
         setTimeout(() => {
-          if (this.sessions.has(sessionId)) {
+          if (this.sessionManager.hasSession(sessionId)) {
             this.abortSession(sessionId, 'timeout');
           }
         }, timeout);
       }
 
       // プロセス起動の確認
-      await this.waitForProcessStart(childProcess);
+      await this.processManager.waitForProcessStart(childProcess);
       session.status = 'running';
 
       return sessionId;
     } catch (error) {
-      this.sessions.delete(sessionId);
+      this.sessionManager.deleteSession(sessionId);
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to start Amazon Q CLI: ${errorMessage}`);
     }
@@ -369,7 +153,7 @@ export class AmazonQCLIService extends EventEmitter {
    * セッションを強制終了
    */
   async abortSession(sessionId: string, reason: string = 'user_request'): Promise<boolean> {
-    const session = this.sessions.get(sessionId);
+    const session = this.sessionManager.getSession(sessionId);
     if (!session) {
       return false;
     }
@@ -378,16 +162,7 @@ export class AmazonQCLIService extends EventEmitter {
       session.status = 'aborted';
       
       // プロセスを強制終了
-      if (!session.process.killed) {
-        session.process.kill('SIGTERM');
-        
-        // SIGTERM後、一定時間待ってもプロセスが終了しない場合はSIGKILL
-        setTimeout(() => {
-          if (!session.process.killed) {
-            session.process.kill('SIGKILL');
-          }
-        }, 5000);
-      }
+      this.processManager.killProcess(session.process);
 
       // Thinking状態をリセット
       session.isThinkingActive = false;
@@ -401,8 +176,7 @@ export class AmazonQCLIService extends EventEmitter {
 
       // セッションを遅延削除（プロセス完全終了を待つ）
       setTimeout(() => {
-        this.sessions.delete(sessionId);
-        console.log(`🗑️ Session ${sessionId} deleted after abort`);
+        this.sessionManager.deleteSession(sessionId);
       }, 3000);
 
       return true;
@@ -416,7 +190,7 @@ export class AmazonQCLIService extends EventEmitter {
    * セッションにテキスト入力を送信
    */
   async sendInput(sessionId: string, input: string): Promise<boolean> {
-    const session = this.sessions.get(sessionId);
+    const session = this.sessionManager.getSession(sessionId);
     if (!session) {
       console.error(`Session ${sessionId} not found`);
       return false;
@@ -428,15 +202,11 @@ export class AmazonQCLIService extends EventEmitter {
     }
 
     try {
-      if (session.process.stdin && !session.process.stdin.destroyed) {
-        session.process.stdin.write(input);
+      const success = this.processManager.sendInput(session.process, input);
+      if (success) {
         session.lastActivity = Date.now();
-        console.log(`✅ Input sent to session ${sessionId}: ${input.trim()}`);
-        return true;
-      } else {
-        console.error(`Session ${sessionId} stdin is not available`);
-        return false;
       }
+      return success;
     } catch (error) {
       console.error(`Failed to send input to session ${sessionId}:`, error);
       return false;
@@ -447,28 +217,23 @@ export class AmazonQCLIService extends EventEmitter {
    * アクティブなセッション一覧を取得
    */
   getActiveSessions(): QProcessSession[] {
-    const activeSessions = Array.from(this.sessions.values()).filter(
-      session => ['starting', 'running'].includes(session.status)
-    );
-    
-    console.log(`📊 Active sessions: ${activeSessions.length}/${this.sessions.size} total`);
-    return activeSessions;
+    return this.sessionManager.getActiveSessions();
   }
 
   /**
    * 指定セッションの情報を取得
    */
   getSession(sessionId: string): QProcessSession | undefined {
-    return this.sessions.get(sessionId);
+    return this.sessionManager.getSession(sessionId);
   }
 
   /**
    * 全セッションを終了
    */
   async terminateAllSessions(): Promise<void> {
-    const activeSessionIds = Array.from(this.sessions.keys());
-    const terminations = activeSessionIds.map(sessionId => 
-      this.abortSession(sessionId, 'shutdown')
+    const allSessions = this.sessionManager.getAllSessions();
+    const terminations = allSessions.map(session => 
+      this.abortSession(session.sessionId, 'shutdown')
     );
     
     await Promise.allSettled(terminations);
@@ -478,53 +243,21 @@ export class AmazonQCLIService extends EventEmitter {
    * セッションのリソース使用量を更新
    */
   async updateSessionResources(sessionId: string): Promise<void> {
-    const session = this.sessions.get(sessionId);
-    if (!session || !session.pid) {
-      return;
-    }
-
-    try {
-      const usage = process.cpuUsage();
-      const memUsage = process.memoryUsage();
-      
-      // 概算値として設定（実際のプロセス固有値の取得は OS依存）
-      session.cpuUsage = (usage.user + usage.system) / 1000; // マイクロ秒をミリ秒に
-      session.memoryUsage = memUsage.rss / (1024 * 1024); // バイトをMBに
-      session.lastActivity = Date.now();
-    } catch (error) {
-      console.warn(`Failed to update resources for session ${sessionId}:`, error);
-    }
+    return this.sessionManager.updateSessionResources(sessionId);
   }
 
   /**
    * セッションの実行時間を取得
    */
   getSessionRuntime(sessionId: string): number {
-    const session = this.sessions.get(sessionId);
-    if (!session) {
-      return 0;
-    }
-    
-    return Date.now() - session.startTime;
+    return this.sessionManager.getSessionRuntime(sessionId);
   }
 
   /**
    * セッションの詳細統計を取得
    */
-  getSessionStats(sessionId: string): {
-    sessionId: string;
-    pid?: number;
-    status: string;
-    runtime: number;
-    memoryUsage?: number;
-    cpuUsage?: number;
-    workingDir: string;
-    command: string;
-    startTime: number;
-    lastActivity: number;
-    isActive: boolean;
-  } | null {
-    const session = this.sessions.get(sessionId);
+  getSessionStats(sessionId: string): SessionStats | null {
+    const session = this.sessionManager.getSession(sessionId);
     if (!session) {
       return null;
     }
@@ -544,20 +277,6 @@ export class AmazonQCLIService extends EventEmitter {
     };
   }
 
-  private buildCommandArgs(command: string, options: QProcessOptions): string[] {
-    const args: string[] = [];
-    
-    // コマンドを最初に追加（例: chat）
-    args.push(...command.split(' ').filter(arg => arg.length > 0));
-    
-    // resume指定
-    if (options.resume) {
-      console.log('📋 Resume option detected, adding --resume flag');
-      args.push('--resume');
-    }
-    
-    return args;
-  }
 
   private setupProcessHandlers(session: QProcessSession): void {
     const { sessionId, process } = session;
@@ -578,7 +297,7 @@ export class AmazonQCLIService extends EventEmitter {
       
       // 完全な行のみを処理
       for (const line of lines) {
-        const cleanLine = this.stripAnsiCodes(line);
+        const cleanLine = stripAnsiCodes(line);
         
         // 空の行や無意味な行をスキップ
         if (this.shouldSkipOutput(cleanLine)) {
@@ -637,7 +356,7 @@ export class AmazonQCLIService extends EventEmitter {
       
       // 完全な行のみを処理
       for (const line of lines) {
-        const cleanLine = this.stripAnsiCodes(line);
+        const cleanLine = stripAnsiCodes(line);
         
         // メッセージを分類
         const messageType = this.classifyStderrMessage(cleanLine);
@@ -670,7 +389,7 @@ export class AmazonQCLIService extends EventEmitter {
           const infoEvent: QInfoEvent = {
             sessionId,
             message: cleanLine,
-            type: this.getInfoMessageType(cleanLine)
+            type: this.outputProcessor.getInfoMessageType(cleanLine)
           };
           
           this.emit('q:info', infoEvent);
@@ -736,17 +455,16 @@ export class AmazonQCLIService extends EventEmitter {
       this.emit('q:complete', completeEvent);
       
       // セッションを即座に無効化してID衝突を防ぐ
-      session.status = 'terminated';
+      this.sessionManager.invalidateSession(sessionId);
       
       // Thinking状態をリセット
       session.isThinkingActive = false;
       
-      console.log(`🔄 Session ${sessionId} marked as terminated. Exit code: ${code}, Signal: ${signal}`);
+      console.log(`Exit code: ${code}, Signal: ${signal}`);
       
       // セッションをクリーンアップ（遅延実行）
       setTimeout(() => {
-        this.sessions.delete(sessionId);
-        console.log(`🗑️ Session ${sessionId} deleted after process exit`);
+        this.sessionManager.deleteSession(sessionId);
       }, 10000); // 10秒に延長
     });
 
@@ -764,27 +482,7 @@ export class AmazonQCLIService extends EventEmitter {
     });
   }
 
-  private async waitForProcessStart(process: ChildProcess): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Process start timeout'));
-      }, 30000); // 30秒でタイムアウト
 
-      process.on('spawn', () => {
-        clearTimeout(timeout);
-        resolve();
-      });
-
-      process.on('error', (error) => {
-        clearTimeout(timeout);
-        reject(error);
-      });
-    });
-  }
-
-  private generateSessionId(): string {
-    return `q_session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-  }
 
   private setupCleanupHandlers(): void {
     // プロセス終了時のクリーンアップ
@@ -857,82 +555,11 @@ export class AmazonQCLIService extends EventEmitter {
     this.removeAllListeners();
 
     // セッションマップをクリア
-    this.sessions.clear();
+    this.sessionManager.clear();
 
     console.log('AmazonQCLIService destroyed and resources cleaned up');
   }
 
-  /**
-   * ANSIエスケープシーケンス、スピナー、その他の制御文字を除去
-   */
-  private stripAnsiCodes(text: string): string {
-    let cleanText = text;
-    
-    // 1. 包括的なANSIエスケープシーケンスを除去
-    // ESC[ で始まる制御シーケンス（CSI）- より包括的なパターン
-    cleanText = cleanText.replace(/\x1b\[[0-9;:]*[a-zA-Z@]/g, '');
-    
-    // ESC] で始まるOSCシーケンス（Operating System Command）
-    cleanText = cleanText.replace(/\x1b\][^\x07]*\x07/g, '');
-    cleanText = cleanText.replace(/\x1b\][^\x1b]*\x1b\\/g, '');
-    
-    // ESC( で始まる文字集合選択シーケンス
-    cleanText = cleanText.replace(/\x1b\([AB0]/g, '');
-    
-    // プライベートモード設定/リセット（DEC Private Mode）
-    cleanText = cleanText.replace(/\x1b\[\?[0-9]+[hl]/g, '');
-    
-    // 8ビット制御文字（C1 control characters）
-    cleanText = cleanText.replace(/[\x80-\x9F]/g, '');
-    
-    // その他のエスケープシーケンス
-    cleanText = cleanText.replace(/\x1b[NOPVWXYZ\\^_]/g, '');
-    cleanText = cleanText.replace(/\x1b[#()*/+-]/g, '');
-    
-    // 2. スピナー文字を除去（より包括的）
-    const spinnerRegex = /[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏⠿⠾⠽⠻⠺⠯⠟⠞⠜⠛⠚⠉⠈⠁]/g;
-    cleanText = cleanText.replace(spinnerRegex, '');
-    
-    // 3. プログレスバー文字を除去
-    cleanText = cleanText.replace(/[▁▂▃▄▅▆▇█░▒▓■□▪▫▬▭▮▯―]/g, '');
-    
-    // 4. その他の特殊文字
-    cleanText = cleanText.replace(/[♠♣♥♦♪♫]/g, '');
-    
-    // 5. 制御文字を除去（改行文字は除く）
-    cleanText = cleanText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-    
-    // 6. 文字列の始まりや終わりにある不完全なエスケープシーケンス
-    cleanText = cleanText.replace(/^\x1b.*?(?=[a-zA-Z0-9]|$)/g, '');
-    cleanText = cleanText.replace(/\x1b[^a-zA-Z]*$/g, '');
-    
-    // 7. ANSIカラーコードの残骸（数字の断片）を除去
-    // "787878"や"78"のような数字の並びがテキストの前に現れる場合
-    cleanText = cleanText.replace(/^[\d;]+(?=\S)/g, '');
-    
-    // 8. 数字のみの断片（"7 8"のような）を除去
-    cleanText = cleanText.replace(/^\s*\d+\s*\d*\s*$/g, '');
-    
-    // 9. 開いた括弧のみ（"[[[" のような）を除去
-    cleanText = cleanText.replace(/^\s*[\[\{]+\s*$/g, '');
-    
-    // 10. 連続する数字の断片をテキストから除去（より積極的）
-    cleanText = cleanText.replace(/(\d{2,})\s*(?=[\u2713\u2717✓✗])/g, ''); // チェックマーク前の数字
-    cleanText = cleanText.replace(/^(\d+)\s*(\S)/g, '$2'); // 行の先頭の数字を除去
-    
-    // 11. 重複するThinkingを統合（行内に複数のThinkingがある場合）
-    cleanText = cleanText.replace(/(thinking\.?\.?\.?\s*){2,}/gi, 'Thinking...');
-    
-    // 12. バックスペースとカリッジリターンを正規化
-    cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    
-    // 13. 余分な空白を正規化（ただし、意味のある構造は保持）
-    cleanText = cleanText.replace(/[ \t]+/g, ' ');
-    cleanText = cleanText.replace(/\n\s+\n/g, '\n\n');
-    cleanText = cleanText.replace(/^\s+|\s+$/g, '');
-    
-    return cleanText;
-  }
 
   /**
    * 不完全な出力行をフラッシュ
@@ -942,7 +569,7 @@ export class AmazonQCLIService extends EventEmitter {
       return;
     }
     
-    const cleanLine = this.stripAnsiCodes(session.incompleteOutputLine);
+    const cleanLine = stripAnsiCodes(session.incompleteOutputLine);
     
     // 無意味な行はスキップ
     if (!this.shouldSkipOutput(cleanLine)) {
@@ -984,7 +611,7 @@ export class AmazonQCLIService extends EventEmitter {
       return;
     }
     
-    const cleanLine = this.stripAnsiCodes(session.incompleteErrorLine);
+    const cleanLine = stripAnsiCodes(session.incompleteErrorLine);
     const messageType = this.classifyStderrMessage(cleanLine);
     
     if (messageType === 'info') {
@@ -1086,7 +713,7 @@ export class AmazonQCLIService extends EventEmitter {
   /**
    * メッセージが情報メッセージかエラーメッセージかを分類
    */
-  private classifyStderrMessage(message: string): 'info' | 'error' | 'skip' {
+  private classifyStderrMessage(message: string): MessageType {
     const trimmed = message.trim();
     
     // 空のメッセージ
@@ -1161,7 +788,7 @@ export class AmazonQCLIService extends EventEmitter {
   /**
    * 情報メッセージのタイプを決定
    */
-  private getInfoMessageType(message: string): 'initialization' | 'status' | 'progress' | 'general' {
+  private getInfoMessageType(message: string): InfoMessageType {
     const trimmed = message.trim().toLowerCase();
     
     if (trimmed.includes('welcome') || trimmed.includes('initialized') || trimmed.includes('starting')) {
