@@ -3,14 +3,13 @@ import { CommonModule } from '@angular/common';
 import { AppStore, ChatMessage } from '../../../core/store/app.state';
 import { UserMessageComponent } from '../user-message/user-message.component';
 import { AmazonQMessageComponent } from '../amazon-q-message/amazon-q-message.component';
-import { ScrollPanel } from 'primeng/scrollpanel';
 
 @Component({
   selector: 'app-message-list',
-  imports: [CommonModule, UserMessageComponent, AmazonQMessageComponent, ScrollPanel],
+  imports: [CommonModule, UserMessageComponent, AmazonQMessageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div [style]="{ height: '100%' }" class="p-4">
+    <div class="h-full w-9/12 m-auto">
       <div class="space-y-4" #messageContainer>
         @if (messages().length === 0) {
           <!-- Empty conversation state -->

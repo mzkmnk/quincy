@@ -17,19 +17,12 @@ export interface PathSelection {
   selector: 'app-path-selector',
   imports: [CommonModule, FormsModule, ButtonModule, TextareaModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: "min-w-full"
+  },
   template: `
-    <div class="h-full flex items-center justify-center">
-      <div class="text-center max-w-md">
-        <div class="mb-6">
-          <svg class="w-24 h-24 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-        </div>
-        <h2 class="text-2xl font-semibold text-gray-900 mb-4">Welcome to Quincy</h2>
-        <p class="text-gray-500 mb-6 leading-relaxed">
-          Select an Amazon Q project from the sidebar to view history or create a new project
-        </p>
-        
+    <div class="flex items-center justify-center">
+      <div class="flex w-8/12"> 
         <!-- Path Input Area -->
         <div class="flex gap-2 flex-col w-full bg-white border-1 border-gray-200 rounded-3xl p-2 mb-4">
           <!-- Path Input -->
@@ -43,19 +36,7 @@ export interface PathSelection {
           ></textarea>
 
           <!-- Input Footer -->
-          <div class="flex w-full justify-between items-center">
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                (click)="selectFolder()"
-                class="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-5l-2-2H5a2 2 0 00-2 2z"></path>
-                </svg>
-                フォルダを選択
-              </button>
-            </div>
+          <div class="flex w-full justify-end">
             <p-button
               (onClick)="startProject()"
               [disabled]="!canStart()"
@@ -68,12 +49,6 @@ export interface PathSelection {
               size="small"
             />
           </div>
-        </div>
-
-        <div class="space-y-2 text-sm text-gray-400">
-          <p>📁 プロジェクトフォルダのパスを入力</p>
-          <p>🤖 Amazon Q セッションを開始</p>
-          <p>💬 AIアシスタントとチャット</p>
         </div>
       </div>
     </div>
@@ -119,20 +94,20 @@ export class PathSelectorComponent {
       // セッション開始の通知を受け取るリスナーを設定
       this.websocket.setupProjectSessionListeners((data) => {
         console.log('Amazon Q session started:', data);
-        
+
         // アクティブセッションモードに切り替え
         this.appStore.switchToActiveSession(data);
-        
+
         // チャット画面に移動
         this.router.navigate(['/chat']);
       });
 
       // エラーハンドリングのリスナーを設定
-      this.websocket.on('error', (error: { code?: string; message?: string; [key: string]: unknown }) => {
+      this.websocket.on('error', (error: { code?: string; message?: string;[key: string]: unknown }) => {
         console.error('WebSocket error:', error);
-        
+
         let userMessage = 'セッションの開始中にエラーが発生しました。';
-        
+
         if (error.code === 'Q_CLI_NOT_AVAILABLE' || error.code === 'Q_CLI_NOT_FOUND') {
           userMessage = 'Amazon Q CLIが見つかりません。Amazon Q CLIをインストールしてから再度お試しください。';
         } else if (error.code === 'Q_CLI_PERMISSION_ERROR') {
@@ -140,7 +115,7 @@ export class PathSelectorComponent {
         } else if (error.code === 'Q_CLI_SPAWN_ERROR') {
           userMessage = 'Amazon Q CLIプロセスの起動に失敗しました。インストールを確認してください。';
         }
-        
+
         // エラー状態をストアに保存
         this.appStore.setSessionError(userMessage);
         this.starting.set(false);

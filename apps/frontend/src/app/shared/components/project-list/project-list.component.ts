@@ -57,22 +57,6 @@ import { ConversationMetadata } from '@quincy/shared';
                       {{ getProjectName(project.projectPath) }}
                     </h4>
                   </div>
-                } @else {
-                  <!-- Collapsed View -->
-                  <div 
-                    class="p-2 flex items-center justify-center"
-                    [title]="getProjectName(project.projectPath)"
-                  >
-                    <div 
-                      class="w-10 h-10 rounded-md flex items-center justify-center text-sm font-medium transition-colors"
-                      [class.bg-gray-900]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                      [class.text-white]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
-                      [class.bg-gray-100]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
-                      [class.text-gray-700]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
-                    >
-                      {{ getProjectInitials(getProjectName(project.projectPath)) }}
-                    </div>
-                  </div>
                 }
               </div>
             }

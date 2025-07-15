@@ -28,7 +28,6 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
               <p class="text-sm text-red-500 mt-1">Failed to start Amazon Q session</p>
             } @else {
               <h1 class="text-xl font-semibold text-gray-900">Welcome to Quincy</h1>
-              <p class="text-sm text-gray-500 mt-1">Select an Amazon Q project from the sidebar to view history or create a new project</p>
             }
           </div>
           
@@ -182,8 +181,9 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
             </div>
           </div>
         } @else {
-          <!-- Welcome/Empty State with Path Selector -->
-          <app-path-selector></app-path-selector>
+          <div class="flex items-center justify-center min-h-full min-w-full">
+            <app-path-selector></app-path-selector>
+          </div>
         }
       </div>
     </div>
