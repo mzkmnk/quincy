@@ -1,6 +1,8 @@
-import { Component, input, ChangeDetectionStrategy, output } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { ProjectListComponent } from '../project-list/project-list.component';
+import { AppStore } from '../../../core/store/app.state';
 
 @Component({
   selector: 'app-sidebar',
@@ -42,11 +44,13 @@ import { ProjectListComponent } from '../project-list/project-list.component';
 export class SidebarComponent {
   collapsed = input<boolean>(false);
   
-  // モーダル表示要求を親コンポーネントに通知
-  newProjectRequested = output<void>();
+  private router = inject(Router);
+  private appStore = inject(AppStore);
 
   createNewProject(): void {
-    // 親コンポーネントにモーダル表示を要求
-    this.newProjectRequested.emit();
+    // 現在の状態をクリアしてプロジェクト未選択状態にする
+    this.appStore.clearCurrentView();
+    // /chatページに移動
+    this.router.navigate(['/chat']);
   }
 }

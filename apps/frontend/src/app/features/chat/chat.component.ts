@@ -4,10 +4,11 @@ import { AppStore } from '../../core/store/app.state';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { MessageListComponent } from '../../shared/components/message-list/message-list.component';
 import { MessageInputComponent } from '../../shared/components/message-input/message-input.component';
+import { PathSelectorComponent } from '../../shared/components/path-selector/path-selector.component';
 
 @Component({
   selector: 'app-chat',
-  imports: [CommonModule, MessageListComponent, MessageInputComponent],
+  imports: [CommonModule, MessageListComponent, MessageInputComponent, PathSelectorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="h-full flex flex-col bg-white">
@@ -181,25 +182,8 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
             </div>
           </div>
         } @else {
-          <!-- Welcome/Empty State -->
-          <div class="h-full flex items-center justify-center">
-            <div class="text-center max-w-md">
-              <div class="mb-6">
-                <svg class="w-24 h-24 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                </svg>
-              </div>
-              <h2 class="text-2xl font-semibold text-gray-900 mb-4">View Amazon Q History</h2>
-              <p class="text-gray-500 mb-6 leading-relaxed">
-                Select an Amazon Q project from the sidebar to view conversation history and see your past interactions with Amazon Q.
-              </p>
-              <div class="space-y-2 text-sm text-gray-400">
-                <p>🤖 View Amazon Q conversation transcripts</p>
-                <p>📁 Browse your project history</p>
-                <p>💬 See message counts and models used</p>
-              </div>
-            </div>
-          </div>
+          <!-- Welcome/Empty State with Path Selector -->
+          <app-path-selector></app-path-selector>
         }
       </div>
     </div>
