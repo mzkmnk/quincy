@@ -51,7 +51,7 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
       <div class="flex-1 flex flex-col relative">
         @if (appStore.currentQSession() || isActiveChat()) {
           <!-- Active Chat Session -->
-          <div class="flex-1 overflow-y-auto pb-20">
+          <div class="flex-1 overflow-y-auto">
             <app-message-list></app-message-list>
           </div>
           
@@ -154,7 +154,7 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
           </div>
         } @else if (appStore.currentQConversation()) {
           <!-- Amazon Q Conversation History (Read-Only) -->
-          <div class="flex-1 overflow-y-auto pb-20">
+          <div class="flex-1 overflow-y-auto">
             @if (appStore.qHistoryLoading()) {
               <div class="text-center py-8">
                 <div class="text-lg text-gray-600">Loading conversation history...</div>
