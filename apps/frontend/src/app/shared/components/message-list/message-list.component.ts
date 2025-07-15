@@ -10,16 +10,16 @@ import { ScrollPanel } from 'primeng/scrollpanel';
   imports: [CommonModule, UserMessageComponent, AmazonQMessageComponent, ScrollPanel],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <p-scrollPanel [style]="{ height: '100%' }" class="p-4">
-      <div class="space-y-6" #messageContainer>
+    <div [style]="{ height: '100%' }" class="p-4">
+      <div class="space-y-4" #messageContainer>
         @if (messages().length === 0) {
           <!-- Empty conversation state -->
           <div class="text-center py-12">
             <div class="mb-4">
-              <i class="pi pi-comments text-surface-300 text-5xl"></i>
+              <i class="pi pi-comments text-slate-400 text-5xl"></i>
             </div>
-            <h3 class="text-lg font-medium text-surface-900 mb-2">Start the conversation</h3>
-            <p class="text-surface-500 text-sm">Send a message to begin chatting with your AI assistant.</p>
+            <h3 class="text-lg font-medium text-slate-900 mb-2">Start the conversation</h3>
+            <p class="text-slate-600 text-sm">Send a message to begin chatting with your AI assistant.</p>
           </div>
         } @else {
           @for (message of messages(); track message.id) {
@@ -38,15 +38,15 @@ import { ScrollPanel } from 'primeng/scrollpanel';
           }
         }
       </div>
-    </p-scrollPanel>
+    </div>
   `
 })
 export class MessageListComponent implements AfterViewChecked {
   @ViewChild('messageContainer') messageContainer!: ElementRef<HTMLDivElement>;
-  
+
   private scrollToBottomRequest = signal(false);
   protected appStore = inject(AppStore);
-  
+
   private getWelcomeMessage(): ChatMessage[] {
     return [{
       id: 'welcome',
@@ -55,21 +55,21 @@ export class MessageListComponent implements AfterViewChecked {
       timestamp: new Date()
     }];
   }
-  
+
   // Chat messages from the store
   messages = computed(() => {
     const currentSession = this.appStore.currentQSession();
     const currentConversation = this.appStore.currentQConversation();
-    
+
     // 履歴表示モード
     if (currentConversation && !currentSession) {
       const allMessages = this.appStore.chatMessages();
       return allMessages.length === 0 ? [] : allMessages;
     }
-    
+
     // リアルタイムチャットモード
     if (!currentSession) return this.getWelcomeMessage();
-    
+
     const sessionMessages = this.appStore.currentSessionMessages();
     return sessionMessages.length === 0 ? this.getWelcomeMessage() : sessionMessages;
   });
@@ -85,10 +85,10 @@ export class MessageListComponent implements AfterViewChecked {
       timestamp: new Date(),
       sessionId: currentSession?.sessionId
     };
-    
+
     this.appStore.addChatMessage(newMessage);
     this.scrollToBottomRequest.set(true);
-    
+
     return messageId;
   }
 
@@ -102,7 +102,7 @@ export class MessageListComponent implements AfterViewChecked {
       isTyping: true,
       sessionId: currentSession?.sessionId
     };
-    
+
     this.appStore.addChatMessage(typingMessage);
     this.scrollToBottomRequest.set(true);
   }
@@ -110,18 +110,18 @@ export class MessageListComponent implements AfterViewChecked {
   removeTypingIndicator(): void {
     this.appStore.removeChatMessage('typing');
   }
-  
+
   ngAfterViewChecked(): void {
     if (this.scrollToBottomRequest()) {
       this.scrollToBottom();
       this.scrollToBottomRequest.set(false);
     }
   }
-  
+
   clearMessages(): void {
     this.appStore.clearChatMessages();
   }
-  
+
   private scrollToBottom(): void {
     try {
       if (this.messageContainer) {
@@ -132,12 +132,12 @@ export class MessageListComponent implements AfterViewChecked {
       // スクロールエラーを無視
     }
   }
-  
+
   // メッセージが更新されたときに呼び出される
   markForScrollUpdate(): void {
     this.scrollToBottomRequest.set(true);
   }
-  
+
   getMessageCount(): number {
     return this.messages().filter(m => !m.isTyping).length;
   }

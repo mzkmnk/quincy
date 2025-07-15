@@ -67,7 +67,7 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
                   <p class="text-gray-600 text-sm mb-3">{{ getDisabledReason() }}</p>
                   @if (appStore.sessionError()) {
                     <button 
-                      class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                      class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors text-sm font-medium"
                       (click)="clearSessionError()"
                     >
                       Start New Session
@@ -82,7 +82,7 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
           <div class="h-full flex items-center justify-center">
             <div class="text-center max-w-md">
               <div class="mb-6">
-                <svg class="w-24 h-24 text-blue-500 mx-auto animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-24 h-24 text-gray-900 mx-auto animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
               </div>
@@ -145,7 +145,7 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
                 </div>
               </div>
               <button 
-                class="mt-6 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                class="mt-6 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors font-medium"
                 (click)="clearSessionError()"
               >
                 Try Again
@@ -173,7 +173,7 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
           <div class="sticky bottom-0 left-0 right-0 z-10">
             <div class="p-4 text-center">
               <button 
-                class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors font-medium"
                 (click)="resumeSession()"
               >
                 Resume Session to Continue Chat

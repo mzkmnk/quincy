@@ -4,35 +4,33 @@ import { Router } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { ConversationMetadata } from '@quincy/shared';
-import { ProgressSpinner } from 'primeng/progressspinner';
-import { Message } from 'primeng/message';
-import { Button } from 'primeng/button';
-import { Avatar } from 'primeng/avatar';
 
 @Component({
   selector: 'app-project-list',
-  imports: [CommonModule, ProgressSpinner, Message, Button, Avatar],
+  imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex-1 flex-col">
       <!-- Fixed Header -->
       <div class="flex-shrink-0 p-4 pb-2" [class.p-2]="collapsed()">
         <div class="mb-3" [class.hidden]="collapsed()">
-          <h3 class="text-xs font-semibold text-surface-400 uppercase tracking-wider">Amazon Q History</h3>
+          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Amazon Q History</h3>
           @if (appStore.qHistoryLoading()) {
-            <div class="flex items-center gap-2 text-xs text-surface-500 mt-1">
-              <p-progressSpinner [style]="{ width: '12px', height: '12px' }" strokeWidth="6" />
+            <div class="flex items-center gap-2 text-xs text-gray-500 mt-1">
+              <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
               Loading...
             </div>
           } @else if (appStore.error()) {
-            <p-message 
-              severity="error" 
-              [text]="appStore.error() || ''" 
-              [closable]="false"
-              class="mt-1 text-xs cursor-pointer"
+            <div 
+              class="mt-1 text-xs cursor-pointer p-2 bg-red-50 border border-red-200 rounded-md text-red-700"
               (click)="retryLoadHistory()"
               title="クリックして再試行"
-            />
+            >
+              {{ appStore.error() }}
+            </div>
           }
         </div>
       </div>
@@ -47,13 +45,15 @@ import { Avatar } from 'primeng/avatar';
           <div class="w-full">
             @for (project of appStore.amazonQHistory(); track project.conversation_id) {
               <div
-                class="group cursor-pointer rounded-lg transition-all duration-200 hover:bg-surface-50 mb-1"
-                [class.bg-blue-50]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                class="group cursor-pointer rounded-md transition-all duration-200 hover:bg-gray-100 mb-1"
+                [class.bg-gray-100]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                [class.border]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                [class.border-gray-300]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
                 (click)="selectQProject(project)"
               >
                 @if (!collapsed()) {
                   <div class="p-3">
-                    <h4 class="text-sm font-medium text-surface-900 truncate">
+                    <h4 class="text-sm font-medium text-gray-900 truncate group-hover:text-gray-700">
                       {{ getProjectName(project.projectPath) }}
                     </h4>
                   </div>
@@ -63,14 +63,15 @@ import { Avatar } from 'primeng/avatar';
                     class="p-2 flex items-center justify-center"
                     [title]="getProjectName(project.projectPath)"
                   >
-                    <p-avatar 
-                      [label]="getProjectInitials(getProjectName(project.projectPath))"
-                      size="normal"
-                      [style]="{ 
-                        backgroundColor: project.conversation_id === appStore.currentQConversation()?.conversation_id ? '#dbeafe' : '#f3f4f6',
-                        color: project.conversation_id === appStore.currentQConversation()?.conversation_id ? '#2563eb' : '#6b7280'
-                      }"
-                    />
+                    <div 
+                      class="w-10 h-10 rounded-md flex items-center justify-center text-sm font-medium transition-colors"
+                      [class.bg-gray-900]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                      [class.text-white]="project.conversation_id === appStore.currentQConversation()?.conversation_id"
+                      [class.bg-gray-100]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
+                      [class.text-gray-700]="project.conversation_id !== appStore.currentQConversation()?.conversation_id"
+                    >
+                      {{ getProjectInitials(getProjectName(project.projectPath)) }}
+                    </div>
                   </div>
                 }
               </div>
@@ -80,24 +81,31 @@ import { Avatar } from 'primeng/avatar';
           <!-- Empty State -->
           @if (!collapsed()) {
             <div class="text-center py-8">
-              <i class="pi pi-comments text-surface-300 text-4xl mb-4 block"></i>
-              <p class="text-sm text-surface-500">No Amazon Q history</p>
-              <p class="text-xs text-surface-400 mt-1">Start conversations with Amazon Q to see history</p>
+              <svg class="w-12 h-12 text-gray-300 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+              </svg>
+              <p class="text-sm text-gray-500">No Amazon Q history</p>
+              <p class="text-xs text-gray-400 mt-1">Start conversations with Amazon Q to see history</p>
             </div>
           }
         } @else if (appStore.error()) {
           <!-- Error State -->
           @if (!collapsed()) {
             <div class="text-center py-8">
-              <i class="pi pi-exclamation-triangle text-red-300 text-4xl mb-4 block"></i>
+              <svg class="w-12 h-12 text-red-400 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
               <p class="text-sm text-red-600 mb-2">履歴取得エラー</p>
-              <p class="text-xs text-surface-500 mb-4">{{ appStore.error() }}</p>
-              <p-button 
-                label="再試行"
-                icon="pi pi-refresh"
-                size="small"
-                (onClick)="retryLoadHistory()"
-              />
+              <p class="text-xs text-gray-500 mb-4">{{ appStore.error() }}</p>
+              <button 
+                class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                (click)="retryLoadHistory()"
+              >
+                <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                再試行
+              </button>
             </div>
           }
         }
