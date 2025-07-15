@@ -9,7 +9,7 @@ import { AmazonQMessageComponent } from '../amazon-q-message/amazon-q-message.co
   imports: [CommonModule, UserMessageComponent, AmazonQMessageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="h-full w-9/12 m-auto">
+    <div class="w-9/12 m-auto">
       <div class="space-y-4" #messageContainer>
         @if (messages().length === 0) {
           <!-- Empty conversation state -->
