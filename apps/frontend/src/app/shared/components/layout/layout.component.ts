@@ -21,18 +21,18 @@ import { WebSocketService } from '../../../core/services/websocket.service';
         [class.-translate-x-full]="mobileMenuHidden() && window.innerWidth < 768"
       >
         <!-- Sidebar Header -->
-        <div class="p-4 border-b border-gray-100 flex items-center">
+        <div class="p-4 border-b border-gray-200 flex items-center">
           <button
             (click)="toggleSidebar()"
-            class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            class="p-2 rounded-md hover:bg-gray-100 transition-colors"
             [class.hidden]="window.innerWidth < 768"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
           </button>
           <h1 
-            class="text-xl font-semibold text-blue-600 ml-2 transition-opacity duration-300"
+            class="text-xl font-semibold text-gray-900 ml-2 transition-opacity duration-300"
             [class.opacity-0]="sidebarCollapsed()"
             [class.hidden]="sidebarCollapsed()"
           >
@@ -44,7 +44,6 @@ import { WebSocketService } from '../../../core/services/websocket.service';
         <div class="flex-1 h-0">
           <app-sidebar 
             [collapsed]="sidebarCollapsed()"
-            (newProjectRequested)="showProjectModal()"
           ></app-sidebar>
         </div>
       </aside>
@@ -73,7 +72,7 @@ import { WebSocketService } from '../../../core/services/websocket.service';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
           </button>
-          <h1 class="text-lg font-semibold text-blue-600">Quincy</h1>
+          <h1 class="text-lg font-semibold text-gray-900">Quincy</h1>
           <div class="w-10"></div> <!-- Spacer for centering -->
         </div>
 

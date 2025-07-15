@@ -9,27 +9,23 @@ import { WebSocketService } from '../../../core/services/websocket.service';
   imports: [CommonModule, RouterModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <nav class="bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 right-0 z-50 h-16">
-      <div class="max-w-screen-xl mx-auto px-8 flex items-center justify-between h-full">
-        <div class="flex items-center">
-          <a routerLink="/chat" class="no-underline">
-            <h1 class="m-0 text-2xl font-semibold text-blue-500">Quincy</h1>
-          </a>
-        </div>
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
+      <div class="px-6 h-16 flex items-center justify-between">
+        <a routerLink="/chat" class="no-underline">
+          <h1 class="text-2xl font-semibold text-gray-900 hover:text-gray-700 transition-colors">Quincy</h1>
+        </a>
         
-        <div class="flex items-center">
-          <div class="flex items-center gap-2 text-sm">
-            <span 
-              class="w-2 h-2 rounded-full bg-gray-300 transition-colors duration-200"
-              [class.bg-green-500]="websocket.connected()"
-              [class.bg-orange-500]="websocket.connecting()"
-              [class.animate-pulse]="websocket.connecting()"
-              [class.bg-red-500]="!websocket.connected() && !websocket.connecting()"
-            ></span>
-            <span class="text-gray-600 font-medium hidden md:inline">
-              {{ websocket.connected() ? 'Connected' : websocket.connecting() ? 'Connecting' : 'Disconnected' }}
-            </span>
-          </div>
+        <div class="flex items-center gap-2 text-sm">
+          <span 
+            class="w-2 h-2 rounded-full"
+            [class.bg-green-500]="websocket.connected()"
+            [class.bg-orange-500]="websocket.connecting()"
+            [class.animate-pulse]="websocket.connecting()"
+            [class.bg-red-500]="!websocket.connected() && !websocket.connecting()"
+          ></span>
+          <span class="text-gray-600 font-medium hidden md:inline">
+            {{ websocket.connected() ? 'Connected' : websocket.connecting() ? 'Connecting' : 'Disconnected' }}
+          </span>
         </div>
       </div>
     </nav>
@@ -37,7 +33,7 @@ import { WebSocketService } from '../../../core/services/websocket.service';
   styles: [`
     @reference "tailwindcss";
     .router-link-active {
-      @apply text-blue-500 bg-blue-50;
+      @apply text-gray-900 bg-gray-100;
     }
   `]
 })

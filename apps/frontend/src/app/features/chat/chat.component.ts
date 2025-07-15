@@ -4,10 +4,11 @@ import { AppStore } from '../../core/store/app.state';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { MessageListComponent } from '../../shared/components/message-list/message-list.component';
 import { MessageInputComponent } from '../../shared/components/message-input/message-input.component';
+import { PathSelectorComponent } from '../../shared/components/path-selector/path-selector.component';
 
 @Component({
   selector: 'app-chat',
-  imports: [CommonModule, MessageListComponent, MessageInputComponent],
+  imports: [CommonModule, MessageListComponent, MessageInputComponent, PathSelectorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="h-full flex flex-col bg-white">
@@ -27,7 +28,6 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
               <p class="text-sm text-red-500 mt-1">Failed to start Amazon Q session</p>
             } @else {
               <h1 class="text-xl font-semibold text-gray-900">Welcome to Quincy</h1>
-              <p class="text-sm text-gray-500 mt-1">Select an Amazon Q project from the sidebar to view history or create a new project</p>
             }
           </div>
           
@@ -51,7 +51,7 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
       <div class="flex-1 flex flex-col relative">
         @if (appStore.currentQSession() || isActiveChat()) {
           <!-- Active Chat Session -->
-          <div class="flex-1 overflow-y-auto pb-20">
+          <div class="flex-1 overflow-y-auto">
             <app-message-list></app-message-list>
           </div>
           
@@ -67,7 +67,7 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
                   <p class="text-gray-600 text-sm mb-3">{{ getDisabledReason() }}</p>
                   @if (appStore.sessionError()) {
                     <button 
-                      class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                      class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors text-sm font-medium"
                       (click)="clearSessionError()"
                     >
                       Start New Session
@@ -82,7 +82,7 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
           <div class="h-full flex items-center justify-center">
             <div class="text-center max-w-md">
               <div class="mb-6">
-                <svg class="w-24 h-24 text-blue-500 mx-auto animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-24 h-24 text-gray-900 mx-auto animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
               </div>
@@ -145,7 +145,7 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
                 </div>
               </div>
               <button 
-                class="mt-6 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                class="mt-6 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors font-medium"
                 (click)="clearSessionError()"
               >
                 Try Again
@@ -154,56 +154,26 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
           </div>
         } @else if (appStore.currentQConversation()) {
           <!-- Amazon Q Conversation History (Read-Only) -->
-          <div class="flex-1 overflow-y-auto pb-20">
-            <div class="p-4 space-y-4">
-              @if (appStore.qHistoryLoading()) {
-                <div class="text-center py-8">
-                  <div class="text-lg text-gray-600">Loading conversation history...</div>
-                </div>
-              } @else if (appStore.currentQConversation()?.transcript) {
-                @for (message of appStore.currentQConversation()!.transcript; track $index; let isEven = $even) {
-                  <div class="mb-4">
-                    <div class="flex items-start gap-3">
-                      <div class="flex-shrink-0">
-                        @if (isEven) {
-                          <!-- User Message -->
-                          <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                          </div>
-                        } @else {
-                          <!-- Amazon Q Message -->
-                          <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                            </svg>
-                          </div>
-                        }
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <div class="text-sm font-medium text-gray-900 mb-1">
-                          {{ isEven ? 'You' : 'Amazon Q' }}
-                        </div>
-                        <div class="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-3">{{ message }}</div>
-                      </div>
-                    </div>
-                  </div>
-                }
-              } @else {
-                <div class="text-center text-gray-500 py-8">
-                  <div class="text-lg mb-2">📭 No conversation transcript available</div>
-                  <div class="text-sm">This project may not have any Amazon Q conversation history.</div>
-                </div>
-              }
-            </div>
+          <div class="flex-1 overflow-y-auto">
+            @if (appStore.qHistoryLoading()) {
+              <div class="text-center py-8">
+                <div class="text-lg text-gray-600">Loading conversation history...</div>
+              </div>
+            } @else if (appStore.currentQConversation()?.transcript) {
+              <app-message-list></app-message-list>
+            } @else {
+              <div class="text-center text-gray-500 py-8">
+                <div class="text-lg mb-2">📭 No conversation transcript available</div>
+                <div class="text-sm">This project may not have any Amazon Q conversation history.</div>
+              </div>
+            }
           </div>
           
           <!-- Resume Session Button - Sticky to bottom -->
           <div class="sticky bottom-0 left-0 right-0 z-10">
             <div class="p-4 text-center">
               <button 
-                class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors font-medium"
                 (click)="resumeSession()"
               >
                 Resume Session to Continue Chat
@@ -211,24 +181,8 @@ import { MessageInputComponent } from '../../shared/components/message-input/mes
             </div>
           </div>
         } @else {
-          <!-- Welcome/Empty State -->
-          <div class="h-full flex items-center justify-center">
-            <div class="text-center max-w-md">
-              <div class="mb-6">
-                <svg class="w-24 h-24 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                </svg>
-              </div>
-              <h2 class="text-2xl font-semibold text-gray-900 mb-4">View Amazon Q History</h2>
-              <p class="text-gray-500 mb-6 leading-relaxed">
-                Select an Amazon Q project from the sidebar to view conversation history and see your past interactions with Amazon Q.
-              </p>
-              <div class="space-y-2 text-sm text-gray-400">
-                <p>🤖 View Amazon Q conversation transcripts</p>
-                <p>📁 Browse your project history</p>
-                <p>💬 See message counts and models used</p>
-              </div>
-            </div>
+          <div class="flex items-center justify-center min-h-full min-w-full">
+            <app-path-selector></app-path-selector>
           </div>
         }
       </div>
@@ -389,7 +343,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  onMessageSent(event: { content: string; files: File[] }): void {
+  onMessageSent(event: { content: string }): void {
     if (!this.canChat()) {
       console.warn('Cannot send message: chat is disabled');
       return;
