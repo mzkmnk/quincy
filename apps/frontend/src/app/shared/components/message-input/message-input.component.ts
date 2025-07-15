@@ -20,6 +20,8 @@ import { TextareaModule } from 'primeng/textarea';
           #messageTextarea
           [(ngModel)]="messageText"
           (keydown)="onKeyDown($event)"
+          (compositionstart)="onCompositionStart()"
+          (compositionend)="onCompositionEnd()"
           placeholder="このプロジェクトについて教えて下さい。"
           class="m-2 focus:outline-none resize-none placeholder:text-gray-500"
           rows="1"
@@ -55,6 +57,7 @@ export class MessageInputComponent {
 
   messageText = signal<string>('');
   sending = signal(false);
+  isComposing = signal(false);
 
   canSend(): boolean {
     return this.messageText().trim().length > 0 && !this.sending();
@@ -104,7 +107,7 @@ export class MessageInputComponent {
   }
 
   onKeyDown(event: KeyboardEvent): void {
-    if (event.key === 'Enter' && !event.shiftKey) {
+    if (event.key === 'Enter' && !event.shiftKey && !this.isComposing() && !event.isComposing) {
       event.preventDefault();
       this.sendMessage();
     } else if (event.key === 'Enter' && event.shiftKey) {
@@ -113,6 +116,14 @@ export class MessageInputComponent {
     }
   }
 
+
+  onCompositionStart(): void {
+    this.isComposing.set(true);
+  }
+
+  onCompositionEnd(): void {
+    this.isComposing.set(false);
+  }
 
   private adjustTextareaHeight(): void {
     if (this.messageTextarea) {
