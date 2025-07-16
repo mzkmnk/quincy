@@ -25,7 +25,7 @@ export interface PathSelection {
     <div class="flex items-center justify-center">
       <div class="flex w-8/12"> 
         <!-- Path Input Area -->
-        <div class="flex gap-4 flex-col w-full bg-[#192734] border-1 border-[#2f3336] rounded-3xl p-4 mb-4">
+        <div class="flex gap-4 flex-col w-full bg-[#0d0d0d] border-1 border-[#2f2f2f] rounded-3xl p-4 mb-4">
           <!-- Path Input -->
           <div>
             <textarea
@@ -34,7 +34,7 @@ export interface PathSelection {
               (keydown)="onKeyDown($event)"
               (input)="validatePath()"
               placeholder="プロジェクトのパスを入力してください（例: /Users/username/my-project）"
-              class="w-full focus:outline-none resize-none placeholder:text-[#71767b] border-0 p-2 bg-transparent text-[#e7e9ea]"
+              class="w-full focus:outline-none resize-none placeholder:text-[#8a8a8a] border-0 p-2 bg-transparent text-[#ffffff]"
               [class.border-red-300]="pathError()"
               rows="1"
             ></textarea>
@@ -44,7 +44,7 @@ export interface PathSelection {
           </div>
 
           <!-- Resume Option -->
-          <div class="p-3 bg-[#15202b] rounded-lg">
+          <div class="p-3 bg-[#000000] rounded-lg">
             <div class="flex items-center">
               <p-checkbox 
                 [(ngModel)]="resumeSession" 
@@ -52,11 +52,11 @@ export interface PathSelection {
                 inputId="resume"
                 class="mr-3"
               />
-              <label for="resume" class="text-sm font-medium text-[#e7e9ea]">
+              <label for="resume" class="text-sm font-medium text-[#ffffff]">
                 既存のセッションを再開する（--resumeオプション）
               </label>
             </div>
-            <p class="text-xs text-[#8899ac] ml-7 mt-1">
+            <p class="text-xs text-[#d9d9d9] ml-7 mt-1">
               プロジェクト内の以前の会話履歴を引き継いでセッションを開始します
             </p>
           </div>

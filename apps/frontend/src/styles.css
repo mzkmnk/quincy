@@ -6,22 +6,22 @@
 /* PrimeNG styles */
 @import "primeicons/primeicons.css";
 
-/* X (Twitter) Dark Blue Theme */
+/* X (Twitter) Black Theme */
 :root {
   /* Background colors */
-  --primary-bg: #15202b;
-  --secondary-bg: #192734;
-  --tertiary-bg: #22303c;
-  --hover-bg: #273341;
+  --primary-bg: #000000;
+  --secondary-bg: #0d0d0d;
+  --tertiary-bg: #1a1a1a;
+  --hover-bg: #1f1f1f;
   
   /* Text colors */
-  --text-primary: #e7e9ea;
-  --text-secondary: #8899ac;
-  --text-muted: #71767b;
+  --text-primary: #ffffff;
+  --text-secondary: #d9d9d9;
+  --text-muted: #8a8a8a;
   
   /* Border colors */
-  --border-color: #2f3336;
-  --border-light: #38444d;
+  --border-color: #2f2f2f;
+  --border-light: #3f3f3f;
   
   /* Accent colors */
   --accent-blue: #1d9bf0;
