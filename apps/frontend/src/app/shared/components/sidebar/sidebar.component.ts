@@ -13,7 +13,7 @@ import { AppStore } from '../../../core/store/app.state';
       <!-- New Project Button -->
       <div class="p-4">
         <button
-          class="w-full px-4 py-2 text-sm font-medium text-white bg-[#1a1a1a] border border-[#2f2f2f] rounded-md hover:bg-[#1f1f1f] transition-colors flex items-center justify-center gap-2"
+          class="w-full px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--tertiary-bg)] border border-[var(--border-color)] rounded-md hover:bg-[var(--hover-bg)] transition-colors flex items-center justify-center gap-2"
           [class.hidden]="collapsed()"
           (click)="createNewProject()"
         >
@@ -23,7 +23,7 @@ import { AppStore } from '../../../core/store/app.state';
           New Project
         </button>
         <button
-          class="w-full p-2 text-white bg-[#1a1a1a] border border-[#2f2f2f] rounded-md hover:bg-[#1f1f1f] transition-colors flex items-center justify-center"
+          class="w-full p-2 text-[var(--text-primary)] bg-[var(--tertiary-bg)] border border-[var(--border-color)] rounded-md hover:bg-[var(--hover-bg)] transition-colors flex items-center justify-center"
           [class.hidden]="!collapsed()"
           (click)="createNewProject()"
           title="New Project"

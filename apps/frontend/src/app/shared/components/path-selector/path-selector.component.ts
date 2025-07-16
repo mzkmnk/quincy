@@ -25,7 +25,7 @@ export interface PathSelection {
     <div class="flex items-center justify-center">
       <div class="flex w-8/12"> 
         <!-- Path Input Area -->
-        <div class="flex gap-4 flex-col w-full bg-[#0d0d0d] border-1 border-[#2f2f2f] rounded-3xl p-4 mb-4">
+        <div class="flex gap-4 flex-col w-full bg-[var(--secondary-bg)] border-1 border-[var(--border-color)] rounded-3xl p-4 mb-4">
           <!-- Path Input -->
           <div>
             <textarea
@@ -34,12 +34,12 @@ export interface PathSelection {
               (keydown)="onKeyDown($event)"
               (input)="validatePath()"
               placeholder="プロジェクトのパスを入力してください（例: /Users/username/my-project）"
-              class="w-full focus:outline-none resize-none placeholder:text-[#8a8a8a] border-0 p-2 bg-transparent text-[#ffffff]"
+              class="w-full focus:outline-none resize-none placeholder:text-[var(--text-muted)] border-0 p-2 bg-transparent text-[var(--text-primary)]"
               [class.border-red-300]="pathError()"
               rows="1"
             ></textarea>
             @if (pathError()) {
-              <small class="text-[#f91880] block mt-1 ml-2">{{ pathError() }}</small>
+              <small class="text-[var(--error)] block mt-1 ml-2">{{ pathError() }}</small>
             }
           </div>
 
@@ -54,7 +54,7 @@ export interface PathSelection {
               [style]="{
                 'background-color': 'transparent',
                 'border-color': 'transparent',
-                'color': resumeSession() ? '#1d9bf0' : '#8a8a8a'
+                'color': resumeSession() ? 'var(--accent-blue)' : 'var(--text-muted)'
               }"
               [text]="true"
               size="small"

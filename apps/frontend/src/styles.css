@@ -31,6 +31,11 @@
   --success: #00ba7c;
   --warning: #ffd400;
   --error: #f91880;
+  --error-bg: #2d1b24;
+  --error-border: #4d2a36;
+  
+  /* Scrollbar colors */
+  --scrollbar-thumb-hover: #495a69;
 }
 
 /* Global dark theme styles */
@@ -56,5 +61,5 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #495a69;
+  background: var(--scrollbar-thumb-hover);
 }
