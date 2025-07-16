@@ -43,26 +43,27 @@ export interface PathSelection {
             }
           </div>
 
-          <!-- Resume Option -->
-          <div class="p-3 bg-[#000000] rounded-lg">
-            <div class="flex items-center">
-              <p-checkbox 
-                [(ngModel)]="resumeSession" 
-                [binary]="true"
-                inputId="resume"
-                class="mr-3"
-              />
-              <label for="resume" class="text-sm font-medium text-[#ffffff]">
-                既存のセッションを再開する（--resumeオプション）
-              </label>
-            </div>
-            <p class="text-xs text-[#d9d9d9] ml-7 mt-1">
-              プロジェクト内の以前の会話履歴を引き継いでセッションを開始します
-            </p>
-          </div>
 
           <!-- Input Footer -->
-          <div class="flex w-full justify-end">
+          <div class="flex w-full justify-between">
+
+            <!-- resume button -->
+            <p-button
+              (onClick)="toggleResumeOption()"
+              icon="pi pi-history"
+              [style]="{
+                'background-color': resumeSession() ? '#1d9bf0' : 'transparent',
+                'border-color': resumeSession() ? '#1d9bf0' : '#2f2f2f',
+                'color': resumeSession() ? '#ffffff' : '#8a8a8a'
+              }"
+              [text]="!resumeSession()"
+              [outlined]="!resumeSession()"
+              size="small"
+              [attr.aria-pressed]="resumeSession()"
+              [attr.title]="resumeSession() ? '履歴を引き継ぐ（ON）' : '履歴を引き継ぐ（OFF）'"
+            />
+
+            <!-- submit button  -->
             <p-button
               (onClick)="startProject()"
               [disabled]="!canStart()"
@@ -192,6 +193,10 @@ export class PathSelectorComponent {
       });
       this.starting.set(false);
     }
+  }
+
+  toggleResumeOption(): void {
+    this.resumeSession.set(!this.resumeSession());
   }
 
   selectFolder(): void {

@@ -39,36 +39,6 @@ body {
   color: var(--text-primary);
 }
 
-/* Override PrimeNG component backgrounds for dark theme */
-.p-component {
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-}
-
-.p-inputtext {
-  background-color: var(--tertiary-bg);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.p-inputtext:hover {
-  border-color: var(--border-light);
-}
-
-.p-inputtext:focus {
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 0.2rem rgba(29, 155, 240, 0.2);
-}
-
-.p-button {
-  background-color: var(--accent-blue);
-  border-color: var(--accent-blue);
-}
-
-.p-button:hover {
-  background-color: var(--accent-hover);
-  border-color: var(--accent-hover);
-}
 
 /* Scrollbar styling for dark theme */
 ::-webkit-scrollbar {
