@@ -19,6 +19,17 @@ pnpm install
 # Run commands in specific workspaces
 pnpm --filter backend <command>
 pnpm --filter frontend <command>
+
+# Development shortcuts
+pnpm dev:backend
+pnpm dev:frontend
+pnpm dev:docs
+
+# Build shortcuts
+pnpm build:backend
+pnpm build:frontend
+pnpm build:docs
+pnpm build  # builds both backend and frontend
 ```
 
 ### Backend (`apps/backend/`)
@@ -29,8 +40,16 @@ pnpm dev
 # Build TypeScript to JavaScript
 pnpm build
 
+# Type checking
+pnpm typecheck
+
 # Run production build
 pnpm start
+pnpm start:prod  # with NODE_ENV=production
+
+# Run tests
+pnpm test
+pnpm test:watch
 ```
 
 ### Frontend (`apps/frontend/`)
@@ -44,6 +63,11 @@ ng serve
 pnpm build
 # or
 ng build
+
+# Build and watch for changes
+pnpm watch
+# or
+ng build --watch --configuration development
 
 # Run unit tests
 pnpm test
@@ -61,12 +85,18 @@ ng generate component component-name
 - Runs on port 3000 by default
 - Built with TypeScript and uses tsx for development
 - REST API structure with Express Router
-- Includes middleware for CORS, Helmet security, and request logging
+- Includes middleware for CORS, Helmet security, compression, and request logging
+- WebSocket service handles real-time communication with Amazon Q CLI
+- Uses Jest for testing
+- SQLite3 database for session persistence
 
 ### Frontend
 - Angular 20 with standalone components (no NgModules)
 - Uses zoneless change detection
-- Router configured but no routes defined yet
+- PrimeNG 20.0.0-rc.3 for UI components
+- Tailwind CSS 4.1.11 for styling
+- @ngrx/signals for state management
+- Socket.io-client for WebSocket communication
 - Uses Karma/Jasmine for testing
 - Standard Angular CLI project structure
 
@@ -80,9 +110,10 @@ ng generate component component-name
 ## Development Workflow
 
 1. Run `pnpm install` at root to install all dependencies
-2. Start backend: `pnpm --filter backend dev`
-3. Start frontend: `pnpm --filter frontend start`
+2. Start backend: `pnpm dev:backend` (or `pnpm --filter backend dev`)
+3. Start frontend: `pnpm dev:frontend` (or `pnpm --filter frontend start`)
 4. Backend serves on localhost:3000, frontend on localhost:4200
+5. WebSocket communication handles real-time Amazon Q CLI interactions
 
 ### Test-Driven Development (TDD)
 
