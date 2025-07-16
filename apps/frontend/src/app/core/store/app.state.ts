@@ -201,21 +201,12 @@ export const AppStore = signalStore(
       patchState(store, { chatMessages });
     },
     
-    // セッション/会話切り替え用のメソッド
+    // セッション/会話切り替え用のメソッド（historyデータ専用）
     switchToHistoryView: (conversation: AmazonQConversation) => {
-      // 履歴データをChatMessage形式に変換
-      const historyMessages: ChatMessage[] = conversation.transcript?.map((message, index) => ({
-        id: `history-${index}`,
-        content: message,
-        sender: (index % 2 === 0) ? 'user' : 'assistant',
-        timestamp: new Date(),
-        isTyping: false
-      })) as ChatMessage[] || [];
-
       patchState(store, { 
         currentQConversation: conversation,
         currentQSession: null,  // アクティブセッションをクリア
-        chatMessages: historyMessages,  // 履歴メッセージをchatMessagesに設定
+        chatMessages: [],  // historyデータは別の仕組みで表示
         sessionStarting: false,
         sessionError: null
       });

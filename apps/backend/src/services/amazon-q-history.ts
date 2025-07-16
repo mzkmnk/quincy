@@ -234,8 +234,8 @@ export class AmazonQHistoryService {
         
         // historyデータが存在するかチェック
         if (!conversationData.history || !this.historyTransformer.isValidHistoryData(conversationData.history)) {
-          logger.warn('No valid history data found, falling back to transcript')
-          return this.convertTranscriptToDisplayMessages(conversationData.transcript)
+          logger.warn('No valid history data found for project')
+          return []
         }
 
         // historyデータを変換
@@ -299,26 +299,6 @@ export class AmazonQHistoryService {
     }
   }
 
-  /**
-   * transcriptデータをDisplayMessage配列に変換（フォールバック用）
-   */
-  private convertTranscriptToDisplayMessages(transcript: string[]): DisplayMessage[] {
-    const displayMessages: DisplayMessage[] = []
-    
-    for (let i = 0; i < transcript.length; i++) {
-      const content = transcript[i]
-      const isUserMessage = content.startsWith('> ')
-      
-      displayMessages.push({
-        id: `transcript_${i}`,
-        type: isUserMessage ? 'user' : 'assistant',
-        content: isUserMessage ? content.substring(2) : content,
-        timestamp: new Date()
-      })
-    }
-    
-    return displayMessages
-  }
 
   /**
    * 全プロジェクトの履歴をhistoryデータ付きで取得

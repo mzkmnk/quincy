@@ -159,12 +159,12 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
               <div class="text-center py-8">
                 <div class="text-lg text-[var(--text-secondary)]">Loading conversation history...</div>
               </div>
-            } @else if (appStore.currentQConversation()?.transcript) {
+            } @else if (appStore.detailedHistoryMessages().length > 0) {
               <app-message-list></app-message-list>
             } @else {
               <div class="text-center text-[var(--text-secondary)] py-8">
-                <div class="text-lg mb-2">📭 No conversation transcript available</div>
-                <div class="text-sm">This project may not have any Amazon Q conversation history.</div>
+                <div class="text-lg mb-2">📭 No conversation history available</div>
+                <div class="text-sm">This project may not have any Amazon Q conversation history with detailed data.</div>
               </div>
             }
           </div>
