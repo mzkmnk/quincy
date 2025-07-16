@@ -173,7 +173,7 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
           <div class="sticky bottom-0 left-0 right-0 z-10">
             <div class="p-4 text-center">
               <button 
-                class="px-4 py-2 bg-[#1d9bf0] text-white rounded-md hover:bg-[#1a8cd8] transition-colors font-medium"
+                class="px-4 py-2 bg-[#1a1a1a] text-white border border-[#2f2f2f] rounded-md hover:bg-[#1f1f1f] transition-colors font-medium"
                 (click)="resumeSession()"
               >
                 Resume Session to Continue Chat
