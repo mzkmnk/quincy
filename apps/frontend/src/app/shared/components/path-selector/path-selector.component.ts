@@ -52,12 +52,11 @@ export interface PathSelection {
               (onClick)="toggleResumeOption()"
               icon="pi pi-history"
               [style]="{
-                'background-color': resumeSession() ? '#1d9bf0' : 'transparent',
-                'border-color': resumeSession() ? '#1d9bf0' : '#2f2f2f',
-                'color': resumeSession() ? '#ffffff' : '#8a8a8a'
+                'background-color': 'transparent',
+                'border-color': 'transparent',
+                'color': resumeSession() ? '#1d9bf0' : '#8a8a8a'
               }"
-              [text]="!resumeSession()"
-              [outlined]="!resumeSession()"
+              [text]="true"
               size="small"
               [attr.aria-pressed]="resumeSession()"
               [attr.title]="resumeSession() ? '履歴を引き継ぐ（ON）' : '履歴を引き継ぐ（OFF）'"
