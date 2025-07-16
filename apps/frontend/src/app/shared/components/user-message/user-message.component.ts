@@ -9,8 +9,8 @@ import { CommonModule } from '@angular/common';
     <!-- User Message - Right aligned with speech bubble -->
     <div class="flex justify-end mb-4">
       <div class="flex items-end gap-2 max-w-xl">
-        <div class="bg-gray-100 text-white rounded-2xl px-4 py-3 shadow-sm">
-          <div class="whitespace-pre-wrap text-gray-700 break-words">{{ content() }}</div>
+        <div class="bg-[#22303c] text-white rounded-2xl px-4 py-3 shadow-sm">
+          <div class="whitespace-pre-wrap text-[#e7e9ea] break-words">{{ content() }}</div>
         </div>
       </div>
     </div>

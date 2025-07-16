@@ -25,7 +25,7 @@ export interface PathSelection {
     <div class="flex items-center justify-center">
       <div class="flex w-8/12"> 
         <!-- Path Input Area -->
-        <div class="flex gap-4 flex-col w-full bg-white border-1 border-gray-200 rounded-3xl p-4 mb-4">
+        <div class="flex gap-4 flex-col w-full bg-[#192734] border-1 border-[#2f3336] rounded-3xl p-4 mb-4">
           <!-- Path Input -->
           <div>
             <textarea
@@ -34,17 +34,17 @@ export interface PathSelection {
               (keydown)="onKeyDown($event)"
               (input)="validatePath()"
               placeholder="プロジェクトのパスを入力してください（例: /Users/username/my-project）"
-              class="w-full focus:outline-none resize-none placeholder:text-gray-500 border-0 p-2"
+              class="w-full focus:outline-none resize-none placeholder:text-[#71767b] border-0 p-2 bg-transparent text-[#e7e9ea]"
               [class.border-red-300]="pathError()"
               rows="1"
             ></textarea>
             @if (pathError()) {
-              <small class="text-red-500 block mt-1 ml-2">{{ pathError() }}</small>
+              <small class="text-[#f91880] block mt-1 ml-2">{{ pathError() }}</small>
             }
           </div>
 
           <!-- Resume Option -->
-          <div class="p-3 bg-gray-50 rounded-lg">
+          <div class="p-3 bg-[#15202b] rounded-lg">
             <div class="flex items-center">
               <p-checkbox 
                 [(ngModel)]="resumeSession" 
@@ -52,11 +52,11 @@ export interface PathSelection {
                 inputId="resume"
                 class="mr-3"
               />
-              <label for="resume" class="text-sm font-medium">
+              <label for="resume" class="text-sm font-medium text-[#e7e9ea]">
                 既存のセッションを再開する（--resumeオプション）
               </label>
             </div>
-            <p class="text-xs text-gray-600 ml-7 mt-1">
+            <p class="text-xs text-[#8899ac] ml-7 mt-1">
               プロジェクト内の以前の会話履歴を引き継いでセッションを開始します
             </p>
           </div>

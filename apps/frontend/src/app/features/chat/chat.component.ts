@@ -11,23 +11,23 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
   imports: [CommonModule, MessageListComponent, MessageInputComponent, PathSelectorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="h-full flex flex-col bg-white">
+    <div class="h-full flex flex-col bg-[#15202b]">
       <!-- Chat Header -->
-      <div class="border-b border-gray-200 p-4 bg-white sticky top-0 z-90">
+      <div class="border-b border-[#2f3336] p-4 bg-[#192734] sticky top-0 z-90">
         <div class="flex items-center justify-between">
           <div>
             @if (appStore.currentQSession()) {
-              <h1 class="text-xl font-semibold text-gray-900">{{ getProjectName(appStore.currentQSession()!.projectPath) }}</h1>
+              <h1 class="text-xl font-semibold text-white">{{ getProjectName(appStore.currentQSession()!.projectPath) }}</h1>
               } @else if (appStore.currentQConversation()) {
-              <h1 class="text-xl font-semibold text-gray-900">{{ getProjectName(getProjectPathFromConversation()) }}</h1>
+              <h1 class="text-xl font-semibold text-white">{{ getProjectName(getProjectPathFromConversation()) }}</h1>
               } @else if (appStore.sessionStarting()) {
-              <h1 class="text-xl font-semibold text-gray-900">Starting Amazon Q Session...</h1>
-              <p class="text-sm text-gray-500 mt-1">Please wait while we start your session</p>
+              <h1 class="text-xl font-semibold text-white">Starting Amazon Q Session...</h1>
+              <p class="text-sm text-[#8899ac] mt-1">Please wait while we start your session</p>
             } @else if (appStore.sessionError()) {
-              <h1 class="text-xl font-semibold text-red-600">Session Start Failed</h1>
-              <p class="text-sm text-red-500 mt-1">Failed to start Amazon Q session</p>
+              <h1 class="text-xl font-semibold text-[#f91880]">Session Start Failed</h1>
+              <p class="text-sm text-[#f91880] mt-1">Failed to start Amazon Q session</p>
             } @else {
-              <h1 class="text-xl font-semibold text-gray-900">Welcome to Quincy</h1>
+              <h1 class="text-xl font-semibold text-white">Welcome to Quincy</h1>
             }
           </div>
           
@@ -40,7 +40,7 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
               [class.animate-pulse]="websocket.connecting()"
               [class.bg-red-500]="!websocket.connected() && !websocket.connecting()"
             ></span>
-            <span class="text-gray-600 font-medium">
+            <span class="text-[#8899ac] font-medium">
               {{ websocket.connected() ? 'Connected' : websocket.connecting() ? 'Connecting' : 'Disconnected' }}
             </span>
           </div>
@@ -62,12 +62,12 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
             </div>
           } @else {
             <div class="sticky bottom-0 left-0 right-0 z-10">
-              <div class="bg-gray-50 border-t border-gray-200 p-4 text-center">
+              <div class="bg-[#192734] border-t border-[#2f3336] p-4 text-center">
                 <div class="max-w-md mx-auto">
-                  <p class="text-gray-600 text-sm mb-3">{{ getDisabledReason() }}</p>
+                  <p class="text-[#8899ac] text-sm mb-3">{{ getDisabledReason() }}</p>
                   @if (appStore.sessionError()) {
                     <button 
-                      class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors text-sm font-medium"
+                      class="px-4 py-2 bg-[#1d9bf0] text-white rounded-md hover:bg-[#1a8cd8] transition-colors text-sm font-medium"
                       (click)="clearSessionError()"
                     >
                       Start New Session
@@ -82,16 +82,16 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
           <div class="h-full flex items-center justify-center">
             <div class="text-center max-w-md">
               <div class="mb-6">
-                <svg class="w-24 h-24 text-gray-900 mx-auto animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-24 h-24 text-white mx-auto animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
               </div>
-              <h2 class="text-2xl font-semibold text-gray-900 mb-4">Starting Amazon Q Session</h2>
-              <p class="text-gray-500 mb-6 leading-relaxed">
+              <h2 class="text-2xl font-semibold text-white mb-4">Starting Amazon Q Session</h2>
+              <p class="text-[#8899ac] mb-6 leading-relaxed">
                 Please wait while we initialize your Amazon Q session...
               </p>
               <div class="space-y-3">
-                <div class="flex items-center justify-center text-sm" [class.text-gray-400]="!sessionStatus.cliLaunched" [class.text-green-600]="sessionStatus.cliLaunched">
+                <div class="flex items-center justify-center text-sm" [class.text-[#71767b]]="!sessionStatus.cliLaunched" [class.text-[#00ba7c]]="sessionStatus.cliLaunched">
                   <span class="mr-2">🚀</span>
                   <span>Launching Amazon Q CLI</span>
                   @if (sessionStatus.cliLaunched) {
@@ -100,7 +100,7 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
                     </svg>
                   }
                 </div>
-                <div class="flex items-center justify-center text-sm" [class.text-gray-400]="!sessionStatus.connectionEstablished" [class.text-green-600]="sessionStatus.connectionEstablished">
+                <div class="flex items-center justify-center text-sm" [class.text-[#71767b]]="!sessionStatus.connectionEstablished" [class.text-[#00ba7c]]="sessionStatus.connectionEstablished">
                   <span class="mr-2">🔗</span>
                   <span>Establishing connection</span>
                   @if (sessionStatus.connectionEstablished) {
@@ -109,7 +109,7 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
                     </svg>
                   }
                 </div>
-                <div class="flex items-center justify-center text-sm" [class.text-gray-400]="!sessionStatus.workspaceReady" [class.text-green-600]="sessionStatus.workspaceReady">
+                <div class="flex items-center justify-center text-sm" [class.text-[#71767b]]="!sessionStatus.workspaceReady" [class.text-[#00ba7c]]="sessionStatus.workspaceReady">
                   <span class="mr-2">📂</span>
                   <span>Setting up project workspace</span>
                   @if (sessionStatus.workspaceReady) {
@@ -119,7 +119,7 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
                   }
                 </div>
               </div>
-              <p class="text-xs text-gray-400 mt-4">This may take up to 30 seconds...</p>
+              <p class="text-xs text-[#71767b] mt-4">This may take up to 30 seconds...</p>
             </div>
           </div>
         } @else if (appStore.sessionError()) {
@@ -127,17 +127,17 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
           <div class="h-full flex items-center justify-center">
             <div class="text-center max-w-md">
               <div class="mb-6">
-                <svg class="w-24 h-24 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-24 h-24 text-[#f91880] mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                 </svg>
               </div>
-              <h2 class="text-2xl font-semibold text-red-600 mb-4">Session Start Failed</h2>
-              <p class="text-gray-700 mb-6 leading-relaxed bg-red-50 border border-red-200 rounded-lg p-4">
+              <h2 class="text-2xl font-semibold text-[#f91880] mb-4">Session Start Failed</h2>
+              <p class="text-[#e7e9ea] mb-6 leading-relaxed bg-[#2d1b24] border border-[#4d2a36] rounded-lg p-4">
                 {{ appStore.sessionError() }}
               </p>
-              <div class="space-y-2 text-sm text-gray-600">
+              <div class="space-y-2 text-sm text-[#8899ac]">
                 <p class="font-medium">💡 Troubleshooting Tips:</p>
-                <div class="text-left bg-gray-50 rounded-lg p-4">
+                <div class="text-left bg-[#22303c] rounded-lg p-4">
                   <p>1. Install Amazon Q CLI if not installed</p>
                   <p>2. Ensure 'q' command is in your PATH</p>
                   <p>3. Run 'q --version' in terminal to verify</p>
@@ -145,7 +145,7 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
                 </div>
               </div>
               <button 
-                class="mt-6 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors font-medium"
+                class="mt-6 px-4 py-2 bg-[#1d9bf0] text-white rounded-md hover:bg-[#1a8cd8] transition-colors font-medium"
                 (click)="clearSessionError()"
               >
                 Try Again
@@ -157,12 +157,12 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
           <div class="flex-1 overflow-y-auto">
             @if (appStore.qHistoryLoading()) {
               <div class="text-center py-8">
-                <div class="text-lg text-gray-600">Loading conversation history...</div>
+                <div class="text-lg text-[#8899ac]">Loading conversation history...</div>
               </div>
             } @else if (appStore.currentQConversation()?.transcript) {
               <app-message-list></app-message-list>
             } @else {
-              <div class="text-center text-gray-500 py-8">
+              <div class="text-center text-[#8899ac] py-8">
                 <div class="text-lg mb-2">📭 No conversation transcript available</div>
                 <div class="text-sm">This project may not have any Amazon Q conversation history.</div>
               </div>
@@ -173,7 +173,7 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
           <div class="sticky bottom-0 left-0 right-0 z-10">
             <div class="p-4 text-center">
               <button 
-                class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors font-medium"
+                class="px-4 py-2 bg-[#1d9bf0] text-white rounded-md hover:bg-[#1a8cd8] transition-colors font-medium"
                 (click)="resumeSession()"
               >
                 Resume Session to Continue Chat

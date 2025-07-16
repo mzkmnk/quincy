@@ -17,8 +17,8 @@ import { AmazonQMessageComponent } from '../amazon-q-message/amazon-q-message.co
             <div class="mb-4">
               <i class="pi pi-comments text-slate-400 text-5xl"></i>
             </div>
-            <h3 class="text-lg font-medium text-slate-900 mb-2">Start the conversation</h3>
-            <p class="text-slate-600 text-sm">Send a message to begin chatting with your AI assistant.</p>
+            <h3 class="text-lg font-medium text-white mb-2">Start the conversation</h3>
+            <p class="text-[#8899ac] text-sm">Send a message to begin chatting with your AI assistant.</p>
           </div>
         } @else {
           @for (message of messages(); track message.id) {

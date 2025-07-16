@@ -13,7 +13,7 @@ import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.c
         @if (isTyping()) {
           <app-typing-indicator></app-typing-indicator>
         } @else {
-          <div class="text-gray-700 leading-relaxed whitespace-pre-wrap break-words prose prose-gray max-w-none">{{ content() }}</div>
+          <div class="text-[#e7e9ea] leading-relaxed whitespace-pre-wrap break-words prose prose-gray max-w-none">{{ content() }}</div>
         }
       </div>
     </div>

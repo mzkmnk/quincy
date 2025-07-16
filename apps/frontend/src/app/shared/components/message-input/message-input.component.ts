@@ -14,7 +14,7 @@ import { TextareaModule } from 'primeng/textarea';
   template: `
     <div class="p-4 flex items-center justify-center">
       <!-- Input Area -->
-      <div class="flex gap-2 flex-col w-9/12 bg-white border-1 border-gray-200 rounded-3xl p-2">
+      <div class="flex gap-2 flex-col w-9/12 bg-[#192734] border-1 border-[#2f3336] rounded-3xl p-2">
         <!-- Text Input -->
         <textarea
           #messageTextarea
@@ -23,7 +23,7 @@ import { TextareaModule } from 'primeng/textarea';
           (compositionstart)="onCompositionStart()"
           (compositionend)="onCompositionEnd()"
           placeholder="このプロジェクトについて教えて下さい。"
-          class="m-2 focus:outline-none resize-none placeholder:text-gray-500"
+          class="m-2 focus:outline-none resize-none placeholder:text-[#71767b] bg-transparent text-[#e7e9ea]"
           rows="1"
         ></textarea>
 

@@ -5,3 +5,86 @@
 
 /* PrimeNG styles */
 @import "primeicons/primeicons.css";
+
+/* X (Twitter) Dark Blue Theme */
+:root {
+  /* Background colors */
+  --primary-bg: #15202b;
+  --secondary-bg: #192734;
+  --tertiary-bg: #22303c;
+  --hover-bg: #273341;
+  
+  /* Text colors */
+  --text-primary: #e7e9ea;
+  --text-secondary: #8899ac;
+  --text-muted: #71767b;
+  
+  /* Border colors */
+  --border-color: #2f3336;
+  --border-light: #38444d;
+  
+  /* Accent colors */
+  --accent-blue: #1d9bf0;
+  --accent-hover: #1a8cd8;
+  
+  /* Status colors */
+  --success: #00ba7c;
+  --warning: #ffd400;
+  --error: #f91880;
+}
+
+/* Global dark theme styles */
+body {
+  background-color: var(--primary-bg);
+  color: var(--text-primary);
+}
+
+/* Override PrimeNG component backgrounds for dark theme */
+.p-component {
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+}
+
+.p-inputtext {
+  background-color: var(--tertiary-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.p-inputtext:hover {
+  border-color: var(--border-light);
+}
+
+.p-inputtext:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 0.2rem rgba(29, 155, 240, 0.2);
+}
+
+.p-button {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.p-button:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--secondary-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #495a69;
+}
