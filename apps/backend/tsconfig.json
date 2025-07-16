@@ -8,8 +8,6 @@
     "strict": true,
     "skipLibCheck": true,
     "types": ["node", "jest"],
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },

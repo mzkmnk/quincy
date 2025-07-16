@@ -126,6 +126,21 @@ ng generate component component-name
 - Do not modify tests during implementation, only fix code
 - Repeat until all tests pass
 
+### Testing Status
+
+#### Backend Tests
+- **Current Test Coverage**: Limited test coverage with 2 test files
+  - `amazon-q-cli.test.ts`: Tests for Amazon Q CLI integration
+  - `websocket.test.ts`: Tests for WebSocket functionality
+- **Test Framework**: Jest with TypeScript support
+- **Test Command**: `pnpm test` or `pnpm test:watch`
+- **Goal**: Expand test coverage for all services and utilities
+
+#### Frontend Tests
+- **Test Framework**: Karma/Jasmine (Angular default)
+- **Test Command**: `pnpm test` or `ng test`
+- **Current Status**: Standard Angular CLI test setup
+
 You are an expert in TypeScript, Angular, and scalable web application development. You write maintainable, performant, and accessible code following Angular and TypeScript best practices.
 ## TypeScript Best Practices
 - Use strict type checking
