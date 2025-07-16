@@ -127,6 +127,11 @@ export class WebSocketService {
         await this.handleQHistory(socket, data);
       });
 
+      // Handle Amazon Q detailed history requests
+      socket.on('q:history:detailed', async (data: { projectPath: string }) => {
+        await this.handleQHistoryDetailed(socket, data);
+      });
+
       // Handle Amazon Q projects history list
       socket.on('q:projects', async () => {
         await this.handleQProjects(socket);
@@ -493,6 +498,43 @@ export class WebSocketService {
     }
   }
 
+  private async handleQHistoryDetailed(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectPath: string }): Promise<void> {
+    try {
+      console.log(`📚 Request for detailed Q history: ${data.projectPath}`);
+      
+      if (!this.qHistoryService.isDatabaseAvailable()) {
+        console.log('❌ Amazon Q database not available');
+        this.sendError(socket, 'Q_HISTORY_UNAVAILABLE', 'Amazon Q database is not available');
+        return;
+      }
+
+      const displayMessages = await this.qHistoryService.getProjectHistoryDetailed(data.projectPath);
+      const stats = await this.qHistoryService.getConversationStats(data.projectPath);
+      
+      if (displayMessages.length === 0) {
+        console.log(`⚠️ No detailed conversation found for: ${data.projectPath}`);
+        socket.emit('q:history:detailed:data', {
+          projectPath: data.projectPath,
+          displayMessages: [],
+          stats: null,
+          message: 'No detailed conversation history found for this project'
+        });
+        return;
+      }
+
+      console.log(`✅ Retrieved detailed Q history for project: ${data.projectPath}, messages: ${displayMessages.length}`);
+      socket.emit('q:history:detailed:data', {
+        projectPath: data.projectPath,
+        displayMessages,
+        stats
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Error getting detailed Q history for ${data.projectPath}:`, error);
+      this.sendError(socket, 'Q_HISTORY_DETAILED_ERROR', `Failed to get detailed project history: ${errorMessage}`);
+    }
+  }
+
   private async handleQProjects(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>): Promise<void> {
     try {
       console.log('📋 Handling Q projects list request');
@@ -706,7 +748,7 @@ export class WebSocketService {
   ): void {
     const socketIds = this.sessionToSockets.get(sessionId);
     if (socketIds) {
-      console.log(`📤 Emitting ${event} to session ${sessionId} (${socketIds.size} sockets)`);
+      console.log(`📤 Emitting ${String(event)} to session ${sessionId} (${socketIds.size} sockets)`);
       socketIds.forEach(socketId => {
         const socket = this.io.sockets.sockets.get(socketId);
         if (socket) {
