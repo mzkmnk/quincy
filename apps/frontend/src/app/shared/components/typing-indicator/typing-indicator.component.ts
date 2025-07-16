@@ -6,12 +6,12 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex items-center space-x-2 bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
-      <span class="text-slate-600 text-sm">Amazon Q is thinking</span>
+    <div class="flex items-center space-x-2 bg-[var(--secondary-bg)] rounded-lg px-4 py-3 shadow-sm border border-[var(--border-color)]">
+      <span class="text-[var(--text-secondary)] text-sm">Amazon Q is thinking</span>
       <div class="flex space-x-1">
-        <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
-        <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
-        <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+        <div class="w-2 h-2 bg-[var(--text-muted)] rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+        <div class="w-2 h-2 bg-[var(--text-muted)] rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+        <div class="w-2 h-2 bg-[var(--text-muted)] rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
       </div>
     </div>
   `,
