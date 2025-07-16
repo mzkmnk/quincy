@@ -27,7 +27,7 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
               <h1 class="text-xl font-semibold text-[var(--error)]">Session Start Failed</h1>
               <p class="text-sm text-[var(--error)] mt-1">Failed to start Amazon Q session</p>
             } @else {
-              <h1 class="text-xl font-semibold text-[var(--text-primary)]">Welcome to Quincy</h1>
+              <h1 class="text-xl font-semibold text-[var(--text-primary)]">Quincy</h1>
             }
           </div>
           
