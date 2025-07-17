@@ -25,6 +25,7 @@ import type {
 } from '@quincy/shared';
 import { AmazonQCLIService } from './amazon-q-cli';
 import { AmazonQHistoryService } from './amazon-q-history';
+import { generateMessageId } from '../utils/id-generator';
 
 export class WebSocketService {
   private io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
@@ -189,7 +190,7 @@ export class WebSocketService {
 
   private handleMessageSend(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: MessageSendEvent) {
     const messageData: MessageData = {
-      id: this.generateMessageId(),
+      id: generateMessageId(),
       content: data.content,
       senderId: data.senderId,
       timestamp: Date.now(),
@@ -233,7 +234,7 @@ export class WebSocketService {
     
     // Notify other users in the room
     socket.to(roomId).emit('message:broadcast', {
-      id: this.generateMessageId(),
+      id: generateMessageId(),
       content: `User joined the room`,
       senderId: 'system',
       timestamp: Date.now(),
@@ -266,7 +267,7 @@ export class WebSocketService {
     
     // Notify other users in the room
     socket.to(roomId).emit('message:broadcast', {
-      id: this.generateMessageId(),
+      id: generateMessageId(),
       content: `User left the room`,
       senderId: 'system',
       timestamp: Date.now(),
@@ -287,7 +288,7 @@ export class WebSocketService {
       const userRooms = this.userRooms.get(socket.id)!;
       userRooms.forEach(roomId => {
         socket.to(roomId).emit('message:broadcast', {
-          id: this.generateMessageId(),
+          id: generateMessageId(),
           content: `User disconnected`,
           senderId: 'system',
           timestamp: Date.now(),
@@ -315,9 +316,6 @@ export class WebSocketService {
     }
   }
 
-  private generateMessageId(): string {
-    return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-  }
 
 
   // Public methods for external use

@@ -10,6 +10,7 @@ import type {
   QInfoEvent,
   QCompleteEvent 
 } from '@quincy/shared';
+import { generateSessionId } from '../utils/id-generator';
 
 export interface QProcessSession {
   sessionId: string;
@@ -257,7 +258,7 @@ export class AmazonQCLIService extends EventEmitter {
    * Amazon Q CLIプロセスを起動
    */
   async startSession(command: string, options: QProcessOptions): Promise<string> {
-    const sessionId = this.generateSessionId();
+    const sessionId = generateSessionId();
     
     try {
       // プロジェクトパスの検証
@@ -749,9 +750,6 @@ export class AmazonQCLIService extends EventEmitter {
     });
   }
 
-  private generateSessionId(): string {
-    return `q_session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-  }
 
   private setupCleanupHandlers(): void {
     // プロセス終了時のクリーンアップ

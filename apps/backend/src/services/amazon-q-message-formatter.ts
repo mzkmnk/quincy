@@ -8,6 +8,7 @@ import {
   ToolUse,
   EnvironmentState
 } from './amazon-q-history-types';
+import { generateMessageId } from '../utils/id-generator';
 
 export class MessageFormatter {
   /**
@@ -34,7 +35,7 @@ export class MessageFormatter {
         
         // エラーが発生した場合もエラーメッセージを表示
         displayMessages.push({
-          id: this.generateMessageId(),
+          id: generateMessageId(),
           type: 'assistant',
           content: 'メッセージの表示中にエラーが発生しました',
           timestamp: new Date()
@@ -50,7 +51,7 @@ export class MessageFormatter {
    */
   private formatUserMessage(turn: ConversationTurn): DisplayMessage {
     return {
-      id: this.generateMessageId(),
+      id: generateMessageId(),
       type: 'user',
       content: turn.userMessage,
       timestamp: new Date(),
@@ -71,7 +72,7 @@ export class MessageFormatter {
       const toolsUsedInThisStep = this.getToolsUsedInThinkingStep(turn, i);
       
       thinkingMessages.push({
-        id: this.generateMessageId(),
+        id: generateMessageId(),
         type: 'thinking',
         content: this.formatThinkingContent(thinkingContent, toolsUsedInThisStep),
         timestamp: new Date(),
@@ -92,7 +93,7 @@ export class MessageFormatter {
     const lastMessageId = turn.metadata.messageIds[turn.metadata.messageIds.length - 1];
     
     return {
-      id: this.generateMessageId(),
+      id: generateMessageId(),
       type: 'assistant',
       content: turn.aiResponse,
       timestamp: new Date(),
@@ -183,12 +184,6 @@ export class MessageFormatter {
     ].join('\n');
   }
 
-  /**
-   * メッセージIDを生成
-   */
-  private generateMessageId(): string {
-    return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
 
   /**
    * 長いコンテンツを適切に切り詰める
