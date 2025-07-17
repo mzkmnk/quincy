@@ -4,7 +4,7 @@ import path from 'path'
 import { homedir } from 'os'
 import { existsSync } from 'fs'
 import { logger } from '../utils/logger'
-import type { AmazonQConversation, ConversationMetadata } from '@quincy/shared'
+import type { ConversationMetadata } from '@quincy/shared'
 import { 
   HistoryData,
   ConversationTurn,
@@ -30,7 +30,7 @@ export class AmazonQHistoryService {
   /**
    * プロジェクトの会話履歴を取得
    */
-  async getProjectHistory(projectPath: string): Promise<AmazonQConversation | null> {
+  async getProjectHistory(projectPath: string): Promise<AmazonQConversationWithHistory | null> {
     try {
       logger.info(`Getting project history for: ${projectPath}`)
       
@@ -50,7 +50,7 @@ export class AmazonQHistoryService {
           return null
         }
 
-        const conversation: AmazonQConversation = JSON.parse(result.value)
+        const conversation: AmazonQConversationWithHistory = JSON.parse(result.value)
         logger.info(`Found conversation for project: ${projectPath}, ID: ${conversation.conversation_id}`)
         return conversation
       } finally {
@@ -90,12 +90,19 @@ export class AmazonQHistoryService {
 
         for (const row of results) {
           try {
-            const conversation: AmazonQConversation = JSON.parse(row.value)
+            const conversation: AmazonQConversationWithHistory = JSON.parse(row.value)
+            
+            // historyデータからユーザーメッセージ数を計算（Promptエントリ数ベース）
+            let messageCount = 0
+            if (conversation.history && this.historyTransformer.isValidHistoryData(conversation.history)) {
+              const normalizedHistory = this.historyTransformer.normalizeHistoryData(conversation.history)
+              messageCount = this.historyTransformer.countPromptEntries(normalizedHistory)
+            }
             
             metadata.push({
               projectPath: row.key,
               conversation_id: conversation.conversation_id,
-              messageCount: conversation.transcript?.length || 0,
+              messageCount,
               lastUpdated: new Date(), // SQLiteには更新日時がないため現在時刻を使用
               model: conversation.model
             })
@@ -176,7 +183,7 @@ export class AmazonQHistoryService {
   /**
    * 特定のconversation_idで履歴を検索
    */
-  async findByConversationId(conversationId: string): Promise<{ projectPath: string; conversation: AmazonQConversation } | null> {
+  async findByConversationId(conversationId: string): Promise<{ projectPath: string; conversation: AmazonQConversationWithHistory } | null> {
     try {
       const db = new Database(this.dbPath, { readonly: true })
       
@@ -187,7 +194,7 @@ export class AmazonQHistoryService {
 
       for (const row of results) {
         try {
-          const conversation: AmazonQConversation = JSON.parse(row.value)
+          const conversation: AmazonQConversationWithHistory = JSON.parse(row.value)
           if (conversation.conversation_id === conversationId) {
             return {
               projectPath: row.key,
@@ -233,13 +240,29 @@ export class AmazonQHistoryService {
         logger.info(`Found conversation for project: ${projectPath}, ID: ${conversationData.conversation_id}`)
         
         // historyデータが存在するかチェック
-        if (!conversationData.history || !this.historyTransformer.isValidHistoryData(conversationData.history)) {
-          logger.warn('No valid history data found for project')
+        if (!conversationData.history) {
+          logger.warn(`No history field found for project: ${projectPath}`, {
+            availableFields: Object.keys(conversationData),
+            conversationId: conversationData.conversation_id
+          })
           return []
         }
 
-        // historyデータを変換
-        const turns = this.historyTransformer.groupConversationTurns(conversationData.history)
+        if (!this.historyTransformer.isValidHistoryData(conversationData.history)) {
+          logger.warn(`Invalid history data structure for project: ${projectPath}`, {
+            historyType: typeof conversationData.history,
+            isArray: Array.isArray(conversationData.history),
+            historyKeys: conversationData.history && typeof conversationData.history === 'object' 
+              ? Object.keys(conversationData.history) 
+              : 'not an object',
+            conversationId: conversationData.conversation_id
+          })
+          return []
+        }
+
+        // historyデータを正規化して変換
+        const normalizedHistory = this.historyTransformer.normalizeHistoryData(conversationData.history)
+        const turns = this.historyTransformer.groupConversationTurns(normalizedHistory)
         const displayMessages = this.messageFormatter.convertToDisplayMessages(turns)
         
         logger.info(`Converted ${turns.length} conversation turns to ${displayMessages.length} display messages`)
@@ -285,7 +308,8 @@ export class AmazonQHistoryService {
           return null
         }
 
-        return this.historyTransformer.getTransformationStats(conversationData.history)
+        const normalizedHistory = this.historyTransformer.normalizeHistoryData(conversationData.history)
+        return this.historyTransformer.getTransformationStats(normalizedHistory)
         
       } finally {
         db.close()
@@ -342,18 +366,21 @@ export class AmazonQHistoryService {
             
             let hasHistoryData = false
             let turnCount = 0
+            let messageCount = 0
             
             if (conversation.history && this.historyTransformer.isValidHistoryData(conversation.history)) {
               hasHistoryData = true
-              const turns = this.historyTransformer.groupConversationTurns(conversation.history)
+              const normalizedHistory = this.historyTransformer.normalizeHistoryData(conversation.history)
+              const turns = this.historyTransformer.groupConversationTurns(normalizedHistory)
               turnCount = turns.length
+              messageCount = this.historyTransformer.countPromptEntries(normalizedHistory)
             }
             
             detailedMetadata.push({
               projectPath: row.key,
               conversation_id: conversation.conversation_id,
               hasHistoryData,
-              messageCount: conversation.transcript?.length || 0,
+              messageCount,
               turnCount,
               lastUpdated: new Date(),
               model: conversation.model

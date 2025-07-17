@@ -121,7 +121,6 @@ export function isResponse(content: HistoryResponseContent): content is { Respon
 export interface AmazonQConversationWithHistory {
   conversation_id: string;
   model: string;
-  transcript: string[];
   history?: HistoryData;
   tools: string[];
   context_manager: Record<string, unknown>;

@@ -108,7 +108,6 @@ export interface QSessionStartedEvent {
 export interface AmazonQConversation {
   conversation_id: string;
   model: string;
-  transcript: string[];
   tools: string[];
   context_manager: Record<string, unknown>;
   latest_summary: string | null;

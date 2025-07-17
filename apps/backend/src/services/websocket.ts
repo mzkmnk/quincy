@@ -486,10 +486,24 @@ export class WebSocketService {
         return;
       }
 
-      console.log(`✅ Retrieved Q history for project: ${data.projectPath}, messages: ${conversation.transcript?.length || 0}`);
+      // Promptエントリ数を正確に計算（実際のユーザーメッセージ数）
+      let messageCount = 0;
+      if (conversation.history) {
+        try {
+          const normalizedHistory = this.qHistoryService['historyTransformer'].normalizeHistoryData(conversation.history);
+          messageCount = this.qHistoryService['historyTransformer'].countPromptEntries(normalizedHistory);
+        } catch (error) {
+          console.warn('Failed to count prompt entries, falling back to array length', error);
+          messageCount = Array.isArray(conversation.history) ? conversation.history.length : 0;
+        }
+      }
+      console.log(`✅ Retrieved Q history for project: ${data.projectPath}, messages: ${messageCount}`);
+      
+      // AmazonQConversation型に合わせて変換（historyフィールドを除外）
+      const { history, ...conversationForClient } = conversation;
       socket.emit('q:history:data', {
         projectPath: data.projectPath,
-        conversation
+        conversation: conversationForClient as AmazonQConversation
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);

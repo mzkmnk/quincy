@@ -220,20 +220,42 @@ export class HistoryTransformer {
 
   /**
    * historyデータが有効かチェック
+   * 直接配列形式とネストされたオブジェクト形式の両方をサポート
    */
   isValidHistoryData(data: unknown): data is HistoryData {
     if (!data || typeof data !== 'object') {
+      logger.info('History data validation failed: data is null, undefined, or not an object');
       return false;
     }
     
+    // 直接配列形式の場合（Amazon Q CLIの実際の形式）
+    if (Array.isArray(data)) {
+      logger.info('Processing direct array format history data');
+      // 直接配列をHistoryData形式に正規化
+      const normalizedData = { history: data };
+      return this.validateHistoryEntries(normalizedData.history);
+    }
+    
+    // ネストされたオブジェクト形式の場合（期待していた形式）
     const historyData = data as HistoryData;
-    
     if (!Array.isArray(historyData.history)) {
+      logger.info('History data validation failed: history property is not an array', {
+        hasHistoryProperty: 'history' in historyData,
+        historyType: typeof historyData.history,
+        availableProperties: Object.keys(historyData)
+      });
       return false;
     }
     
+    return this.validateHistoryEntries(historyData.history);
+  }
+
+  /**
+   * HistoryEntry配列の検証
+   */
+  private validateHistoryEntries(entries: unknown[]): boolean {
     // 各エントリが[入力, 応答]の形式かチェック
-    for (const entry of historyData.history) {
+    for (const entry of entries) {
       if (!Array.isArray(entry) || entry.length !== 2) {
         return false;
       }
@@ -257,6 +279,37 @@ export class HistoryTransformer {
     }
     
     return true;
+  }
+
+  /**
+   * 配列形式のhistoryデータをHistoryData形式に正規化
+   */
+  normalizeHistoryData(data: unknown): HistoryData {
+    if (Array.isArray(data)) {
+      return { history: data };
+    }
+    
+    if (data && typeof data === 'object' && 'history' in data) {
+      return data as HistoryData;
+    }
+    
+    throw new Error('Invalid history data format');
+  }
+
+  /**
+   * Promptエントリの数をカウント（実際のユーザーメッセージ数）
+   */
+  countPromptEntries(historyData: HistoryData): number {
+    let promptCount = 0;
+    
+    for (const entry of historyData.history) {
+      const [inputMessage] = entry;
+      if (inputMessage?.content && 'Prompt' in inputMessage.content) {
+        promptCount++;
+      }
+    }
+    
+    return promptCount;
   }
 
   /**

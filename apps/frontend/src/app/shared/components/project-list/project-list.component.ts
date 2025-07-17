@@ -108,6 +108,7 @@ export class ProjectListComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // コンポーネント破棄時にリスナーをクリーンアップ
     this.webSocketService.removeQHistoryListeners();
+    this.webSocketService.removeQHistoryDetailedListeners();
   }
 
   private loadAmazonQHistory(): void {
@@ -117,6 +118,7 @@ export class ProjectListComponent implements OnInit, OnDestroy {
   private setupWebSocketListeners(): void {
     // リスナーの重複登録を防止
     this.webSocketService.removeQHistoryListeners();
+    this.webSocketService.removeQHistoryDetailedListeners();
 
     this.webSocketService.connect();
 
@@ -137,6 +139,24 @@ export class ProjectListComponent implements OnInit, OnDestroy {
       (data) => {
         console.log(`📋 Loaded ${data.count} Amazon Q conversations:`, data);
         this.appStore.setAmazonQHistory(data.projects);
+      }
+    );
+
+    // 詳細履歴データのリスナーを設定
+    this.webSocketService.setupQHistoryDetailedListeners(
+      (data) => {
+        console.log('📋 Received detailed history data:', data);
+        
+        // ローディング状態を解除
+        this.appStore.setQHistoryLoading(false);
+        
+        if (data.displayMessages && data.displayMessages.length > 0) {
+          // 詳細履歴データをストアに設定
+          this.appStore.switchToDetailedHistoryView(data.displayMessages, data.stats);
+        } else {
+          // データがない場合も空の配列を設定
+          this.appStore.switchToDetailedHistoryView([], null);
+        }
       }
     );
 
@@ -210,8 +230,14 @@ export class ProjectListComponent implements OnInit, OnDestroy {
     // 現在のアクティブセッションをクリア（重要！）
     this.appStore.clearCurrentView();
 
-    // プロジェクトの履歴を取得
+    // ローディング状態を設定
+    this.appStore.setQHistoryLoading(true);
+
+    // プロジェクトの履歴を取得（通常の履歴データ）
     this.webSocketService.getProjectHistory(project.projectPath);
+
+    // 詳細履歴データも取得
+    this.webSocketService.getProjectHistoryDetailed(project.projectPath);
 
     // チャットページに移動
     this.router.navigate(['/chat']);

@@ -1,6 +1,7 @@
 import { Component, inject, signal, ChangeDetectionStrategy, computed, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppStore, ChatMessage } from '../../../core/store/app.state';
+import type { DisplayMessage } from '@quincy/shared';
 import { UserMessageComponent } from '../user-message/user-message.component';
 import { AmazonQMessageComponent } from '../amazon-q-message/amazon-q-message.component';
 
@@ -55,12 +56,28 @@ export class MessageListComponent implements AfterViewChecked {
     }];
   }
 
+  private convertDisplayMessagesToChatMessages(displayMessages: DisplayMessage[]): ChatMessage[] {
+    return displayMessages.map(msg => ({
+      id: msg.id,
+      content: msg.content,
+      sender: msg.type === 'user' ? 'user' as const : 'assistant' as const,
+      timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+      isTyping: msg.type === 'thinking' ? true : false
+    }));
+  }
+
   // Chat messages from the store
   messages = computed(() => {
     const currentSession = this.appStore.currentQSession();
     const currentConversation = this.appStore.currentQConversation();
+    const detailedMessages = this.appStore.detailedHistoryMessages();
 
-    // 履歴表示モード
+    // 詳細履歴表示モード（detailedHistoryMessagesがある場合）
+    if (detailedMessages.length > 0) {
+      return this.convertDisplayMessagesToChatMessages(detailedMessages);
+    }
+
+    // 履歴表示モード（従来のchatMessages）
     if (currentConversation && !currentSession) {
       const allMessages = this.appStore.chatMessages();
       return allMessages.length === 0 ? [] : allMessages;

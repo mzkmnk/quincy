@@ -226,6 +226,22 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.setupWebSocketListeners();
       }
     });
+
+    // Monitor conversation changes to trigger detailed history loading
+    effect(() => {
+      const currentConversation = this.appStore.currentQConversation();
+      
+      // Load detailed history when conversation is selected
+      if (currentConversation) {
+        const projectPath = this.getProjectPathFromConversation();
+        if (projectPath) {
+          console.log('Loading detailed history for:', projectPath);
+          // 詳細履歴データは既にproject-list.component.tsで取得されているはずだが、
+          // 念のためここでも取得をトリガーできる
+          this.websocket.getProjectHistoryDetailed(projectPath);
+        }
+      }
+    });
   }
 
   ngOnDestroy(): void {
