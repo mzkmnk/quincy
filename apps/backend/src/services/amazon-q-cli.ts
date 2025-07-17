@@ -82,7 +82,6 @@ export class AmazonQCLIService extends EventEmitter {
    */
   async validateProjectPath(projectPath: string): Promise<{ valid: boolean; error?: string; normalizedPath?: string }> {
     try {
-      console.log(`🔍 Validating project path: ${projectPath}`);
 
       // 基本的なバリデーション
       if (!projectPath || typeof projectPath !== 'string') {
@@ -101,7 +100,6 @@ export class AmazonQCLIService extends EventEmitter {
 
       // パスの正規化（../ などの解決）
       const normalizedPath = normalize(resolve(trimmedPath));
-      console.log(`📍 Normalized path: ${normalizedPath}`);
 
       // セキュリティチェック：危険なパス
       const dangerousPaths = [
@@ -135,17 +133,14 @@ export class AmazonQCLIService extends EventEmitter {
           return { valid: false, error: 'Path exists but is not a directory' };
         }
 
-        console.log(`✅ Path validation successful: ${normalizedPath}`);
         return { valid: true, normalizedPath };
 
       } catch (accessError) {
-        console.log(`❌ Path does not exist or is not accessible: ${normalizedPath}`);
         return { valid: false, error: `Directory does not exist or is not accessible: ${normalizedPath}` };
       }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Path validation error:`, error);
       return { valid: false, error: `Path validation failed: ${errorMessage}` };
     }
   }
@@ -178,7 +173,6 @@ export class AmazonQCLIService extends EventEmitter {
     const hasDangerousChars = dangerousChars.some(char => path.includes(char));
     
     if (hasDangerousChars) {
-      console.warn(`🚨 Dangerous characters detected in CLI path: ${path}`);
       return false;
     }
 
@@ -213,46 +207,37 @@ export class AmazonQCLIService extends EventEmitter {
 
     console.log('🔍 Checking Amazon Q CLI availability...');
     console.log(`📂 Current PATH: ${process.env.PATH?.substring(0, 200)}...`); // PATH情報を制限
-    console.log(`📍 Current working directory: ${process.cwd()}`);
 
     // 候補パスを順番にチェック
     for (const candidate of this.CLI_CANDIDATES) {
       if (!this.isValidCLIPath(candidate)) {
-        console.log(`🚨 Skipping invalid CLI path: ${candidate}`);
         continue;
       }
 
       try {
-        console.log(`🔍 Trying CLI candidate: ${candidate}`);
         const { stdout, stderr } = await this.executeSecureCLI(candidate, ['--version']);
         
         if (stdout && (stdout.includes('q') || stdout.includes('amazon') || stdout.includes('version'))) {
-          console.log(`✅ Found Amazon Q CLI at: ${candidate}`);
-          console.log(`📋 Version output: ${stdout.trim().substring(0, 200)}`); // 出力を制限
           this.cliPath = candidate;
           this.cliChecked = true;
           return { available: true, path: candidate };
         }
       } catch (error) {
-        console.log(`❌ CLI candidate ${candidate} failed:`, error instanceof Error ? error.message : String(error));
         continue;
       }
     }
 
     // セキュアなwhichコマンド実行
     try {
-      console.log('🔍 Trying with "which q" command...');
       const { stdout } = await this.execAsync('which q', { timeout: 5000 });
       if (stdout.trim()) {
         const path = stdout.trim();
         // whichの結果も検証
         if (this.isValidCLIPath(path)) {
-          console.log(`✅ Found Amazon Q CLI via which: ${path}`);
           this.cliPath = path;
           this.cliChecked = true;
           return { available: true, path };
         } else {
-          console.warn(`🚨 which command returned invalid path: ${path}`);
         }
       }
     } catch (error) {
@@ -260,7 +245,6 @@ export class AmazonQCLIService extends EventEmitter {
     }
 
     const errorMsg = `Amazon Q CLI not found. Please install Amazon Q CLI and ensure 'q' command is available in PATH. Tried paths: ${this.CLI_CANDIDATES.join(', ')}`;
-    console.error(`❌ ${errorMsg}`);
     this.cliChecked = true;
     
     return { 
@@ -292,15 +276,11 @@ export class AmazonQCLIService extends EventEmitter {
       }
 
       const cliCommand = cliCheck.path || this.CLI_COMMAND;
-      console.log(`🚀 Starting Amazon Q CLI session with command: ${cliCommand}`);
-      console.log(`📂 Working directory: ${validatedWorkingDir}`);
       if (options.resume) {
-        console.log('🔄 Resume mode: Restoring previous conversation');
       }
 
       // コマンドライン引数を構築
       const args = this.buildCommandArgs(command, options);
-      console.log(`📋 CLI arguments: ${args.join(' ')}`);
       
       // プロセスを起動
       const childProcess = spawn(cliCommand, args, {
@@ -340,7 +320,6 @@ export class AmazonQCLIService extends EventEmitter {
       };
 
       this.sessions.set(sessionId, session);
-      console.log(`✅ Session created: ${sessionId} (Total sessions: ${this.sessions.size})`);
       this.setupProcessHandlers(session);
       
       // タイムアウト設定
@@ -402,12 +381,10 @@ export class AmazonQCLIService extends EventEmitter {
       // セッションを遅延削除（プロセス完全終了を待つ）
       setTimeout(() => {
         this.sessions.delete(sessionId);
-        console.log(`🗑️ Session ${sessionId} deleted after abort`);
       }, 3000);
 
       return true;
     } catch (error) {
-      console.error(`Failed to abort session ${sessionId}:`, error);
       return false;
     }
   }
@@ -418,12 +395,10 @@ export class AmazonQCLIService extends EventEmitter {
   async sendInput(sessionId: string, input: string): Promise<boolean> {
     const session = this.sessions.get(sessionId);
     if (!session) {
-      console.error(`Session ${sessionId} not found`);
       return false;
     }
 
     if (!['starting', 'running'].includes(session.status)) {
-      console.error(`Session ${sessionId} is not active. Status: ${session.status}`);
       return false;
     }
 
@@ -431,14 +406,11 @@ export class AmazonQCLIService extends EventEmitter {
       if (session.process.stdin && !session.process.stdin.destroyed) {
         session.process.stdin.write(input);
         session.lastActivity = Date.now();
-        console.log(`✅ Input sent to session ${sessionId}: ${input.trim()}`);
         return true;
       } else {
-        console.error(`Session ${sessionId} stdin is not available`);
         return false;
       }
     } catch (error) {
-      console.error(`Failed to send input to session ${sessionId}:`, error);
       return false;
     }
   }
@@ -451,7 +423,6 @@ export class AmazonQCLIService extends EventEmitter {
       session => ['starting', 'running'].includes(session.status)
     );
     
-    console.log(`📊 Active sessions: ${activeSessions.length}/${this.sessions.size} total`);
     return activeSessions;
   }
 
@@ -492,7 +463,6 @@ export class AmazonQCLIService extends EventEmitter {
       session.memoryUsage = memUsage.rss / (1024 * 1024); // バイトをMBに
       session.lastActivity = Date.now();
     } catch (error) {
-      console.warn(`Failed to update resources for session ${sessionId}:`, error);
     }
   }
 
@@ -552,7 +522,6 @@ export class AmazonQCLIService extends EventEmitter {
     
     // resume指定
     if (options.resume) {
-      console.log('📋 Resume option detected, adding --resume flag');
       args.push('--resume');
     }
     
@@ -741,12 +710,10 @@ export class AmazonQCLIService extends EventEmitter {
       // Thinking状態をリセット
       session.isThinkingActive = false;
       
-      console.log(`🔄 Session ${sessionId} marked as terminated. Exit code: ${code}, Signal: ${signal}`);
       
       // セッションをクリーンアップ（遅延実行）
       setTimeout(() => {
         this.sessions.delete(sessionId);
-        console.log(`🗑️ Session ${sessionId} deleted after process exit`);
       }, 10000); // 10秒に延長
     });
 
@@ -826,7 +793,6 @@ export class AmazonQCLIService extends EventEmitter {
   private cleanupInactiveSessions(): void {
     // 時間ベースのセッション終了を無効化（ユーザー要求により）
     // セッションは手動での終了またはプロセス終了時のみクリーンアップされます
-    console.log('⏰ Session timeout disabled - sessions will persist until manually closed');
   }
 
   /**
@@ -859,7 +825,6 @@ export class AmazonQCLIService extends EventEmitter {
     // セッションマップをクリア
     this.sessions.clear();
 
-    console.log('AmazonQCLIService destroyed and resources cleaned up');
   }
 
   /**

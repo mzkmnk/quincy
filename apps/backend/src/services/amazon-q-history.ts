@@ -3,7 +3,6 @@ import Database from 'better-sqlite3'
 import path from 'path'
 import { homedir } from 'os'
 import { existsSync } from 'fs'
-import { logger } from '../utils/logger'
 import type { ConversationMetadata } from '@quincy/shared'
 import { 
   HistoryData,
@@ -24,7 +23,6 @@ export class AmazonQHistoryService {
     this.dbPath = path.join(homedir(), 'Library', 'Application Support', 'amazon-q', 'data.sqlite3')
     this.historyTransformer = new HistoryTransformer()
     this.messageFormatter = new MessageFormatter()
-    logger.info(`Amazon Q database path: ${this.dbPath}`)
   }
 
   /**
@@ -32,10 +30,8 @@ export class AmazonQHistoryService {
    */
   async getProjectHistory(projectPath: string): Promise<AmazonQConversationWithHistory | null> {
     try {
-      logger.info(`Getting project history for: ${projectPath}`)
       
       if (!this.isDatabaseAvailable()) {
-        logger.warn('Amazon Q database not available for getProjectHistory')
         throw new Error('データベースにアクセスできません。Amazon Q CLIがインストールされているか確認してください。')
       }
 
@@ -46,22 +42,15 @@ export class AmazonQHistoryService {
         const result = stmt.get(projectPath) as { value: string } | undefined
         
         if (!result) {
-          logger.info(`No conversation found for project: ${projectPath}`)
           return null
         }
 
         const conversation: AmazonQConversationWithHistory = JSON.parse(result.value)
-        logger.info(`Found conversation for project: ${projectPath}, ID: ${conversation.conversation_id}`)
         return conversation
       } finally {
         db.close()
       }
     } catch (error) {
-      logger.error('Failed to get project history', { 
-        projectPath, 
-        error: error instanceof Error ? error.message : String(error),
-        dbPath: this.dbPath
-      })
       
       // エラーを再スローして上位コンポーネントでキャッチできるようにする
       throw error
@@ -73,10 +62,8 @@ export class AmazonQHistoryService {
    */
   async getAllProjectsHistory(): Promise<ConversationMetadata[]> {
     try {
-      logger.info('Getting all projects history')
       
       if (!this.isDatabaseAvailable()) {
-        logger.warn('Database not available for getAllProjectsHistory')
         throw new Error('データベースにアクセスできません。Amazon Q CLIがインストールされているか確認してください。')
       }
       
@@ -107,21 +94,15 @@ export class AmazonQHistoryService {
               model: conversation.model
             })
           } catch (parseError) {
-            logger.warn('Failed to parse conversation data', { key: row.key, error: parseError })
           }
         }
 
-        logger.info(`Successfully retrieved ${metadata.length} conversation metadata entries`)
         // プロジェクトパスでアルファベット順にソート（安定した並び替え）
         return metadata.sort((a, b) => a.projectPath.localeCompare(b.projectPath))
       } finally {
         db.close()
       }
     } catch (error) {
-      logger.error('Failed to get all projects history', {
-        error: error instanceof Error ? error.message : String(error),
-        dbPath: this.dbPath
-      })
       
       // エラーを再スローして上位コンポーネントでキャッチできるようにする
       throw error
@@ -133,15 +114,12 @@ export class AmazonQHistoryService {
    */
   isDatabaseAvailable(): boolean {
     try {
-      logger.info(`Checking database availability at: ${this.dbPath}`)
       
       // ファイルの存在確認
       if (!existsSync(this.dbPath)) {
-        logger.warn(`Database file does not exist: ${this.dbPath}`)
         return false
       }
       
-      logger.info('Database file exists, testing connection...')
       const db = new Database(this.dbPath, { readonly: true })
       
       // 実際にconversationsテーブルが存在するか確認
@@ -150,32 +128,22 @@ export class AmazonQHistoryService {
       ).get()
       
       if (!tableExists) {
-        logger.warn('conversations table does not exist in Amazon Q database')
         db.close()
         return false
       }
       
-      logger.info('conversations table exists, testing access...')
       
       // テーブルに実際にアクセスできるかテスト
       try {
         const result = db.prepare('SELECT COUNT(*) as count FROM conversations').get() as { count: number }
-        logger.info(`Database accessible, found ${result.count} conversations`)
       } catch (accessError) {
-        logger.warn('Cannot access conversations table', accessError)
         db.close()
         return false
       }
       
       db.close()
-      logger.info('Amazon Q database is available and accessible')
       return true
     } catch (error) {
-      logger.error('Amazon Q database not available', {
-        dbPath: this.dbPath,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      })
       return false
     }
   }
@@ -202,13 +170,11 @@ export class AmazonQHistoryService {
             }
           }
         } catch (parseError) {
-          logger.warn('Failed to parse conversation data', { key: row.key })
         }
       }
 
       return null
     } catch (error) {
-      logger.error('Failed to find conversation by ID', error)
       return null
     }
   }
@@ -218,10 +184,8 @@ export class AmazonQHistoryService {
    */
   async getProjectHistoryDetailed(projectPath: string): Promise<DisplayMessage[]> {
     try {
-      logger.info(`Getting detailed project history for: ${projectPath}`)
       
       if (!this.isDatabaseAvailable()) {
-        logger.warn('Amazon Q database not available for getProjectHistoryDetailed')
         throw new Error('データベースにアクセスできません。Amazon Q CLIがインストールされているか確認してください。')
       }
 
@@ -232,31 +196,17 @@ export class AmazonQHistoryService {
         const result = stmt.get(projectPath) as { value: string } | undefined
         
         if (!result) {
-          logger.info(`No conversation found for project: ${projectPath}`)
           return []
         }
 
         const conversationData: AmazonQConversationWithHistory = JSON.parse(result.value)
-        logger.info(`Found conversation for project: ${projectPath}, ID: ${conversationData.conversation_id}`)
         
         // historyデータが存在するかチェック
         if (!conversationData.history) {
-          logger.warn(`No history field found for project: ${projectPath}`, {
-            availableFields: Object.keys(conversationData),
-            conversationId: conversationData.conversation_id
-          })
           return []
         }
 
         if (!this.historyTransformer.isValidHistoryData(conversationData.history)) {
-          logger.warn(`Invalid history data structure for project: ${projectPath}`, {
-            historyType: typeof conversationData.history,
-            isArray: Array.isArray(conversationData.history),
-            historyKeys: conversationData.history && typeof conversationData.history === 'object' 
-              ? Object.keys(conversationData.history) 
-              : 'not an object',
-            conversationId: conversationData.conversation_id
-          })
           return []
         }
 
@@ -265,18 +215,12 @@ export class AmazonQHistoryService {
         const turns = this.historyTransformer.groupConversationTurns(normalizedHistory)
         const displayMessages = this.messageFormatter.convertToDisplayMessages(turns)
         
-        logger.info(`Converted ${turns.length} conversation turns to ${displayMessages.length} display messages`)
         return displayMessages
         
       } finally {
         db.close()
       }
     } catch (error) {
-      logger.error('Failed to get detailed project history', { 
-        projectPath, 
-        error: error instanceof Error ? error.message : String(error),
-        dbPath: this.dbPath
-      })
       
       throw error
     }
@@ -315,10 +259,6 @@ export class AmazonQHistoryService {
         db.close()
       }
     } catch (error) {
-      logger.error('Failed to get conversation stats', { 
-        projectPath, 
-        error: error instanceof Error ? error.message : String(error)
-      })
       return null
     }
   }
@@ -337,10 +277,8 @@ export class AmazonQHistoryService {
     model: string;
   }[]> {
     try {
-      logger.info('Getting all projects history with detailed information')
       
       if (!this.isDatabaseAvailable()) {
-        logger.warn('Database not available for getAllProjectsHistoryDetailed')
         throw new Error('データベースにアクセスできません。Amazon Q CLIがインストールされているか確認してください。')
       }
       
@@ -386,20 +324,14 @@ export class AmazonQHistoryService {
               model: conversation.model
             })
           } catch (parseError) {
-            logger.warn('Failed to parse conversation data', { key: row.key, error: parseError })
           }
         }
 
-        logger.info(`Successfully retrieved ${detailedMetadata.length} detailed conversation metadata entries`)
         return detailedMetadata.sort((a, b) => a.projectPath.localeCompare(b.projectPath))
       } finally {
         db.close()
       }
     } catch (error) {
-      logger.error('Failed to get all projects history detailed', {
-        error: error instanceof Error ? error.message : String(error),
-        dbPath: this.dbPath
-      })
       
       throw error
     }

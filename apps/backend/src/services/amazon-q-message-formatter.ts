@@ -8,7 +8,6 @@ import {
   ToolUse,
   EnvironmentState
 } from './amazon-q-history-types';
-import { logger } from '../utils/logger';
 
 export class MessageFormatter {
   /**
@@ -32,11 +31,6 @@ export class MessageFormatter {
         displayMessages.push(aiResponse);
         
       } catch (error) {
-        logger.error('Failed to format conversation turn', { 
-          error: error instanceof Error ? error.message : String(error),
-          turnStartIndex: turn.metadata.turnStartIndex,
-          turnEndIndex: turn.metadata.turnEndIndex
-        });
         
         // エラーが発生した場合もエラーメッセージを表示
         displayMessages.push({

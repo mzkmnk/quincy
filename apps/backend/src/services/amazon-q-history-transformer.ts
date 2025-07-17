@@ -18,7 +18,6 @@ import {
   isToolUseResponse,
   isResponse
 } from './amazon-q-history-types';
-import { logger } from '../utils/logger';
 
 export class HistoryTransformer {
   /**
@@ -44,11 +43,6 @@ export class HistoryTransformer {
           currentTurnEntries = [];
           startIndex = i + 1;
         } catch (error) {
-          logger.error('Failed to create conversation turn', { 
-            error: error instanceof Error ? error.message : String(error),
-            startIndex,
-            endIndex: i
-          });
           // エラーが発生した場合も次のターンに進む
           currentTurnEntries = [];
           startIndex = i + 1;
@@ -62,10 +56,6 @@ export class HistoryTransformer {
         const turn = this.createConversationTurn(currentTurnEntries, startIndex, entries.length - 1);
         turns.push(turn);
       } catch (error) {
-        logger.warn('Failed to create incomplete conversation turn', { 
-          error: error instanceof Error ? error.message : String(error),
-          entriesCount: currentTurnEntries.length
-        });
       }
     }
     
@@ -224,13 +214,11 @@ export class HistoryTransformer {
    */
   isValidHistoryData(data: unknown): data is HistoryData {
     if (!data || typeof data !== 'object') {
-      logger.info('History data validation failed: data is null, undefined, or not an object');
       return false;
     }
     
     // 直接配列形式の場合（Amazon Q CLIの実際の形式）
     if (Array.isArray(data)) {
-      logger.info('Processing direct array format history data');
       // 直接配列をHistoryData形式に正規化
       const normalizedData = { history: data };
       return this.validateHistoryEntries(normalizedData.history);
@@ -239,11 +227,6 @@ export class HistoryTransformer {
     // ネストされたオブジェクト形式の場合（期待していた形式）
     const historyData = data as HistoryData;
     if (!Array.isArray(historyData.history)) {
-      logger.info('History data validation failed: history property is not an array', {
-        hasHistoryProperty: 'history' in historyData,
-        historyType: typeof historyData.history,
-        availableProperties: Object.keys(historyData)
-      });
       return false;
     }
     

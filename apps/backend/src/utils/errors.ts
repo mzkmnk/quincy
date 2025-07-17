@@ -1,5 +1,4 @@
 import type { Request, Response, NextFunction } from 'express'
-import { logger } from './logger'
 
 export interface ErrorResponse {
   error: string
@@ -17,7 +16,6 @@ export const createErrorResponse = (error: string, message: string, path?: strin
 
 // Error handling middleware
 export const errorHandler = (error: Error, req: Request, res: Response, _next: NextFunction) => {
-  logger.error('Request error', error)
   
   const response = createErrorResponse(
     'INTERNAL_SERVER_ERROR',

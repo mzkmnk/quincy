@@ -72,16 +72,13 @@ export class WebSocketService {
         };
         
         // Log connection attempt
-        console.log(`🔌 Connection attempt from: ${socket.handshake.address}`);
         next();
       } catch (error) {
-        console.error('🔌 Connection middleware error:', error);
         next(new Error('Connection validation failed'));
       }
     });
 
     this.io.on('connection', (socket) => {
-      console.log(`🔌 New client connected: ${socket.id}`);
       
       const connectionInfo: ConnectionInfo = {
         socketId: socket.id,
@@ -154,13 +151,11 @@ export class WebSocketService {
 
       // Handle disconnection
       socket.on('disconnect', (reason) => {
-        console.log(`🔌 Client disconnected: ${socket.id}, reason: ${reason}`);
         this.handleDisconnection(socket);
       });
 
       // Handle connection errors
       socket.on('error', (error) => {
-        console.error(`🔌 Socket error for ${socket.id}:`, error);
         this.sendError(socket, 'SOCKET_ERROR', 'WebSocket connection error');
       });
     });
@@ -182,26 +177,13 @@ export class WebSocketService {
 
     // グローバルエラーハンドリング
     this.io.engine.on('connection_error', (error: SocketIOError) => {
-      console.error('❌ WebSocket connection error:', {
-        message: error.message || 'Unknown error',
-        type: error.type || 'connection_error',
-        description: error.description || 'No description',
-        context: error.context,
-        timestamp: new Date().toISOString()
-      });
     });
 
     // サーバーレベルのエラーハンドリング
     // Socket.IOの型定義に'connect_error'が含まれていないため、型アサーションが必要
     this.io.on('connect_error' as any, (error: SocketIOError) => {
-      console.error('❌ Socket.IO server error:', {
-        message: error.message || 'Unknown server error',
-        code: error.code,
-        timestamp: new Date().toISOString()
-      });
     });
 
-    console.log('✅ Global error handling setup complete');
   }
 
 
@@ -217,11 +199,9 @@ export class WebSocketService {
     // If roomId is specified, broadcast to room
     if (data.roomId) {
       socket.to(data.roomId).emit('message:broadcast', messageData);
-      console.log(`📢 Message broadcast to room ${data.roomId}: ${data.content}`);
     } else {
       // Broadcast to all connected clients
       socket.broadcast.emit('message:broadcast', messageData);
-      console.log(`📢 Message broadcast to all: ${data.content}`);
     }
 
     // Send confirmation to sender
@@ -260,7 +240,6 @@ export class WebSocketService {
       type: 'system'
     });
 
-    console.log(`🏠 Socket ${socket.id} joined room: ${roomId}`);
   }
 
   private handleRoomLeave(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: RoomData) {
@@ -294,7 +273,6 @@ export class WebSocketService {
       type: 'system'
     });
 
-    console.log(`🏠 Socket ${socket.id} left room: ${roomId}`);
   }
 
   private handleDisconnection(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
@@ -319,7 +297,6 @@ export class WebSocketService {
       this.userRooms.delete(socket.id);
     }
 
-    console.log(`🔌 Cleaned up connection: ${socket.id}`);
   }
 
   private sendError(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, code: string, message: string, details?: Record<string, string | number | boolean | null>) {
@@ -330,13 +307,11 @@ export class WebSocketService {
     };
     
     // ログにエラーを記録
-    console.error(`❌ WebSocket Error [${code}] for socket ${socket.id}: ${message}`, details || '');
     
     // ソケットが接続されているか確認してからエラーを送信
     if (socket.connected) {
       socket.emit('error', errorData);
     } else {
-      console.warn(`⚠️ Cannot send error to disconnected socket: ${socket.id}`);
     }
   }
 
@@ -441,7 +416,6 @@ export class WebSocketService {
       };
       socket.emit('q:session:started', sessionStartedEvent);
 
-      console.log(`🤖 Amazon Q CLI session started: ${sessionId} for socket ${socket.id}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.sendError(socket, 'Q_COMMAND_ERROR', `Failed to start Amazon Q CLI: ${errorMessage}`);
@@ -453,7 +427,6 @@ export class WebSocketService {
       const success = await this.qCliService.abortSession(data.sessionId, 'user_request');
       
       if (success) {
-        console.log(`🛑 Amazon Q CLI session aborted: ${data.sessionId} by socket ${socket.id}`);
       } else {
         this.sendError(socket, 'Q_ABORT_ERROR', `Session ${data.sessionId} not found or already terminated`);
       }
@@ -466,10 +439,8 @@ export class WebSocketService {
   // Amazon Q履歴関連のハンドラー
   private async handleQHistory(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectPath: string }): Promise<void> {
     try {
-      console.log(`📚 Request for Q history: ${data.projectPath}`);
       
       if (!this.qHistoryService.isDatabaseAvailable()) {
-        console.log('❌ Amazon Q database not available');
         this.sendError(socket, 'Q_HISTORY_UNAVAILABLE', 'Amazon Q database is not available');
         return;
       }
@@ -477,7 +448,6 @@ export class WebSocketService {
       const conversation = await this.qHistoryService.getProjectHistory(data.projectPath);
       
       if (!conversation) {
-        console.log(`⚠️ No conversation found for: ${data.projectPath}`);
         socket.emit('q:history:data', {
           projectPath: data.projectPath,
           conversation: null,
@@ -493,11 +463,9 @@ export class WebSocketService {
           const normalizedHistory = this.qHistoryService['historyTransformer'].normalizeHistoryData(conversation.history);
           messageCount = this.qHistoryService['historyTransformer'].countPromptEntries(normalizedHistory);
         } catch (error) {
-          console.warn('Failed to count prompt entries, falling back to array length', error);
-          messageCount = Array.isArray(conversation.history) ? conversation.history.length : 0;
+            messageCount = Array.isArray(conversation.history) ? conversation.history.length : 0;
         }
       }
-      console.log(`✅ Retrieved Q history for project: ${data.projectPath}, messages: ${messageCount}`);
       
       // AmazonQConversation型に合わせて変換（historyフィールドを除外）
       const { history, ...conversationForClient } = conversation;
@@ -507,17 +475,14 @@ export class WebSocketService {
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Error getting Q history for ${data.projectPath}:`, error);
       this.sendError(socket, 'Q_HISTORY_ERROR', `Failed to get project history: ${errorMessage}`);
     }
   }
 
   private async handleQHistoryDetailed(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectPath: string }): Promise<void> {
     try {
-      console.log(`📚 Request for detailed Q history: ${data.projectPath}`);
       
       if (!this.qHistoryService.isDatabaseAvailable()) {
-        console.log('❌ Amazon Q database not available');
         this.sendError(socket, 'Q_HISTORY_UNAVAILABLE', 'Amazon Q database is not available');
         return;
       }
@@ -526,7 +491,6 @@ export class WebSocketService {
       const stats = await this.qHistoryService.getConversationStats(data.projectPath);
       
       if (displayMessages.length === 0) {
-        console.log(`⚠️ No detailed conversation found for: ${data.projectPath}`);
         socket.emit('q:history:detailed:data', {
           projectPath: data.projectPath,
           displayMessages: [],
@@ -536,7 +500,6 @@ export class WebSocketService {
         return;
       }
 
-      console.log(`✅ Retrieved detailed Q history for project: ${data.projectPath}, messages: ${displayMessages.length}`);
       socket.emit('q:history:detailed:data', {
         projectPath: data.projectPath,
         displayMessages,
@@ -544,17 +507,14 @@ export class WebSocketService {
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Error getting detailed Q history for ${data.projectPath}:`, error);
       this.sendError(socket, 'Q_HISTORY_DETAILED_ERROR', `Failed to get detailed project history: ${errorMessage}`);
     }
   }
 
   private async handleQProjects(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>): Promise<void> {
     try {
-      console.log('📋 Handling Q projects list request');
       
       if (!this.qHistoryService.isDatabaseAvailable()) {
-        console.warn('❌ Amazon Q database not available for projects list');
         this.sendError(socket, 'Q_PROJECTS_UNAVAILABLE', 'Amazon Q database is not available. Please ensure Amazon Q CLI is installed and has been used at least once.');
         return;
       }
@@ -566,10 +526,8 @@ export class WebSocketService {
         count: projects.length
       });
 
-      console.log(`✅ Retrieved Q projects list: ${projects.length} projects`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('❌ Failed to get Q projects list:', errorMessage);
       
       // より具体的なエラーメッセージを提供
       let userFriendlyMessage = 'Failed to get projects list';
@@ -589,27 +547,22 @@ export class WebSocketService {
 
   private async handleQResume(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectPath: string; conversationId?: string }): Promise<void> {
     try {
-      console.log(`📋 Starting resume session for project: ${data.projectPath}`);
       
       if (!this.qHistoryService.isDatabaseAvailable()) {
-        console.error('❌ Amazon Q database is not available');
         this.sendError(socket, 'Q_RESUME_UNAVAILABLE', 'Amazon Q database is not available');
         socket.emit('q:session:failed', { error: 'Database not available' });
         return;
       }
 
       // Check if conversation exists
-      console.log('🔍 Checking conversation history...');
       const conversation = await this.qHistoryService.getProjectHistory(data.projectPath);
       if (!conversation) {
-        console.error('❌ No conversation history found');
         this.sendError(socket, 'Q_RESUME_NO_HISTORY', 'No conversation history found for this project');
         socket.emit('q:session:failed', { error: 'No conversation history' });
         return;
       }
 
       // Start Amazon Q CLI with resume option
-      console.log('🚀 Starting Amazon Q CLI with resume option...');
       const commandData: QCommandEvent = {
         command: 'chat',
         workingDir: data.projectPath,
@@ -618,10 +571,8 @@ export class WebSocketService {
 
       await this.handleQCommand(socket, commandData);
       
-      console.log(`✅ Amazon Q CLI session resumed successfully for project: ${data.projectPath}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Failed to resume session: ${errorMessage}`, error);
       this.sendError(socket, 'Q_RESUME_ERROR', `Failed to resume session: ${errorMessage}`);
       socket.emit('q:session:failed', { error: errorMessage });
     }
@@ -638,19 +589,16 @@ export class WebSocketService {
 
   private async handleQProjectStart(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QProjectStartEvent): Promise<void> {
     try {
-      console.log(`🚀 Starting new Amazon Q CLI session for project: ${data.projectPath}`);
 
       // Amazon Q CLIの可用性をまずチェック
       const cliCheck = await this.qCliService.checkCLIAvailability();
       if (!cliCheck.available) {
-        console.error(`❌ Amazon Q CLI not available: ${cliCheck.error}`);
         this.sendError(socket, 'Q_CLI_NOT_AVAILABLE', 
           cliCheck.error || 'Amazon Q CLI is not installed or not available in PATH. Please install Amazon Q CLI first.'
         );
         return;
       }
 
-      console.log(`✅ Amazon Q CLI found at: ${cliCheck.path}`);
 
       // Amazon Q CLIを指定されたプロジェクトパスで開始
       const commandData: QCommandEvent = {
@@ -681,10 +629,8 @@ export class WebSocketService {
         projectId: socket.data.sessionId || 'unknown'
       });
 
-      console.log(`✅ Amazon Q CLI session started: ${sessionId} for project: ${data.projectPath}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Failed to start Amazon Q CLI session for project ${data.projectPath}:`, error);
       
       // エラーの種類によって適切なエラーコードを設定
       let errorCode = 'Q_PROJECT_START_ERROR';
@@ -711,7 +657,6 @@ export class WebSocketService {
 
   private async handleQMessage(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: QMessageEvent, ack?: (response: { success: boolean; error?: string }) => void): Promise<void> {
     try {
-      console.log(`💬 Sending message to Amazon Q session ${data.sessionId}: ${data.message}`);
       
       // Amazon Q CLIセッションにメッセージを送信
       const success = await this.qCliService.sendInput(data.sessionId, data.message + '\n');
@@ -726,11 +671,9 @@ export class WebSocketService {
         return;
       }
       
-      console.log(`✅ Message sent to Amazon Q session: ${data.sessionId}`);
       if (ack) ack({ success: true });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Failed to send message to Amazon Q session ${data.sessionId}:`, error);
       
       this.sendError(socket, 'Q_MESSAGE_ERROR', `Failed to send message: ${errorMessage}`, {
         sessionId: data.sessionId,
@@ -749,7 +692,6 @@ export class WebSocketService {
       this.sessionToSockets.set(sessionId, new Set());
     }
     this.sessionToSockets.get(sessionId)!.add(socketId);
-    console.log(`📌 Mapped socket ${socketId} to session ${sessionId}`);
   }
 
   /**
@@ -762,7 +704,6 @@ export class WebSocketService {
   ): void {
     const socketIds = this.sessionToSockets.get(sessionId);
     if (socketIds) {
-      console.log(`📤 Emitting ${String(event)} to session ${sessionId} (${socketIds.size} sockets)`);
       socketIds.forEach(socketId => {
         const socket = this.io.sockets.sockets.get(socketId);
         if (socket) {
@@ -770,7 +711,6 @@ export class WebSocketService {
         }
       });
     } else {
-      console.warn(`⚠️ No sockets found for session ${sessionId}`);
     }
   }
 
@@ -779,7 +719,6 @@ export class WebSocketService {
    */
   private cleanupSession(sessionId: string): void {
     this.sessionToSockets.delete(sessionId);
-    console.log(`🧹 Cleaned up session ${sessionId}`);
   }
 
   /**
@@ -789,11 +728,9 @@ export class WebSocketService {
     this.sessionToSockets.forEach((socketIds, sessionId) => {
       if (socketIds.has(socketId)) {
         socketIds.delete(socketId);
-        console.log(`🔌 Removed socket ${socketId} from session ${sessionId}`);
         // セッションにソケットが残っていない場合は削除
         if (socketIds.size === 0) {
           this.sessionToSockets.delete(sessionId);
-          console.log(`🗑️ Session ${sessionId} has no more sockets, removed`);
         }
       }
     });
