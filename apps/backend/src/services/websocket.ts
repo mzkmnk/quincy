@@ -127,6 +127,11 @@ export class WebSocketService {
         await this.handleQHistory(socket, data);
       });
 
+      // Handle Amazon Q detailed history requests
+      socket.on('q:history:detailed', async (data: { projectPath: string }) => {
+        await this.handleQHistoryDetailed(socket, data);
+      });
+
       // Handle Amazon Q projects history list
       socket.on('q:projects', async () => {
         await this.handleQProjects(socket);
@@ -481,15 +486,66 @@ export class WebSocketService {
         return;
       }
 
-      console.log(`✅ Retrieved Q history for project: ${data.projectPath}, messages: ${conversation.transcript?.length || 0}`);
+      // Promptエントリ数を正確に計算（実際のユーザーメッセージ数）
+      let messageCount = 0;
+      if (conversation.history) {
+        try {
+          const normalizedHistory = this.qHistoryService['historyTransformer'].normalizeHistoryData(conversation.history);
+          messageCount = this.qHistoryService['historyTransformer'].countPromptEntries(normalizedHistory);
+        } catch (error) {
+          console.warn('Failed to count prompt entries, falling back to array length', error);
+          messageCount = Array.isArray(conversation.history) ? conversation.history.length : 0;
+        }
+      }
+      console.log(`✅ Retrieved Q history for project: ${data.projectPath}, messages: ${messageCount}`);
+      
+      // AmazonQConversation型に合わせて変換（historyフィールドを除外）
+      const { history, ...conversationForClient } = conversation;
       socket.emit('q:history:data', {
         projectPath: data.projectPath,
-        conversation
+        conversation: conversationForClient as AmazonQConversation
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`❌ Error getting Q history for ${data.projectPath}:`, error);
       this.sendError(socket, 'Q_HISTORY_ERROR', `Failed to get project history: ${errorMessage}`);
+    }
+  }
+
+  private async handleQHistoryDetailed(socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, data: { projectPath: string }): Promise<void> {
+    try {
+      console.log(`📚 Request for detailed Q history: ${data.projectPath}`);
+      
+      if (!this.qHistoryService.isDatabaseAvailable()) {
+        console.log('❌ Amazon Q database not available');
+        this.sendError(socket, 'Q_HISTORY_UNAVAILABLE', 'Amazon Q database is not available');
+        return;
+      }
+
+      const displayMessages = await this.qHistoryService.getProjectHistoryDetailed(data.projectPath);
+      const stats = await this.qHistoryService.getConversationStats(data.projectPath);
+      
+      if (displayMessages.length === 0) {
+        console.log(`⚠️ No detailed conversation found for: ${data.projectPath}`);
+        socket.emit('q:history:detailed:data', {
+          projectPath: data.projectPath,
+          displayMessages: [],
+          stats: null,
+          message: 'No detailed conversation history found for this project'
+        });
+        return;
+      }
+
+      console.log(`✅ Retrieved detailed Q history for project: ${data.projectPath}, messages: ${displayMessages.length}`);
+      socket.emit('q:history:detailed:data', {
+        projectPath: data.projectPath,
+        displayMessages,
+        stats
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Error getting detailed Q history for ${data.projectPath}:`, error);
+      this.sendError(socket, 'Q_HISTORY_DETAILED_ERROR', `Failed to get detailed project history: ${errorMessage}`);
     }
   }
 
@@ -706,7 +762,7 @@ export class WebSocketService {
   ): void {
     const socketIds = this.sessionToSockets.get(sessionId);
     if (socketIds) {
-      console.log(`📤 Emitting ${event} to session ${sessionId} (${socketIds.size} sockets)`);
+      console.log(`📤 Emitting ${String(event)} to session ${sessionId} (${socketIds.size} sockets)`);
       socketIds.forEach(socketId => {
         const socket = this.io.sockets.sockets.get(socketId);
         if (socket) {

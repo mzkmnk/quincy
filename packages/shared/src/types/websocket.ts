@@ -10,6 +10,7 @@ export interface ClientToServerEvents {
   'q:message': (data: QMessageEvent) => void;
   'q:abort': (data: QAbortEvent) => void;
   'q:history': (data: { projectPath: string }) => void;
+  'q:history:detailed': (data: { projectPath: string }) => void;
   'q:projects': () => void;
   'q:resume': (data: { projectPath: string; conversationId?: string }) => void;
   'q:project:start': (data: QProjectStartEvent) => void;
@@ -31,6 +32,7 @@ export interface ServerToClientEvents {
   'q:info': (data: QInfoEvent) => void;
   'q:complete': (data: QCompleteEvent) => void;
   'q:history:data': (data: QHistoryDataResponse) => void;
+  'q:history:detailed:data': (data: QHistoryDetailedDataResponse) => void;
   'q:history:list': (data: QHistoryListResponse) => void;
   'q:history:updated': () => void;  // 履歴が更新された通知
   'q:session:started': (data: QSessionStartedEvent) => void;
@@ -106,7 +108,6 @@ export interface QSessionStartedEvent {
 export interface AmazonQConversation {
   conversation_id: string;
   model: string;
-  transcript: string[];
   tools: string[];
   context_manager: Record<string, unknown>;
   latest_summary: string | null;
@@ -129,6 +130,40 @@ export interface QHistoryDataResponse {
 export interface QHistoryListResponse {
   projects: ConversationMetadata[];
   count: number;
+}
+
+export interface QHistoryDetailedDataResponse {
+  projectPath: string;
+  displayMessages: DisplayMessage[];
+  stats: {
+    totalEntries: number;
+    totalTurns: number;
+    averageToolUsesPerTurn: number;
+    totalToolUses: number;
+  } | null;
+  message?: string;
+}
+
+export interface DisplayMessage {
+  id: string;
+  type: 'user' | 'assistant' | 'thinking';
+  content: string;
+  timestamp?: Date;
+  metadata?: {
+    environmentInfo?: {
+      operating_system: string;
+      current_working_directory: string;
+      environment_variables: string[];
+    };
+    toolsUsed?: {
+      id: string;
+      name: string;
+      orig_name: string;
+      args: Record<string, string | number | boolean>;
+      orig_args: Record<string, string | number | boolean>;
+    }[];
+    messageId?: string;
+  };
 }
 
 

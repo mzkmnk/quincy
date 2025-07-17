@@ -4,21 +4,33 @@ import path from 'path'
 import { homedir } from 'os'
 import { existsSync } from 'fs'
 import { logger } from '../utils/logger'
-import type { AmazonQConversation, ConversationMetadata } from '@quincy/shared'
+import type { ConversationMetadata } from '@quincy/shared'
+import { 
+  HistoryData,
+  ConversationTurn,
+  DisplayMessage,
+  AmazonQConversationWithHistory
+} from './amazon-q-history-types'
+import { HistoryTransformer } from './amazon-q-history-transformer'
+import { MessageFormatter } from './amazon-q-message-formatter'
 
 export class AmazonQHistoryService {
   private dbPath: string
+  private historyTransformer: HistoryTransformer
+  private messageFormatter: MessageFormatter
 
   constructor() {
     // Amazon Q CLIのデータベースパス
     this.dbPath = path.join(homedir(), 'Library', 'Application Support', 'amazon-q', 'data.sqlite3')
+    this.historyTransformer = new HistoryTransformer()
+    this.messageFormatter = new MessageFormatter()
     logger.info(`Amazon Q database path: ${this.dbPath}`)
   }
 
   /**
    * プロジェクトの会話履歴を取得
    */
-  async getProjectHistory(projectPath: string): Promise<AmazonQConversation | null> {
+  async getProjectHistory(projectPath: string): Promise<AmazonQConversationWithHistory | null> {
     try {
       logger.info(`Getting project history for: ${projectPath}`)
       
@@ -38,7 +50,7 @@ export class AmazonQHistoryService {
           return null
         }
 
-        const conversation: AmazonQConversation = JSON.parse(result.value)
+        const conversation: AmazonQConversationWithHistory = JSON.parse(result.value)
         logger.info(`Found conversation for project: ${projectPath}, ID: ${conversation.conversation_id}`)
         return conversation
       } finally {
@@ -78,12 +90,19 @@ export class AmazonQHistoryService {
 
         for (const row of results) {
           try {
-            const conversation: AmazonQConversation = JSON.parse(row.value)
+            const conversation: AmazonQConversationWithHistory = JSON.parse(row.value)
+            
+            // historyデータからユーザーメッセージ数を計算（Promptエントリ数ベース）
+            let messageCount = 0
+            if (conversation.history && this.historyTransformer.isValidHistoryData(conversation.history)) {
+              const normalizedHistory = this.historyTransformer.normalizeHistoryData(conversation.history)
+              messageCount = this.historyTransformer.countPromptEntries(normalizedHistory)
+            }
             
             metadata.push({
               projectPath: row.key,
               conversation_id: conversation.conversation_id,
-              messageCount: conversation.transcript?.length || 0,
+              messageCount,
               lastUpdated: new Date(), // SQLiteには更新日時がないため現在時刻を使用
               model: conversation.model
             })
@@ -164,7 +183,7 @@ export class AmazonQHistoryService {
   /**
    * 特定のconversation_idで履歴を検索
    */
-  async findByConversationId(conversationId: string): Promise<{ projectPath: string; conversation: AmazonQConversation } | null> {
+  async findByConversationId(conversationId: string): Promise<{ projectPath: string; conversation: AmazonQConversationWithHistory } | null> {
     try {
       const db = new Database(this.dbPath, { readonly: true })
       
@@ -175,7 +194,7 @@ export class AmazonQHistoryService {
 
       for (const row of results) {
         try {
-          const conversation: AmazonQConversation = JSON.parse(row.value)
+          const conversation: AmazonQConversationWithHistory = JSON.parse(row.value)
           if (conversation.conversation_id === conversationId) {
             return {
               projectPath: row.key,
@@ -191,6 +210,198 @@ export class AmazonQHistoryService {
     } catch (error) {
       logger.error('Failed to find conversation by ID', error)
       return null
+    }
+  }
+
+  /**
+   * プロジェクトの詳細履歴を取得してUI表示用に変換
+   */
+  async getProjectHistoryDetailed(projectPath: string): Promise<DisplayMessage[]> {
+    try {
+      logger.info(`Getting detailed project history for: ${projectPath}`)
+      
+      if (!this.isDatabaseAvailable()) {
+        logger.warn('Amazon Q database not available for getProjectHistoryDetailed')
+        throw new Error('データベースにアクセスできません。Amazon Q CLIがインストールされているか確認してください。')
+      }
+
+      const db = new Database(this.dbPath, { readonly: true })
+      
+      try {
+        const stmt = db.prepare('SELECT value FROM conversations WHERE key = ?')
+        const result = stmt.get(projectPath) as { value: string } | undefined
+        
+        if (!result) {
+          logger.info(`No conversation found for project: ${projectPath}`)
+          return []
+        }
+
+        const conversationData: AmazonQConversationWithHistory = JSON.parse(result.value)
+        logger.info(`Found conversation for project: ${projectPath}, ID: ${conversationData.conversation_id}`)
+        
+        // historyデータが存在するかチェック
+        if (!conversationData.history) {
+          logger.warn(`No history field found for project: ${projectPath}`, {
+            availableFields: Object.keys(conversationData),
+            conversationId: conversationData.conversation_id
+          })
+          return []
+        }
+
+        if (!this.historyTransformer.isValidHistoryData(conversationData.history)) {
+          logger.warn(`Invalid history data structure for project: ${projectPath}`, {
+            historyType: typeof conversationData.history,
+            isArray: Array.isArray(conversationData.history),
+            historyKeys: conversationData.history && typeof conversationData.history === 'object' 
+              ? Object.keys(conversationData.history) 
+              : 'not an object',
+            conversationId: conversationData.conversation_id
+          })
+          return []
+        }
+
+        // historyデータを正規化して変換
+        const normalizedHistory = this.historyTransformer.normalizeHistoryData(conversationData.history)
+        const turns = this.historyTransformer.groupConversationTurns(normalizedHistory)
+        const displayMessages = this.messageFormatter.convertToDisplayMessages(turns)
+        
+        logger.info(`Converted ${turns.length} conversation turns to ${displayMessages.length} display messages`)
+        return displayMessages
+        
+      } finally {
+        db.close()
+      }
+    } catch (error) {
+      logger.error('Failed to get detailed project history', { 
+        projectPath, 
+        error: error instanceof Error ? error.message : String(error),
+        dbPath: this.dbPath
+      })
+      
+      throw error
+    }
+  }
+
+  /**
+   * 会話ターンの統計情報を取得
+   */
+  async getConversationStats(projectPath: string): Promise<{
+    totalEntries: number;
+    totalTurns: number;
+    averageToolUsesPerTurn: number;
+    totalToolUses: number;
+  } | null> {
+    try {
+      const db = new Database(this.dbPath, { readonly: true })
+      
+      try {
+        const stmt = db.prepare('SELECT value FROM conversations WHERE key = ?')
+        const result = stmt.get(projectPath) as { value: string } | undefined
+        
+        if (!result) {
+          return null
+        }
+
+        const conversationData: AmazonQConversationWithHistory = JSON.parse(result.value)
+        
+        if (!conversationData.history || !this.historyTransformer.isValidHistoryData(conversationData.history)) {
+          return null
+        }
+
+        const normalizedHistory = this.historyTransformer.normalizeHistoryData(conversationData.history)
+        return this.historyTransformer.getTransformationStats(normalizedHistory)
+        
+      } finally {
+        db.close()
+      }
+    } catch (error) {
+      logger.error('Failed to get conversation stats', { 
+        projectPath, 
+        error: error instanceof Error ? error.message : String(error)
+      })
+      return null
+    }
+  }
+
+
+  /**
+   * 全プロジェクトの履歴をhistoryデータ付きで取得
+   */
+  async getAllProjectsHistoryDetailed(): Promise<{
+    projectPath: string;
+    conversation_id: string;
+    hasHistoryData: boolean;
+    messageCount: number;
+    turnCount: number;
+    lastUpdated: Date;
+    model: string;
+  }[]> {
+    try {
+      logger.info('Getting all projects history with detailed information')
+      
+      if (!this.isDatabaseAvailable()) {
+        logger.warn('Database not available for getAllProjectsHistoryDetailed')
+        throw new Error('データベースにアクセスできません。Amazon Q CLIがインストールされているか確認してください。')
+      }
+      
+      const db = new Database(this.dbPath, { readonly: true })
+      
+      try {
+        const stmt = db.prepare('SELECT key, value FROM conversations')
+        const results = stmt.all() as { key: string; value: string }[]
+        
+        const detailedMetadata: {
+          projectPath: string;
+          conversation_id: string;
+          hasHistoryData: boolean;
+          messageCount: number;
+          turnCount: number;
+          lastUpdated: Date;
+          model: string;
+        }[] = []
+
+        for (const row of results) {
+          try {
+            const conversation: AmazonQConversationWithHistory = JSON.parse(row.value)
+            
+            let hasHistoryData = false
+            let turnCount = 0
+            let messageCount = 0
+            
+            if (conversation.history && this.historyTransformer.isValidHistoryData(conversation.history)) {
+              hasHistoryData = true
+              const normalizedHistory = this.historyTransformer.normalizeHistoryData(conversation.history)
+              const turns = this.historyTransformer.groupConversationTurns(normalizedHistory)
+              turnCount = turns.length
+              messageCount = this.historyTransformer.countPromptEntries(normalizedHistory)
+            }
+            
+            detailedMetadata.push({
+              projectPath: row.key,
+              conversation_id: conversation.conversation_id,
+              hasHistoryData,
+              messageCount,
+              turnCount,
+              lastUpdated: new Date(),
+              model: conversation.model
+            })
+          } catch (parseError) {
+            logger.warn('Failed to parse conversation data', { key: row.key, error: parseError })
+          }
+        }
+
+        logger.info(`Successfully retrieved ${detailedMetadata.length} detailed conversation metadata entries`)
+        return detailedMetadata.sort((a, b) => a.projectPath.localeCompare(b.projectPath))
+      } finally {
+        db.close()
+      }
+    } catch (error) {
+      logger.error('Failed to get all projects history detailed', {
+        error: error instanceof Error ? error.message : String(error),
+        dbPath: this.dbPath
+      })
+      
+      throw error
     }
   }
 }

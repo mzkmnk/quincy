@@ -27,7 +27,7 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
               <h1 class="text-xl font-semibold text-[var(--error)]">Session Start Failed</h1>
               <p class="text-sm text-[var(--error)] mt-1">Failed to start Amazon Q session</p>
             } @else {
-              <h1 class="text-xl font-semibold text-[var(--text-primary)]">Welcome to Quincy</h1>
+              <h1 class="text-xl font-semibold text-[var(--text-primary)]">Quincy</h1>
             }
           </div>
           
@@ -159,12 +159,12 @@ import { PathSelectorComponent } from '../../shared/components/path-selector/pat
               <div class="text-center py-8">
                 <div class="text-lg text-[var(--text-secondary)]">Loading conversation history...</div>
               </div>
-            } @else if (appStore.currentQConversation()?.transcript) {
+            } @else if (appStore.detailedHistoryMessages().length > 0) {
               <app-message-list></app-message-list>
             } @else {
               <div class="text-center text-[var(--text-secondary)] py-8">
-                <div class="text-lg mb-2">📭 No conversation transcript available</div>
-                <div class="text-sm">This project may not have any Amazon Q conversation history.</div>
+                <div class="text-lg mb-2">📭 No conversation history available</div>
+                <div class="text-sm">This project may not have any Amazon Q conversation history with detailed data.</div>
               </div>
             }
           </div>
@@ -224,6 +224,22 @@ export class ChatComponent implements OnInit, OnDestroy {
       // Setup WebSocket listeners when session starts
       if (currentSession) {
         this.setupWebSocketListeners();
+      }
+    });
+
+    // Monitor conversation changes to trigger detailed history loading
+    effect(() => {
+      const currentConversation = this.appStore.currentQConversation();
+      
+      // Load detailed history when conversation is selected
+      if (currentConversation) {
+        const projectPath = this.getProjectPathFromConversation();
+        if (projectPath) {
+          console.log('Loading detailed history for:', projectPath);
+          // 詳細履歴データは既にproject-list.component.tsで取得されているはずだが、
+          // 念のためここでも取得をトリガーできる
+          this.websocket.getProjectHistoryDetailed(projectPath);
+        }
       }
     });
   }

@@ -11,6 +11,28 @@ export interface ChatMessage {
   sessionId?: string;
 }
 
+export interface DisplayMessage {
+  id: string;
+  type: 'user' | 'assistant' | 'thinking';
+  content: string;
+  timestamp?: Date;
+  metadata?: {
+    environmentInfo?: {
+      operating_system: string;
+      current_working_directory: string;
+      environment_variables: string[];
+    };
+    toolsUsed?: {
+      id: string;
+      name: string;
+      orig_name: string;
+      args: Record<string, string | number | boolean>;
+      orig_args: Record<string, string | number | boolean>;
+    }[];
+    messageId?: string;
+  };
+}
+
 export interface AppState {
   projects: Project[];
   currentProject: Project | null;
@@ -19,6 +41,13 @@ export interface AppState {
   amazonQHistory: ConversationMetadata[];
   currentQConversation: AmazonQConversation | null;
   currentQSession: QSessionStartedEvent | null;
+  detailedHistoryMessages: DisplayMessage[];
+  historyStats: {
+    totalEntries: number;
+    totalTurns: number;
+    averageToolUsesPerTurn: number;
+    totalToolUses: number;
+  } | null;
   chatMessages: ChatMessage[];
   qHistoryLoading: boolean;
   sessionStarting: boolean;
@@ -35,6 +64,8 @@ const initialState: AppState = {
   amazonQHistory: [],
   currentQConversation: null,
   currentQSession: null,
+  detailedHistoryMessages: [],
+  historyStats: null,
   chatMessages: [],
   qHistoryLoading: false,
   sessionStarting: false,
@@ -46,7 +77,7 @@ const initialState: AppState = {
 export const AppStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withComputed(({ projects, currentProject, sessions, currentSession, amazonQHistory, currentQConversation, currentQSession, chatMessages, qHistoryLoading, sessionStarting, sessionError }) => ({
+  withComputed(({ projects, currentProject, sessions, currentSession, amazonQHistory, currentQConversation, currentQSession, detailedHistoryMessages, historyStats, chatMessages, qHistoryLoading, sessionStarting, sessionError }) => ({
     hasProjects: computed(() => projects().length > 0),
     hasSessions: computed(() => sessions().length > 0),
     hasAmazonQHistory: computed(() => amazonQHistory().length > 0),
@@ -138,7 +169,11 @@ export const AppStore = signalStore(
       patchState(store, { error: null });
     },
     setCurrentQSession: (currentQSession: QSessionStartedEvent | null) => {
-      patchState(store, { currentQSession });
+      // 新しいセッション開始時は詳細履歴をクリア
+      patchState(store, { 
+        currentQSession,
+        detailedHistoryMessages: currentQSession ? [] : store.detailedHistoryMessages()
+      });
     },
     setSessionStarting: (sessionStarting: boolean) => {
       patchState(store, { sessionStarting });
@@ -170,21 +205,12 @@ export const AppStore = signalStore(
       patchState(store, { chatMessages });
     },
     
-    // セッション/会話切り替え用のメソッド
+    // セッション/会話切り替え用のメソッド（historyデータ専用）
     switchToHistoryView: (conversation: AmazonQConversation) => {
-      // 履歴データをChatMessage形式に変換
-      const historyMessages: ChatMessage[] = conversation.transcript?.map((message, index) => ({
-        id: `history-${index}`,
-        content: message,
-        sender: (index % 2 === 0) ? 'user' : 'assistant',
-        timestamp: new Date(),
-        isTyping: false
-      })) as ChatMessage[] || [];
-
       patchState(store, { 
         currentQConversation: conversation,
         currentQSession: null,  // アクティブセッションをクリア
-        chatMessages: historyMessages,  // 履歴メッセージをchatMessagesに設定
+        chatMessages: [],  // historyデータは別の仕組みで表示
         sessionStarting: false,
         sessionError: null
       });
@@ -203,6 +229,37 @@ export const AppStore = signalStore(
       patchState(store, { 
         currentQSession: null,
         currentQConversation: null,
+        sessionStarting: false,
+        sessionError: null
+      });
+    },
+    
+    // 詳細履歴データを設定
+    setDetailedHistoryMessages: (messages: DisplayMessage[]) => {
+      patchState(store, { detailedHistoryMessages: messages });
+    },
+    
+    // 履歴統計情報を設定
+    setHistoryStats: (stats: {
+      totalEntries: number;
+      totalTurns: number;
+      averageToolUsesPerTurn: number;
+      totalToolUses: number;
+    } | null) => {
+      patchState(store, { historyStats: stats });
+    },
+    
+    // 詳細履歴表示に切り替え
+    switchToDetailedHistoryView: (messages: DisplayMessage[], stats: {
+      totalEntries: number;
+      totalTurns: number;
+      averageToolUsesPerTurn: number;
+      totalToolUses: number;
+    } | null) => {
+      patchState(store, { 
+        detailedHistoryMessages: messages,
+        historyStats: stats,
+        currentQSession: null,
         sessionStarting: false,
         sessionError: null
       });

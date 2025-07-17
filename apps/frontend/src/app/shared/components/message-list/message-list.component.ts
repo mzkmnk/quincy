@@ -1,6 +1,7 @@
 import { Component, inject, signal, ChangeDetectionStrategy, computed, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppStore, ChatMessage } from '../../../core/store/app.state';
+import type { DisplayMessage } from '@quincy/shared';
 import { UserMessageComponent } from '../user-message/user-message.component';
 import { AmazonQMessageComponent } from '../amazon-q-message/amazon-q-message.component';
 
@@ -55,22 +56,41 @@ export class MessageListComponent implements AfterViewChecked {
     }];
   }
 
+  private convertDisplayMessagesToChatMessages(displayMessages: DisplayMessage[]): ChatMessage[] {
+    return displayMessages.map(msg => ({
+      id: msg.id,
+      content: msg.content,
+      sender: msg.type === 'user' ? 'user' as const : 'assistant' as const,
+      timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+      isTyping: msg.type === 'thinking' ? true : false
+    }));
+  }
+
   // Chat messages from the store
   messages = computed(() => {
     const currentSession = this.appStore.currentQSession();
     const currentConversation = this.appStore.currentQConversation();
+    const detailedMessages = this.appStore.detailedHistoryMessages();
 
-    // 履歴表示モード
+    // 1. リアルタイムチャットモード（最優先）
+    if (currentSession) {
+      const sessionMessages = this.appStore.currentSessionMessages();
+      return sessionMessages.length === 0 ? this.getWelcomeMessage() : sessionMessages;
+    }
+
+    // 2. 詳細履歴表示モード
+    if (currentConversation && detailedMessages.length > 0) {
+      return this.convertDisplayMessagesToChatMessages(detailedMessages);
+    }
+
+    // 3. 従来の履歴表示モード
     if (currentConversation && !currentSession) {
       const allMessages = this.appStore.chatMessages();
       return allMessages.length === 0 ? [] : allMessages;
     }
 
-    // リアルタイムチャットモード
-    if (!currentSession) return this.getWelcomeMessage();
-
-    const sessionMessages = this.appStore.currentSessionMessages();
-    return sessionMessages.length === 0 ? this.getWelcomeMessage() : sessionMessages;
+    // 4. デフォルト状態
+    return this.getWelcomeMessage();
   });
 
 

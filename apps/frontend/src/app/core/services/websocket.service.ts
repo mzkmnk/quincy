@@ -91,6 +91,10 @@ export class WebSocketService {
     this.emit('q:history', { projectPath });
   }
 
+  getProjectHistoryDetailed(projectPath: string): void {
+    this.emit('q:history:detailed', { projectPath });
+  }
+
   getAllProjectsHistory(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.socket?.connected) {
@@ -154,6 +158,28 @@ export class WebSocketService {
     this.off('q:history:data');
     this.off('q:history:list');
     this.historyListenersSetup = false;
+  }
+
+  // Amazon Q詳細履歴イベントリスナーのセットアップ
+  setupQHistoryDetailedListeners(
+    onDetailedHistoryData: (data: { 
+      projectPath: string; 
+      displayMessages: any[]; 
+      stats: { 
+        totalEntries: number; 
+        totalTurns: number; 
+        averageToolUsesPerTurn: number; 
+        totalToolUses: number; 
+      } | null; 
+      message?: string 
+    }) => void
+  ): void {
+    this.on('q:history:detailed:data', onDetailedHistoryData);
+  }
+
+  // Amazon Q詳細履歴イベントリスナーの削除
+  removeQHistoryDetailedListeners(): void {
+    this.off('q:history:detailed:data');
   }
 
   // プロジェクトセッション開始イベントリスナーのセットアップ
