@@ -169,7 +169,11 @@ export const AppStore = signalStore(
       patchState(store, { error: null });
     },
     setCurrentQSession: (currentQSession: QSessionStartedEvent | null) => {
-      patchState(store, { currentQSession });
+      // 新しいセッション開始時は詳細履歴をクリア
+      patchState(store, { 
+        currentQSession,
+        detailedHistoryMessages: currentQSession ? [] : store.detailedHistoryMessages()
+      });
     },
     setSessionStarting: (sessionStarting: boolean) => {
       patchState(store, { sessionStarting });

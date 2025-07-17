@@ -72,22 +72,25 @@ export class MessageListComponent implements AfterViewChecked {
     const currentConversation = this.appStore.currentQConversation();
     const detailedMessages = this.appStore.detailedHistoryMessages();
 
-    // 詳細履歴表示モード（detailedHistoryMessagesがある場合）
-    if (detailedMessages.length > 0) {
+    // 1. リアルタイムチャットモード（最優先）
+    if (currentSession) {
+      const sessionMessages = this.appStore.currentSessionMessages();
+      return sessionMessages.length === 0 ? this.getWelcomeMessage() : sessionMessages;
+    }
+
+    // 2. 詳細履歴表示モード
+    if (currentConversation && detailedMessages.length > 0) {
       return this.convertDisplayMessagesToChatMessages(detailedMessages);
     }
 
-    // 履歴表示モード（従来のchatMessages）
+    // 3. 従来の履歴表示モード
     if (currentConversation && !currentSession) {
       const allMessages = this.appStore.chatMessages();
       return allMessages.length === 0 ? [] : allMessages;
     }
 
-    // リアルタイムチャットモード
-    if (!currentSession) return this.getWelcomeMessage();
-
-    const sessionMessages = this.appStore.currentSessionMessages();
-    return sessionMessages.length === 0 ? this.getWelcomeMessage() : sessionMessages;
+    // 4. デフォルト状態
+    return this.getWelcomeMessage();
   });
 
 
