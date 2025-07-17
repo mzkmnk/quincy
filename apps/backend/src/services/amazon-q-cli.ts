@@ -11,6 +11,9 @@ import type {
   QCompleteEvent 
 } from '@quincy/shared';
 import { generateSessionId } from '../utils/id-generator';
+import { validateProjectPath } from '../utils/path-validator';
+import { stripAnsiCodes } from '../utils/ansi-stripper';
+import { isValidCLIPath, getCLICandidates, checkCLIAvailability } from '../utils/cli-validator';
 
 export interface QProcessSession {
   sessionId: string;
@@ -54,12 +57,7 @@ export interface QProcessOptions {
 export class AmazonQCLIService extends EventEmitter {
   private sessions: Map<string, QProcessSession> = new Map();
   private readonly CLI_COMMAND = process.env.AMAZON_Q_CLI_PATH || 'q';
-  private readonly CLI_CANDIDATES = [
-    'q',
-    '/usr/local/bin/q',
-    '/opt/homebrew/bin/q',
-    process.env.HOME + '/.local/bin/q'
-  ].filter(Boolean); // undefined要素を除外
+  private readonly CLI_CANDIDATES = getCLICandidates();
   private readonly DEFAULT_TIMEOUT = 0; // タイムアウト無効化（0 = 無期限）
   private readonly MAX_BUFFER_SIZE = 10 * 1024; // 10KB制限
   private readonly execAsync = promisify(exec);
@@ -78,113 +76,16 @@ export class AmazonQCLIService extends EventEmitter {
     this.startResourceMonitoring();
   }
 
-  /**
-   * プロジェクトパスの検証
-   */
-  async validateProjectPath(projectPath: string): Promise<{ valid: boolean; error?: string; normalizedPath?: string }> {
-    try {
-
-      // 基本的なバリデーション
-      if (!projectPath || typeof projectPath !== 'string') {
-        return { valid: false, error: 'Project path is required and must be a string' };
-      }
-
-      const trimmedPath = projectPath.trim();
-      if (!trimmedPath) {
-        return { valid: false, error: 'Project path cannot be empty' };
-      }
-
-      // 絶対パスチェック
-      if (!isAbsolute(trimmedPath)) {
-        return { valid: false, error: 'Project path must be an absolute path' };
-      }
-
-      // パスの正規化（../ などの解決）
-      const normalizedPath = normalize(resolve(trimmedPath));
-
-      // セキュリティチェック：危険なパス
-      const dangerousPaths = [
-        '/',
-        '/etc',
-        '/bin',
-        '/usr/bin',
-        '/sbin',
-        '/usr/sbin',
-        '/var',
-        '/tmp',
-        '/System',
-        '/Applications'
-      ];
-
-      if (dangerousPaths.some(dangerous => normalizedPath === dangerous || normalizedPath.startsWith(dangerous + '/'))) {
-        return { valid: false, error: 'Access to system directories is not allowed for security reasons' };
-      }
-
-      // パストラバーサル攻撃チェック
-      if (normalizedPath.includes('..') || normalizedPath !== trimmedPath.replace(/\/+/g, '/')) {
-        return { valid: false, error: 'Invalid path: path traversal detected' };
-      }
-
-      // ディレクトリの存在確認
-      try {
-        await access(normalizedPath);
-        const stats = await stat(normalizedPath);
-        
-        if (!stats.isDirectory()) {
-          return { valid: false, error: 'Path exists but is not a directory' };
-        }
-
-        return { valid: true, normalizedPath };
-
-      } catch (accessError) {
-        return { valid: false, error: `Directory does not exist or is not accessible: ${normalizedPath}` };
-      }
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      return { valid: false, error: `Path validation failed: ${errorMessage}` };
-    }
-  }
 
   /**
    * Amazon Q CLIの存在と可用性をチェック
    */
-  /**
-   * CLIパスが安全かどうかを検証
-   */
-  private isValidCLIPath(path: string): boolean {
-    // 空文字列や未定義をチェック
-    if (!path || typeof path !== 'string') {
-      return false;
-    }
-
-    // 許可されたパスパターンのみ実行を許可
-    const allowedPatterns = [
-      /^q$/,                                    // PATH内の'q'コマンド
-      /^\/usr\/local\/bin\/q$/,                // 標準的なインストール場所
-      /^\/opt\/homebrew\/bin\/q$/,             // Apple Silicon Mac
-      /^\/home\/[a-zA-Z0-9_-]+\/\.local\/bin\/q$/,  // ユーザーローカル
-      new RegExp(`^${process.env.HOME?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/\\.local/bin/q$`) // ホームディレクトリ
-    ].filter(Boolean);
-
-    const isAllowed = allowedPatterns.some(pattern => pattern.test(path));
-    
-    // 危険な文字列をチェック
-    const dangerousChars = [';', '&', '|', '`', '$', '(', ')', '{', '}', '[', ']', '<', '>', '"', "'"];
-    const hasDangerousChars = dangerousChars.some(char => path.includes(char));
-    
-    if (hasDangerousChars) {
-      return false;
-    }
-
-    return isAllowed;
-  }
 
   /**
    * セキュアなCLI実行
    */
   private async executeSecureCLI(cliPath: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
-    if (!this.isValidCLIPath(cliPath)) {
+    if (!isValidCLIPath(cliPath)) {
       throw new Error(`Invalid CLI path for security reasons: ${cliPath}`);
     }
 
@@ -209,49 +110,16 @@ export class AmazonQCLIService extends EventEmitter {
     console.log('🔍 Checking Amazon Q CLI availability...');
     console.log(`📂 Current PATH: ${process.env.PATH?.substring(0, 200)}...`); // PATH情報を制限
 
-    // 候補パスを順番にチェック
-    for (const candidate of this.CLI_CANDIDATES) {
-      if (!this.isValidCLIPath(candidate)) {
-        continue;
-      }
-
-      try {
-        const { stdout, stderr } = await this.executeSecureCLI(candidate, ['--version']);
-        
-        if (stdout && (stdout.includes('q') || stdout.includes('amazon') || stdout.includes('version'))) {
-          this.cliPath = candidate;
-          this.cliChecked = true;
-          return { available: true, path: candidate };
-        }
-      } catch (error) {
-        continue;
-      }
-    }
-
-    // セキュアなwhichコマンド実行
-    try {
-      const { stdout } = await this.execAsync('which q', { timeout: 5000 });
-      if (stdout.trim()) {
-        const path = stdout.trim();
-        // whichの結果も検証
-        if (this.isValidCLIPath(path)) {
-          this.cliPath = path;
-          this.cliChecked = true;
-          return { available: true, path };
-        } else {
-        }
-      }
-    } catch (error) {
-      console.log('❌ "which q" failed:', error instanceof Error ? error.message : String(error));
-    }
-
-    const errorMsg = `Amazon Q CLI not found. Please install Amazon Q CLI and ensure 'q' command is available in PATH. Tried paths: ${this.CLI_CANDIDATES.join(', ')}`;
-    this.cliChecked = true;
+    const result = await checkCLIAvailability();
     
-    return { 
-      available: false, 
-      error: errorMsg
-    };
+    if (result.available && result.path) {
+      this.cliPath = result.path;
+      this.cliChecked = true;
+    } else {
+      this.cliChecked = true;
+    }
+
+    return result;
   }
 
   /**
@@ -262,7 +130,7 @@ export class AmazonQCLIService extends EventEmitter {
     
     try {
       // プロジェクトパスの検証
-      const pathValidation = await this.validateProjectPath(options.workingDir);
+      const pathValidation = await validateProjectPath(options.workingDir);
       if (!pathValidation.valid) {
         throw new Error(`Invalid project path: ${pathValidation.error}`);
       }
@@ -548,7 +416,7 @@ export class AmazonQCLIService extends EventEmitter {
       
       // 完全な行のみを処理
       for (const line of lines) {
-        const cleanLine = this.stripAnsiCodes(line);
+        const cleanLine = stripAnsiCodes(line);
         
         // 空の行や無意味な行をスキップ
         if (this.shouldSkipOutput(cleanLine)) {
@@ -607,7 +475,7 @@ export class AmazonQCLIService extends EventEmitter {
       
       // 完全な行のみを処理
       for (const line of lines) {
-        const cleanLine = this.stripAnsiCodes(line);
+        const cleanLine = stripAnsiCodes(line);
         
         // メッセージを分類
         const messageType = this.classifyStderrMessage(cleanLine);
@@ -825,77 +693,6 @@ export class AmazonQCLIService extends EventEmitter {
 
   }
 
-  /**
-   * ANSIエスケープシーケンス、スピナー、その他の制御文字を除去
-   */
-  private stripAnsiCodes(text: string): string {
-    let cleanText = text;
-    
-    // 1. 包括的なANSIエスケープシーケンスを除去
-    // ESC[ で始まる制御シーケンス（CSI）- より包括的なパターン
-    cleanText = cleanText.replace(/\x1b\[[0-9;:]*[a-zA-Z@]/g, '');
-    
-    // ESC] で始まるOSCシーケンス（Operating System Command）
-    cleanText = cleanText.replace(/\x1b\][^\x07]*\x07/g, '');
-    cleanText = cleanText.replace(/\x1b\][^\x1b]*\x1b\\/g, '');
-    
-    // ESC( で始まる文字集合選択シーケンス
-    cleanText = cleanText.replace(/\x1b\([AB0]/g, '');
-    
-    // プライベートモード設定/リセット（DEC Private Mode）
-    cleanText = cleanText.replace(/\x1b\[\?[0-9]+[hl]/g, '');
-    
-    // 8ビット制御文字（C1 control characters）
-    cleanText = cleanText.replace(/[\x80-\x9F]/g, '');
-    
-    // その他のエスケープシーケンス
-    cleanText = cleanText.replace(/\x1b[NOPVWXYZ\\^_]/g, '');
-    cleanText = cleanText.replace(/\x1b[#()*/+-]/g, '');
-    
-    // 2. スピナー文字を除去（より包括的）
-    const spinnerRegex = /[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏⠿⠾⠽⠻⠺⠯⠟⠞⠜⠛⠚⠉⠈⠁]/g;
-    cleanText = cleanText.replace(spinnerRegex, '');
-    
-    // 3. プログレスバー文字を除去
-    cleanText = cleanText.replace(/[▁▂▃▄▅▆▇█░▒▓■□▪▫▬▭▮▯―]/g, '');
-    
-    // 4. その他の特殊文字
-    cleanText = cleanText.replace(/[♠♣♥♦♪♫]/g, '');
-    
-    // 5. 制御文字を除去（改行文字は除く）
-    cleanText = cleanText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-    
-    // 6. 文字列の始まりや終わりにある不完全なエスケープシーケンス
-    cleanText = cleanText.replace(/^\x1b.*?(?=[a-zA-Z0-9]|$)/g, '');
-    cleanText = cleanText.replace(/\x1b[^a-zA-Z]*$/g, '');
-    
-    // 7. ANSIカラーコードの残骸（数字の断片）を除去
-    // "787878"や"78"のような数字の並びがテキストの前に現れる場合
-    cleanText = cleanText.replace(/^[\d;]+(?=\S)/g, '');
-    
-    // 8. 数字のみの断片（"7 8"のような）を除去
-    cleanText = cleanText.replace(/^\s*\d+\s*\d*\s*$/g, '');
-    
-    // 9. 開いた括弧のみ（"[[[" のような）を除去
-    cleanText = cleanText.replace(/^\s*[\[\{]+\s*$/g, '');
-    
-    // 10. 連続する数字の断片をテキストから除去（より積極的）
-    cleanText = cleanText.replace(/(\d{2,})\s*(?=[\u2713\u2717✓✗])/g, ''); // チェックマーク前の数字
-    cleanText = cleanText.replace(/^(\d+)\s*(\S)/g, '$2'); // 行の先頭の数字を除去
-    
-    // 11. 重複するThinkingを統合（行内に複数のThinkingがある場合）
-    cleanText = cleanText.replace(/(thinking\.?\.?\.?\s*){2,}/gi, 'Thinking...');
-    
-    // 12. バックスペースとカリッジリターンを正規化
-    cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    
-    // 13. 余分な空白を正規化（ただし、意味のある構造は保持）
-    cleanText = cleanText.replace(/[ \t]+/g, ' ');
-    cleanText = cleanText.replace(/\n\s+\n/g, '\n\n');
-    cleanText = cleanText.replace(/^\s+|\s+$/g, '');
-    
-    return cleanText;
-  }
 
   /**
    * 不完全な出力行をフラッシュ
@@ -905,7 +702,7 @@ export class AmazonQCLIService extends EventEmitter {
       return;
     }
     
-    const cleanLine = this.stripAnsiCodes(session.incompleteOutputLine);
+    const cleanLine = stripAnsiCodes(session.incompleteOutputLine);
     
     // 無意味な行はスキップ
     if (!this.shouldSkipOutput(cleanLine)) {
@@ -947,7 +744,7 @@ export class AmazonQCLIService extends EventEmitter {
       return;
     }
     
-    const cleanLine = this.stripAnsiCodes(session.incompleteErrorLine);
+    const cleanLine = stripAnsiCodes(session.incompleteErrorLine);
     const messageType = this.classifyStderrMessage(cleanLine);
     
     if (messageType === 'info') {

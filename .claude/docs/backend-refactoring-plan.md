@@ -6,66 +6,63 @@
 
 ### TODO リスト
 
-- [ ] ロギングシステムの完全削除
-  - [ ] `src/utils/logger.ts` ファイルを削除
-  - [ ] `amazon-q-cli.ts` の全ての `console.log` 呼び出しを削除（約50箇所）
-  - [ ] `amazon-q-cli.ts` の全ての `console.error` 呼び出しを削除（約15箇所）
-  - [ ] `amazon-q-cli.ts` の全ての `console.warn` 呼び出しを削除（約10箇所）
-  - [ ] `websocket.ts` の全ての `console.log` 呼び出しを削除（約25箇所）
-  - [ ] `websocket.ts` の全ての `console.error` 呼び出しを削除（約8箇所）
-  - [ ] `amazon-q-history.ts` の全ての `logger` インポートを削除
-  - [ ] `amazon-q-history.ts` の全ての `logger.info/warn/error` 呼び出しを削除
-  - [ ] `amazon-q-history-transformer.ts` の全ての `logger` インポートを削除
-  - [ ] `amazon-q-history-transformer.ts` の全ての `logger.error/warn` 呼び出しを削除
-  - [ ] `amazon-q-message-formatter.ts` の全ての `logger` インポートを削除
-  - [ ] `amazon-q-message-formatter.ts` の全ての `logger.error` 呼び出しを削除
-  - [ ] `index.ts` の `loggerMiddleware` インポートと使用を削除
+- [x] ロギングシステムの完全削除
+  - [x] `src/utils/logger.ts` ファイルを削除
+  - [x] `amazon-q-cli.ts` の全ての `console.log` 呼び出しを削除（31箇所）
+  - [x] `amazon-q-cli.ts` の全ての `console.error` 呼び出しを削除（4箇所）
+  - [x] `amazon-q-cli.ts` の全ての `console.warn` 呼び出しを削除（3箇所）
+  - [x] `websocket.ts` の全ての `console.log` 呼び出しを削除（33箇所）
+  - [x] `websocket.ts` の全ての `console.error` 呼び出しを削除（11箇所）
+  - [x] `websocket.ts` の全ての `console.warn` 呼び出しを削除（4箇所）
+  - [x] `amazon-q-history.ts` の全ての `logger` インポートを削除
+  - [x] `amazon-q-history.ts` の全ての `logger.info/warn/error` 呼び出しを削除（36箇所）
+  - [x] `amazon-q-history-transformer.ts` の全ての `logger` インポートを削除
+  - [x] `amazon-q-history-transformer.ts` の全ての `logger.error/warn/info` 呼び出しを削除（6箇所）
+  - [x] `amazon-q-message-formatter.ts` の全ての `logger` インポートを削除
+  - [x] `amazon-q-message-formatter.ts` の全ての `logger.error` 呼び出しを削除（2箇所）
+  - [x] `index.ts` の `loggerMiddleware` インポートと使用を削除（2箇所）
+  - [x] `utils/errors.ts` の `logger` インポートと使用を削除（2箇所）
 
 ## Phase 1: 共通ユーティリティの抽出と1ファイル1関数化
 
 ### TODO リスト
 
-- [ ] ID生成ユーティリティの作成（1ファイル1関数）
-  - [ ] `src/utils/id-generator/` ディレクトリを作成
-  - [ ] `src/utils/id-generator/generate-id.ts` ファイルを作成（基本関数）
-  - [ ] `src/utils/id-generator/generate-message-id.ts` ファイルを作成
-  - [ ] `src/utils/id-generator/generate-session-id.ts` ファイルを作成
-  - [ ] `src/utils/id-generator/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `websocket.ts:344` の `generateMessageId()` を新しいユーティリティに置き換え
-  - [ ] `amazon-q-cli.ts:786` の `generateSessionId()` を新しいユーティリティに置き換え
-  - [ ] `amazon-q-message-formatter.ts:195` の `generateMessageId()` を新しいユーティリティに置き換え
-  - [ ] 各ID生成関数のユニットテストを作成
+- [x] ID生成ユーティリティの作成（1ファイル1関数）
+  - [x] `src/utils/id-generator/` ディレクトリを作成
+  - [x] `src/utils/id-generator/generate-id.ts` ファイルを作成（基本関数）
+  - [x] `src/utils/id-generator/generate-message-id.ts` ファイルを作成
+  - [x] `src/utils/id-generator/generate-session-id.ts` ファイルを作成
+  - [x] `src/utils/id-generator/index.ts` ファイルを作成（エクスポート集約）
+  - [x] `websocket.ts` の `generateMessageId()` を新しいユーティリティに置き換え（4箇所）
+  - [x] `amazon-q-cli.ts` の `generateSessionId()` を新しいユーティリティに置き換え（1箇所）
+  - [x] `amazon-q-message-formatter.ts` の `generateMessageId()` を新しいユーティリティに置き換え（4箇所）
+  - [x] 各ID生成関数のユニットテストを作成（12テストケース、全て成功）
 
-- [ ] パス検証ユーティリティの作成（1ファイル1関数）
-  - [ ] `src/utils/path-validator/` ディレクトリを作成
-  - [ ] `src/utils/path-validator/validate-project-path.ts` ファイルを作成
-  - [ ] `src/utils/path-validator/is-valid-path.ts` ファイルを作成
-  - [ ] `src/utils/path-validator/get-dangerous-paths.ts` ファイルを作成（定数）
-  - [ ] `src/utils/path-validator/check-path-traversal.ts` ファイルを作成
-  - [ ] `src/utils/path-validator/normalize-path.ts` ファイルを作成
-  - [ ] `src/utils/path-validator/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `amazon-q-cli.ts:83-151` の `validateProjectPath()` を新しいユーティリティに置き換え
-  - [ ] 各パス検証関数のユニットテストを作成
+- [x] パス検証ユーティリティの作成（1ファイル1関数）
+  - [x] `src/utils/path-validator/` ディレクトリを作成
+  - [x] `src/utils/path-validator/validate-project-path.ts` ファイルを作成
+  - [x] `src/utils/path-validator/is-valid-path.ts` ファイルを作成
+  - [x] `src/utils/path-validator/get-dangerous-paths.ts` ファイルを作成（定数）
+  - [x] `src/utils/path-validator/check-path-traversal.ts` ファイルを作成
+  - [x] `src/utils/path-validator/normalize-path.ts` ファイルを作成
+  - [x] `src/utils/path-validator/index.ts` ファイルを作成（エクスポート集約）
+  - [x] `amazon-q-cli.ts` の `validateProjectPath()` を新しいユーティリティに置き換え
+  - [x] 各パス検証関数のユニットテストを作成
 
-- [ ] ANSI除去ユーティリティの作成（1ファイル1関数/定数）
-  - [ ] `src/utils/ansi-stripper/` ディレクトリを作成
-  - [ ] `src/utils/ansi-stripper/remove-ansi-codes.ts` ファイルを作成（メイン関数）
-  - [ ] `src/utils/ansi-stripper/spinner-chars.ts` ファイルを作成（定数）
-  - [ ] `src/utils/ansi-stripper/progress-bar-chars.ts` ファイルを作成（定数）
-  - [ ] `src/utils/ansi-stripper/ansi-patterns.ts` ファイルを作成（正規表現パターン）
-  - [ ] `src/utils/ansi-stripper/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `amazon-q-cli.ts:868-935` の `stripAnsiCodes()` を新しいユーティリティに置き換え
-  - [ ] 各ANSI除去関数のユニットテストを作成
+- [x] ANSI除去ユーティリティの作成（1ファイル1関数/定数）
+  - [x] `src/utils/ansi-stripper/` ディレクトリを作成
+  - [x] `src/utils/ansi-stripper/strip-ansi-codes.ts` ファイルを作成（メイン関数）
+  - [x] `src/utils/ansi-stripper/index.ts` ファイルを作成（エクスポート集約）
+  - [x] `amazon-q-cli.ts` の `stripAnsiCodes()` を新しいユーティリティに置き換え
+  - [x] 各ANSI除去関数のユニットテストを作成
 
-- [ ] CLIパス検証ユーティリティの作成（1ファイル1関数）
-  - [ ] `src/utils/cli-validator/` ディレクトリを作成
-  - [ ] `src/utils/cli-validator/is-valid-cli-path.ts` ファイルを作成
-  - [ ] `src/utils/cli-validator/execute-secure-cli.ts` ファイルを作成
-  - [ ] `src/utils/cli-validator/cli-candidates.ts` ファイルを作成（定数）
-  - [ ] `src/utils/cli-validator/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `amazon-q-cli.ts:159-186` の `isValidCLIPath()` を移動
-  - [ ] `amazon-q-cli.ts:191-207` の `executeSecureCLI()` を移動
-  - [ ] 各CLI検証関数のユニットテストを作成
+- [x] CLIパス検証ユーティリティの作成（1ファイル1関数）
+  - [x] `src/utils/cli-validator/` ディレクトリを作成
+  - [x] `src/utils/cli-validator/validate-cli-path.ts` ファイルを作成
+  - [x] `src/utils/cli-validator/check-cli-availability.ts` ファイルを作成
+  - [x] `src/utils/cli-validator/index.ts` ファイルを作成（エクスポート集約）
+  - [x] `amazon-q-cli.ts` の `isValidCLIPath()` とCLI検証ロジックを移動
+  - [x] 各CLI検証関数のユニットテストを作成
 
 ## Phase 2: Amazon Q CLIサービスの分割と1ファイル1関数化
 
