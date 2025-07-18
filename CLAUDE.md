@@ -139,6 +139,45 @@ The backend has been refactored into a modular, 1-file-1-function architecture:
 - Uses Karma/Jasmine for testing
 - Standard Angular CLI project structure
 
+#### New Modular Architecture (After Refactoring)
+The frontend has been refactored into a modular, 1-file-1-function architecture:
+
+- **Core Services** (`src/app/core/services/`):
+  - `websocket/`: WebSocket service with sub-modules:
+    - `connection/`: Connection lifecycle management
+    - `amazon-q-history/`: History data retrieval functions
+    - `chat/`: Chat message handling
+    - `project-session/`: Project session management
+
+- **State Management** (`src/app/core/store/`):
+  - `project/`: Project state management with actions and selectors
+  - `session/`: Session state management
+  - `amazon-q-history/`: Amazon Q history state management
+  - `chat/`: Chat message state management
+  - `app.state.ts`: Unified state management with backward compatibility
+
+- **Components** (`src/app/features/chat/`):
+  - `components/`: Child components (chat-header, session-start, chat-error, etc.)
+  - `services/`: Component-specific services (chat-websocket, message-streaming, session-manager)
+  - `utils/`: Utility functions (message-index-manager, session-status-checker)
+
+- **Shared Components** (`src/app/shared/components/`):
+  - `message-list/`: Message list with services and utilities
+  - `path-selector/`: Path selector with validation and session starting
+  - `message-input/`: Message input with composition state management
+
+- **Utilities** (`src/app/shared/utils/`):
+  - `validators/`: Input validation functions
+  - `formatters/`: Data formatting functions
+  - `converters/`: Data conversion functions
+  - `generators/`: Data generation functions
+
+- **Type Definitions** (`src/app/core/types/` and `src/app/shared/types/`):
+  - `common.types.ts`: Common type definitions and type guards
+  - `websocket.types.ts`: WebSocket-related type definitions
+  - `amazon-q.types.ts`: Amazon Q-specific type definitions
+  - `ui.types.ts`: UI component type definitions
+
 ## Key Configuration Files
 
 - `pnpm-workspace.yaml`: Workspace configuration
@@ -163,15 +202,33 @@ The backend has been refactored into a modular, 1-file-1-function architecture:
 - **Index Files**: Each module has an `index.ts` for clean imports
 
 ### Adding New Features
+
+#### Backend
 1. **Services**: Add new services in `src/services/[service-name]/`
 2. **Utilities**: Add reusable functions in `src/utils/[util-name]/`
 3. **Types**: Add type definitions in `src/types/`
 4. **Tests**: Always add corresponding test files in `src/tests/`
 
+#### Frontend
+1. **Components**: Add new components in `src/app/features/[feature-name]/` or `src/app/shared/components/[component-name]/`
+2. **Services**: Add component-specific services in `src/app/features/[feature-name]/services/` or core services in `src/app/core/services/`
+3. **State Management**: Add state in `src/app/core/store/[domain]/` with actions and selectors
+4. **Utilities**: Add reusable functions in `src/app/shared/utils/[util-name]/`
+5. **Types**: Add type definitions in `src/app/core/types/` or `src/app/shared/types/`
+6. **Tests**: Always add corresponding test files for each function/component
+
 ### Import Conventions
+
+#### Backend
 - Use index files for clean imports: `import { functionName } from '../services/module-name'`
 - Avoid deep imports: `import { functionName } from '../services/module-name/sub-module/function-name'`
 - Use absolute imports when possible
+
+#### Frontend
+- Use index files for clean imports: `import { functionName } from './services/module-name'`
+- Prefer relative imports within the same feature: `import { helper } from './utils/helper'`
+- Use absolute imports for core services: `import { AppStore } from '../../../core/store/app.state'`
+- Import types separately: `import type { MessageId } from '../../core/types/common.types'`
 
 ### Test-Driven Development (TDD)
 
@@ -208,7 +265,11 @@ The backend has been refactored into a modular, 1-file-1-function architecture:
 #### Frontend Tests
 - **Test Framework**: Karma/Jasmine (Angular default)
 - **Test Command**: `pnpm test` or `ng test`
-- **Current Status**: Standard Angular CLI test setup
+- **Current Status**: Comprehensive test coverage for refactored modules
+  - **Unit Tests**: All utility functions, services, and components
+  - **Integration Tests**: Component interactions and state management
+  - **Type Safety**: Full TypeScript coverage with strict mode
+  - **Test Structure**: Follows 1-file-1-function testing approach
 
 You are an expert in TypeScript, Angular, and scalable web application development. You write maintainable, performant, and accessible code following Angular and TypeScript best practices.
 ## TypeScript Best Practices
