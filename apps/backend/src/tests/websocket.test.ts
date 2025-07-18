@@ -3,7 +3,7 @@
  * Basic test to verify WebSocket server functionality
  */
 
-import { WebSocketService } from '../services/websocket.ts'
+import { WebSocketService } from '../services/websocket/index.js'
 import { createServer, Server } from 'http'
 import { io as Client, Socket as ClientSocket } from 'socket.io-client'
 import type { 

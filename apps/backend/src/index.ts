@@ -7,7 +7,7 @@ import { createServer } from 'http'
 // Import middleware and utilities
 import { errorHandler, notFoundHandler } from './utils/errors.js'
 import { routes } from './routes/index.js'
-import { WebSocketService } from './services/websocket.js'
+import { WebSocketService } from './services/websocket/index.js'
 
 const app = express()
 
