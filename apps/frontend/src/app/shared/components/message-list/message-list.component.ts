@@ -1,11 +1,25 @@
 import { Component, inject, signal, ChangeDetectionStrategy, computed, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AppStore, ChatMessage } from '../../../core/store/app.state';
-import type { DisplayMessage } from '@quincy/shared';
+import { AppStore } from '../../../core/store/app.state';
 import { UserMessageComponent } from '../user-message/user-message.component';
 import { AmazonQMessageComponent } from '../amazon-q-message/amazon-q-message.component';
-import { convertDisplayMessagesToChatMessages } from '../../utils/converters';
-import { generateWelcomeMessage } from '../../utils/generators';
+
+// 分離されたサービスのインポート
+import { 
+  addMessage, 
+  addTypingIndicator, 
+  removeTypingIndicator, 
+  clearMessages, 
+  getMessageCount 
+} from './services/message-manager';
+
+import { 
+  scrollToBottom, 
+  markForScrollUpdate 
+} from './services/scroll-manager';
+
+// 分離されたユーティリティのインポート
+import { selectMessages } from './utils';
 
 @Component({
   selector: 'app-message-list',
@@ -49,100 +63,38 @@ export class MessageListComponent implements AfterViewChecked {
   private scrollToBottomRequest = signal(false);
   protected appStore = inject(AppStore);
 
-
-
   // Chat messages from the store
-  messages = computed(() => {
-    const currentSession = this.appStore.currentQSession();
-    const currentConversation = this.appStore.currentQConversation();
-    const detailedMessages = this.appStore.detailedHistoryMessages();
+  messages = computed(() => selectMessages(this.appStore));
 
-    // 1. リアルタイムチャットモード（最優先）
-    if (currentSession) {
-      const sessionMessages = this.appStore.currentSessionMessages();
-      return sessionMessages.length === 0 ? generateWelcomeMessage() : sessionMessages;
-    }
+  // 分離されたサービス関数をコンポーネントメソッドとして公開
+  addMessage = (content: string, sender: 'user' | 'assistant'): string => {
+    return addMessage(content, sender, this.appStore, this.scrollToBottomRequest);
+  };
 
-    // 2. 詳細履歴表示モード
-    if (currentConversation && detailedMessages.length > 0) {
-      return convertDisplayMessagesToChatMessages(detailedMessages);
-    }
+  addTypingIndicator = (): void => {
+    addTypingIndicator(this.appStore, this.scrollToBottomRequest);
+  };
 
-    // 3. 従来の履歴表示モード
-    if (currentConversation && !currentSession) {
-      const allMessages = this.appStore.chatMessages();
-      return allMessages.length === 0 ? [] : allMessages;
-    }
+  removeTypingIndicator = (): void => {
+    removeTypingIndicator(this.appStore);
+  };
 
-    // 4. デフォルト状態
-    return generateWelcomeMessage();
-  });
+  clearMessages = (): void => {
+    clearMessages(this.appStore);
+  };
 
+  getMessageCount = (): number => {
+    return getMessageCount(this.messages());
+  };
 
-  addMessage(content: string, sender: 'user' | 'assistant'): string {
-    const currentSession = this.appStore.currentQSession();
-    const messageId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    const newMessage: ChatMessage = {
-      id: messageId,
-      content,
-      sender,
-      timestamp: new Date(),
-      sessionId: currentSession?.sessionId
-    };
-
-    this.appStore.addChatMessage(newMessage);
-    this.scrollToBottomRequest.set(true);
-
-    return messageId;
-  }
-
-  addTypingIndicator(): void {
-    const currentSession = this.appStore.currentQSession();
-    const typingMessage: ChatMessage = {
-      id: 'typing',
-      content: '',
-      sender: 'assistant',
-      timestamp: new Date(),
-      isTyping: true,
-      sessionId: currentSession?.sessionId
-    };
-
-    this.appStore.addChatMessage(typingMessage);
-    this.scrollToBottomRequest.set(true);
-  }
-
-  removeTypingIndicator(): void {
-    this.appStore.removeChatMessage('typing');
-  }
+  markForScrollUpdate = (): void => {
+    markForScrollUpdate(this.scrollToBottomRequest);
+  };
 
   ngAfterViewChecked(): void {
     if (this.scrollToBottomRequest()) {
-      this.scrollToBottom();
+      scrollToBottom(this.messageContainer);
       this.scrollToBottomRequest.set(false);
     }
-  }
-
-  clearMessages(): void {
-    this.appStore.clearChatMessages();
-  }
-
-  private scrollToBottom(): void {
-    try {
-      if (this.messageContainer) {
-        const element = this.messageContainer.nativeElement;
-        element.scrollTop = element.scrollHeight;
-      }
-    } catch (err) {
-      // スクロールエラーを無視
-    }
-  }
-
-  // メッセージが更新されたときに呼び出される
-  markForScrollUpdate(): void {
-    this.scrollToBottomRequest.set(true);
-  }
-
-  getMessageCount(): number {
-    return this.messages().filter(m => !m.isTyping).length;
   }
 }

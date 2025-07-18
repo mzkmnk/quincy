@@ -7,6 +7,17 @@ import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 import { TextareaModule } from 'primeng/textarea';
 
+// 分離されたサービスのインポート
+import { sendMessage, canSendMessage } from './services/message-sender';
+
+// 分離されたユーティリティのインポート
+import { 
+  handleCompositionStart, 
+  handleCompositionEnd, 
+  adjustTextareaHeight, 
+  handleKeyDown 
+} from './utils';
+
 @Component({
   selector: 'app-message-input',
   imports: [CommonModule, FormsModule, ButtonModule, TextareaModule],
@@ -30,7 +41,7 @@ import { TextareaModule } from 'primeng/textarea';
         <!-- Text Input Footer -->
         <div class="flex w-full justify-end">
           <p-button
-            (onClick)="sendMessage()"
+            (onClick)="onSendMessage()"
             [disabled]="!canSend()"
             [loading]="sending()"
             icon="pi pi-arrow-up"
@@ -59,77 +70,44 @@ export class MessageInputComponent {
   sending = signal(false);
   isComposing = signal(false);
 
-  canSend(): boolean {
-    return this.messageText().trim().length > 0 && !this.sending();
-  }
+  // 分離されたサービス関数をコンポーネントメソッドとして公開
+  canSend = (): boolean => {
+    return canSendMessage(this.messageText(), this.sending());
+  };
 
-  async sendMessage(): Promise<void> {
+  onSendMessage = async (): Promise<void> => {
     if (!this.canSend()) return;
 
-    const content = this.messageText().trim();
-    const currentSession = this.appStore.currentQSession();
+    await sendMessage(
+      this.messageText(),
+      this.appStore,
+      this.websocket,
+      this.messageService,
+      this.messageTextarea,
+      this.sending,
+      this.messageText,
+      this.messageSent
+    );
+  };
 
-    if (!currentSession) {
-      console.error('No active session to send message to');
-      return;
-    }
+  onKeyDown = (event: KeyboardEvent): void => {
+    handleKeyDown(
+      event,
+      this.isComposing(),
+      this.onSendMessage,
+      () => this.adjustTextareaHeight()
+    );
+  };
 
-    this.sending.set(true);
+  onCompositionStart = (): void => {
+    handleCompositionStart(this.isComposing);
+  };
 
-    try {
-      console.log('Sending message to Amazon Q:', content);
+  onCompositionEnd = (): void => {
+    handleCompositionEnd(this.isComposing);
+  };
 
-      // Emit message sent event for parent component to handle
-      this.messageSent.emit({ content });
-
-      // Send message to Amazon Q CLI via WebSocket
-      await this.websocket.sendQMessage(currentSession.sessionId, content);
-
-      // Clear input
-      this.messageText.set('');
-
-      // Reset textarea height
-      if (this.messageTextarea) {
-        this.messageTextarea.nativeElement.style.height = 'auto';
-      }
-
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'エラー',
-        detail: 'メッセージの送信に失敗しました',
-        life: 5000
-      });
-    } finally {
-      this.sending.set(false);
-    }
-  }
-
-  onKeyDown(event: KeyboardEvent): void {
-    if (event.key === 'Enter' && !event.shiftKey && !this.isComposing() && !event.isComposing) {
-      event.preventDefault();
-      this.sendMessage();
-    } else if (event.key === 'Enter' && event.shiftKey) {
-      // Allow new line
-      setTimeout(() => this.adjustTextareaHeight(), 0);
-    }
-  }
-
-
-  onCompositionStart(): void {
-    this.isComposing.set(true);
-  }
-
-  onCompositionEnd(): void {
-    this.isComposing.set(false);
-  }
-
-  private adjustTextareaHeight(): void {
-    if (this.messageTextarea) {
-      const textarea = this.messageTextarea.nativeElement;
-      textarea.style.height = 'auto';
-      textarea.style.height = Math.min(textarea.scrollHeight, 128) + 'px';
-    }
-  }
+  private adjustTextareaHeight = (): void => {
+    adjustTextareaHeight(this.messageTextarea);
+  };
 }

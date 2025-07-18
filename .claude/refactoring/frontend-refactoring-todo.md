@@ -272,46 +272,48 @@
 
 ### TODO リスト
 
-- [ ] MessageListComponentの分割（1ファイル1関数）
-  - [ ] `src/app/shared/components/message-list/services/` ディレクトリを作成
-  - [ ] `src/app/shared/components/message-list/services/message-manager/` ディレクトリを作成
-  - [ ] `src/app/shared/components/message-list/services/message-manager/add-message.ts` ファイルを作成
-  - [ ] `src/app/shared/components/message-list/services/message-manager/delete-message.ts` ファイルを作成
-  - [ ] `src/app/shared/components/message-list/services/message-manager/update-messages.ts` ファイルを作成
-  - [ ] `src/app/shared/components/message-list/services/message-manager/index.ts` ファイルを作成
-  - [ ] `src/app/shared/components/message-list/services/scroll-manager/` ディレクトリを作成
-  - [ ] `src/app/shared/components/message-list/services/scroll-manager/scroll-to-bottom.ts` ファイルを作成
-  - [ ] `src/app/shared/components/message-list/services/scroll-manager/index.ts` ファイルを作成
-  - [ ] `src/app/shared/components/message-list/utils/` ディレクトリを作成
-  - [ ] `src/app/shared/components/message-list/utils/message-converter.ts` ファイルを作成
-  - [ ] `src/app/shared/components/message-list/utils/welcome-message-generator.ts` ファイルを作成
-  - [ ] `src/app/shared/components/message-list/utils/index.ts` ファイルを作成
-  - [ ] 既存のメソッドを新しい関数に置き換え
+- [x] MessageListComponentの分割（1ファイル1関数）
+  - [x] `src/app/shared/components/message-list/services/` ディレクトリを作成
+  - [x] `src/app/shared/components/message-list/services/message-manager/` ディレクトリを作成
+  - [x] `src/app/shared/components/message-list/services/message-manager/add-message.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-list/services/message-manager/add-typing-indicator.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-list/services/message-manager/remove-typing-indicator.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-list/services/message-manager/clear-messages.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-list/services/message-manager/get-message-count.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-list/services/message-manager/index.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-list/services/scroll-manager/` ディレクトリを作成
+  - [x] `src/app/shared/components/message-list/services/scroll-manager/scroll-to-bottom.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-list/services/scroll-manager/mark-for-scroll-update.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-list/services/scroll-manager/index.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-list/utils/` ディレクトリを作成
+  - [x] `src/app/shared/components/message-list/utils/message-selector.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-list/utils/index.ts` ファイルを作成
+  - [x] 既存のメソッドを新しい関数に置き換え
   - [ ] 各関数のユニットテストを作成
 
-- [ ] PathSelectorComponentの分割（1ファイル1関数）
-  - [ ] `src/app/shared/components/path-selector/services/` ディレクトリを作成
-  - [ ] `src/app/shared/components/path-selector/services/path-validator/` ディレクトリを作成
-  - [ ] `src/app/shared/components/path-selector/services/path-validator/validate-path.ts` ファイルを作成
-  - [ ] `src/app/shared/components/path-selector/services/path-validator/index.ts` ファイルを作成
-  - [ ] `src/app/shared/components/path-selector/services/session-starter/` ディレクトリを作成
-  - [ ] `src/app/shared/components/path-selector/services/session-starter/start-project.ts` ファイルを作成
-  - [ ] `src/app/shared/components/path-selector/services/session-starter/index.ts` ファイルを作成
-  - [ ] `src/app/shared/components/path-selector/utils/` ディレクトリを作成
-  - [ ] `src/app/shared/components/path-selector/utils/path-formatter.ts` ファイルを作成
-  - [ ] `src/app/shared/components/path-selector/utils/index.ts` ファイルを作成
-  - [ ] 既存のメソッドを新しい関数に置き換え
+- [x] PathSelectorComponentの分割（1ファイル1関数）
+  - [x] `src/app/shared/components/path-selector/services/` ディレクトリを作成
+  - [x] `src/app/shared/components/path-selector/services/path-validator/` ディレクトリを作成
+  - [x] `src/app/shared/components/path-selector/services/path-validator/validate-path.ts` ファイルを作成
+  - [x] `src/app/shared/components/path-selector/services/path-validator/index.ts` ファイルを作成
+  - [x] `src/app/shared/components/path-selector/services/session-starter/` ディレクトリを作成
+  - [x] `src/app/shared/components/path-selector/services/session-starter/start-project.ts` ファイルを作成
+  - [x] `src/app/shared/components/path-selector/services/session-starter/index.ts` ファイルを作成
+  - [x] `src/app/shared/components/path-selector/utils/` ディレクトリを作成
+  - [x] `src/app/shared/components/path-selector/utils/textarea-utils.ts` ファイルを作成
+  - [x] `src/app/shared/components/path-selector/utils/index.ts` ファイルを作成
+  - [x] 既存のメソッドを新しい関数に置き換え
   - [ ] 各関数のユニットテストを作成
 
-- [ ] MessageInputComponentの改善（1ファイル1関数）
-  - [ ] `src/app/shared/components/message-input/services/` ディレクトリを作成
-  - [ ] `src/app/shared/components/message-input/services/message-sender/` ディレクトリを作成
-  - [ ] `src/app/shared/components/message-input/services/message-sender/send-message.ts` ファイルを作成
-  - [ ] `src/app/shared/components/message-input/services/message-sender/index.ts` ファイルを作成
-  - [ ] `src/app/shared/components/message-input/utils/` ディレクトリを作成
-  - [ ] `src/app/shared/components/message-input/utils/composition-state-manager.ts` ファイルを作成
-  - [ ] `src/app/shared/components/message-input/utils/index.ts` ファイルを作成
-  - [ ] 既存のメソッドを新しい関数に置き換え
+- [x] MessageInputComponentの改善（1ファイル1関数）
+  - [x] `src/app/shared/components/message-input/services/` ディレクトリを作成
+  - [x] `src/app/shared/components/message-input/services/message-sender/` ディレクトリを作成
+  - [x] `src/app/shared/components/message-input/services/message-sender/send-message.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-input/services/message-sender/index.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-input/utils/` ディレクトリを作成
+  - [x] `src/app/shared/components/message-input/utils/composition-state-manager.ts` ファイルを作成
+  - [x] `src/app/shared/components/message-input/utils/index.ts` ファイルを作成
+  - [x] 既存のメソッドを新しい関数に置き換え
   - [ ] 各関数のユニットテストを作成
 
 - [ ] AmazonQMessageComponentの改善
