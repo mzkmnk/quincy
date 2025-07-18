@@ -4,6 +4,8 @@ import { AppStore, ChatMessage } from '../../../core/store/app.state';
 import type { DisplayMessage } from '@quincy/shared';
 import { UserMessageComponent } from '../user-message/user-message.component';
 import { AmazonQMessageComponent } from '../amazon-q-message/amazon-q-message.component';
+import { convertDisplayMessagesToChatMessages } from '../../utils/converters';
+import { generateWelcomeMessage } from '../../utils/generators';
 
 @Component({
   selector: 'app-message-list',
@@ -47,24 +49,7 @@ export class MessageListComponent implements AfterViewChecked {
   private scrollToBottomRequest = signal(false);
   protected appStore = inject(AppStore);
 
-  private getWelcomeMessage(): ChatMessage[] {
-    return [{
-      id: 'welcome',
-      content: 'Hello! I\'m Amazon Q, your AI coding assistant. How can I help you with your project today?',
-      sender: 'assistant',
-      timestamp: new Date()
-    }];
-  }
 
-  private convertDisplayMessagesToChatMessages(displayMessages: DisplayMessage[]): ChatMessage[] {
-    return displayMessages.map(msg => ({
-      id: msg.id,
-      content: msg.content,
-      sender: msg.type === 'user' ? 'user' as const : 'assistant' as const,
-      timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-      isTyping: msg.type === 'thinking' ? true : false
-    }));
-  }
 
   // Chat messages from the store
   messages = computed(() => {
@@ -75,12 +60,12 @@ export class MessageListComponent implements AfterViewChecked {
     // 1. リアルタイムチャットモード（最優先）
     if (currentSession) {
       const sessionMessages = this.appStore.currentSessionMessages();
-      return sessionMessages.length === 0 ? this.getWelcomeMessage() : sessionMessages;
+      return sessionMessages.length === 0 ? generateWelcomeMessage() : sessionMessages;
     }
 
     // 2. 詳細履歴表示モード
     if (currentConversation && detailedMessages.length > 0) {
-      return this.convertDisplayMessagesToChatMessages(detailedMessages);
+      return convertDisplayMessagesToChatMessages(detailedMessages);
     }
 
     // 3. 従来の履歴表示モード
@@ -90,7 +75,7 @@ export class MessageListComponent implements AfterViewChecked {
     }
 
     // 4. デフォルト状態
-    return this.getWelcomeMessage();
+    return generateWelcomeMessage();
   });
 
 

@@ -8,6 +8,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { Router } from '@angular/router';
+import { validatePath } from '../../utils/validators';
 
 export interface PathSelection {
   path: string;
@@ -105,31 +106,9 @@ export class PathSelectorComponent {
   }
 
   validatePath(): void {
-    const path = this.projectPath().trim();
-
-    if (!path) {
-      this.pathError.set('パスを入力してください');
-      return;
-    }
-
-    if (path.length < 2) {
-      this.pathError.set('有効なパスを入力してください');
-      return;
-    }
-
-    // 絶対パスチェック（Unix/Linux/Mac）
-    if (!path.startsWith('/') && !path.match(/^[A-Za-z]:\\/)) {
-      this.pathError.set('絶対パスを入力してください（例: /Users/username/project）');
-      return;
-    }
-
-    // 危険な文字列チェック
-    if (path.includes('..') || path.includes('//')) {
-      this.pathError.set('無効な文字が含まれています');
-      return;
-    }
-
-    this.pathError.set(null);
+    const path = this.projectPath();
+    const error = validatePath(path);
+    this.pathError.set(error);
   }
 
   async startProject(): Promise<void> {
