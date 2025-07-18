@@ -7,6 +7,10 @@ import { AmazonQCLIService, QProcessOptions, QProcessSession } from '../services
 import { EventEmitter } from 'events';
 import { ChildProcess } from 'child_process';
 
+// child_processとutilのモック
+jest.mock('child_process');
+jest.mock('util');
+
 // Child processのモック型定義
 interface MockChildProcess extends EventEmitter {
   pid?: number;

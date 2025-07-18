@@ -1,0 +1,1 @@
+export const sessionToSockets: Map<string, Set<string>> = new Map();

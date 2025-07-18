@@ -90,6 +90,45 @@ ng generate component component-name
 - Uses Jest for testing
 - SQLite3 database for session persistence
 
+#### New Modular Architecture (After Refactoring)
+The backend has been refactored into a modular, 1-file-1-function architecture:
+
+- **Services** (`src/services/`):
+  - `amazon-q-cli/`: Amazon Q CLI integration with sub-modules:
+    - `buffer-manager/`: Output buffer management functions
+    - `cli-checker/`: CLI availability validation
+    - `message-handler/`: Message processing and classification
+    - `process-manager/`: Process lifecycle management
+    - `session-manager/`: Session state management
+  - `amazon-q-history/`: History data retrieval functions
+  - `amazon-q-history-transformer/`: History data transformation
+  - `amazon-q-message-formatter/`: Message formatting for display
+  - `websocket/`: WebSocket functionality with sub-modules:
+    - `amazon-q-handler/`: Amazon Q specific WebSocket handlers
+    - `connection-manager/`: Connection lifecycle management
+    - `error-handler/`: Error handling utilities
+    - `event-setup/`: Event handler setup
+    - `message-handler/`: Message processing
+    - `room-manager/`: Room management functionality
+
+- **Utilities** (`src/utils/`):
+  - `ansi-stripper/`: ANSI escape code removal
+  - `cli-validator/`: CLI path validation
+  - `error-factory/`: Error creation utilities
+  - `errors/`: Custom error classes and unified error handling
+  - `id-generator/`: ID generation utilities
+  - `path-validator/`: Path validation and security
+
+- **Types** (`src/types/`):
+  - `amazon-q.ts`: Amazon Q related type definitions
+  - `common.ts`: Common type definitions
+  - `websocket.ts`: WebSocket related type definitions
+
+- **Testing** (`src/tests/`):
+  - Unit tests for all utility functions
+  - Integration tests for services
+  - End-to-end tests for complete workflows
+
 ### Frontend
 - Angular 20 with standalone components (no NgModules)
 - Uses zoneless change detection
@@ -115,6 +154,25 @@ ng generate component component-name
 4. Backend serves on localhost:3000, frontend on localhost:4200
 5. WebSocket communication handles real-time Amazon Q CLI interactions
 
+## Development Guidelines
+
+### Code Organization Principles
+- **1-File-1-Function**: Each module contains exactly one primary function
+- **Modular Structure**: Related functions are grouped in directories
+- **Clear Separation**: Services, utilities, and types are clearly separated
+- **Index Files**: Each module has an `index.ts` for clean imports
+
+### Adding New Features
+1. **Services**: Add new services in `src/services/[service-name]/`
+2. **Utilities**: Add reusable functions in `src/utils/[util-name]/`
+3. **Types**: Add type definitions in `src/types/`
+4. **Tests**: Always add corresponding test files in `src/tests/`
+
+### Import Conventions
+- Use index files for clean imports: `import { functionName } from '../services/module-name'`
+- Avoid deep imports: `import { functionName } from '../services/module-name/sub-module/function-name'`
+- Use absolute imports when possible
+
 ### Test-Driven Development (TDD)
 
 - Follow Test-Driven Development (TDD) as a principle
@@ -129,12 +187,23 @@ ng generate component component-name
 ### Testing Status
 
 #### Backend Tests
-- **Current Test Coverage**: Limited test coverage with 2 test files
-  - `amazon-q-cli.test.ts`: Tests for Amazon Q CLI integration
-  - `websocket.test.ts`: Tests for WebSocket functionality
 - **Test Framework**: Jest with TypeScript support
 - **Test Command**: `pnpm test` or `pnpm test:watch`
-- **Goal**: Expand test coverage for all services and utilities
+- **Comprehensive Test Coverage**: Full test suite covering all refactored modules
+  - **Unit Tests**:
+    - `ansi-stripper.test.ts`: ANSI escape code removal
+    - `cli-validator.test.ts`: CLI path validation
+    - `id-generator.test.ts`: ID generation utilities
+    - `path-validator.test.ts`: Path validation and security
+  - **Integration Tests**:
+    - `amazon-q-cli.integration.test.ts`: Amazon Q CLI service integration
+    - `websocket.integration.test.ts`: WebSocket service integration
+    - `amazon-q-websocket.integration.test.ts`: Amazon Q + WebSocket integration
+  - **Legacy Tests** (maintained for compatibility):
+    - `amazon-q-cli.test.ts`: Original Amazon Q CLI tests
+    - `websocket.test.ts`: Original WebSocket tests
+  - **End-to-End Tests**:
+    - `end-to-end.test.ts`: Complete workflow testing
 
 #### Frontend Tests
 - **Test Framework**: Karma/Jasmine (Angular default)
