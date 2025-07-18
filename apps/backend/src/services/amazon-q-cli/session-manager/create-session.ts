@@ -1,8 +1,8 @@
 import { ChildProcess } from 'child_process';
-import type { QProcessSession, QProcessOptions } from './types';
+import type { QProcessSession, QProcessOptions, SessionId } from '../../../types';
 
 export function createSession(
-  sessionId: string,
+  sessionId: SessionId,
   childProcess: ChildProcess,
   workingDir: string,
   command: string,
