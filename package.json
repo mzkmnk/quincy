@@ -15,7 +15,10 @@
     "build:docs": "pnpm --filter docs build",
     "build": "pnpm build:backend && pnpm build:frontend",
     "preview:docs": "pnpm --filter docs preview",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:backend": "pnpm --filter backend test",
+    "test:frontend": "pnpm --filter frontend test",
+    "test:frontend:watch": "pnpm --filter frontend test --watch",
+    "test": "pnpm test:backend && pnpm test:frontend"
   },
   "keywords": [],
   "author": "",
