@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { websocket } from './websocket.js'
+import { websocket } from './websocket'
 import { healthRoute } from './health'
 
 const routes = Router()
