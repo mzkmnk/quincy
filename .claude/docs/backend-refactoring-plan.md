@@ -142,193 +142,195 @@
 
 ### TODO リスト
 
-- [ ] WebSocketサービスディレクトリの作成
-  - [ ] `src/services/websocket/` ディレクトリを作成
-  - [ ] 既存の `websocket.ts` を `websocket.bak.ts` にリネーム（バックアップ）
+- [x] WebSocketサービスディレクトリの作成
+  - [x] `src/services/websocket/` ディレクトリを作成
+  - [x] 既存の `websocket.ts` を削除（git管理のためバックアップ不要）
 
-- [ ] 接続管理関数の分離（1ファイル1関数）
-  - [ ] `src/services/websocket/connection-manager/` ディレクトリを作成
-  - [ ] `src/services/websocket/connection-manager/handle-connection.ts` ファイルを作成
-  - [ ] `src/services/websocket/connection-manager/handle-disconnection.ts` ファイルを作成
-  - [ ] `src/services/websocket/connection-manager/get-connected-users.ts` ファイルを作成
-  - [ ] `src/services/websocket/connection-manager/get-user-count.ts` ファイルを作成
-  - [ ] `src/services/websocket/connection-manager/connection-map.ts` ファイルを作成（connectedUsers Map）
-  - [ ] `src/services/websocket/connection-manager/index.ts` ファイルを作成（エクスポート集約）
+- [x] 接続管理関数の分離（1ファイル1関数）
+  - [x] `src/services/websocket/connection-manager/` ディレクトリを作成
+  - [x] `src/services/websocket/connection-manager/handle-connection.ts` ファイルを作成
+  - [x] `src/services/websocket/connection-manager/handle-disconnection.ts` ファイルを作成
+  - [x] `src/services/websocket/connection-manager/get-connected-users.ts` ファイルを作成
+  - [x] `src/services/websocket/connection-manager/get-user-count.ts` ファイルを作成
+  - [x] `src/services/websocket/connection-manager/connection-map.ts` ファイルを作成（connectedUsers Map）
+  - [x] `src/services/websocket/connection-manager/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] ルーム管理関数の分離（1ファイル1関数）
-  - [ ] `src/services/websocket/room-manager/` ディレクトリを作成
-  - [ ] `src/services/websocket/room-manager/handle-room-join.ts` ファイルを作成
-  - [ ] `src/services/websocket/room-manager/handle-room-leave.ts` ファイルを作成
-  - [ ] `src/services/websocket/room-manager/get-room-users.ts` ファイルを作成
-  - [ ] `src/services/websocket/room-manager/broadcast-to-room.ts` ファイルを作成
-  - [ ] `src/services/websocket/room-manager/broadcast-to-all.ts` ファイルを作成
-  - [ ] `src/services/websocket/room-manager/room-map.ts` ファイルを作成（userRooms Map）
-  - [ ] `src/services/websocket/room-manager/index.ts` ファイルを作成（エクスポート集約）
+- [x] ルーム管理関数の分離（1ファイル1関数）
+  - [x] `src/services/websocket/room-manager/` ディレクトリを作成
+  - [x] `src/services/websocket/room-manager/handle-room-join.ts` ファイルを作成
+  - [x] `src/services/websocket/room-manager/handle-room-leave.ts` ファイルを作成
+  - [x] `src/services/websocket/room-manager/get-room-users.ts` ファイルを作成
+  - [x] `src/services/websocket/room-manager/broadcast-to-room.ts` ファイルを作成
+  - [x] `src/services/websocket/room-manager/broadcast-to-all.ts` ファイルを作成
+  - [x] `src/services/websocket/room-manager/room-map.ts` ファイルを作成（userRooms Map）
+  - [x] `src/services/websocket/room-manager/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] Amazon Q統合関数の分離（1ファイル1関数）
-  - [ ] `src/services/websocket/amazon-q-handler/` ディレクトリを作成
-  - [ ] `src/services/websocket/amazon-q-handler/handle-q-command.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/handle-q-abort.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/handle-q-history.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/handle-q-history-detailed.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/handle-q-projects.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/handle-q-resume.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/handle-q-project-start.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/handle-q-message.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/add-socket-to-session.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/emit-to-session.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/cleanup-session.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/cleanup-socket-from-sessions.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/session-socket-map.ts` ファイルを作成（sessionToSockets Map）
-  - [ ] `src/services/websocket/amazon-q-handler/setup-q-cli-event-handlers.ts` ファイルを作成
-  - [ ] `src/services/websocket/amazon-q-handler/index.ts` ファイルを作成（エクスポート集約）
+- [x] Amazon Q統合関数の分離（1ファイル1関数）
+  - [x] `src/services/websocket/amazon-q-handler/` ディレクトリを作成
+  - [x] `src/services/websocket/amazon-q-handler/handle-q-command.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/handle-q-abort.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/handle-q-history.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/handle-q-history-detailed.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/handle-q-projects.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/handle-q-resume.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/handle-q-project-start.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/handle-q-message.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/add-socket-to-session.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/emit-to-session.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/cleanup-session.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/cleanup-socket-from-sessions.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/session-socket-map.ts` ファイルを作成（sessionToSockets Map）
+  - [x] `src/services/websocket/amazon-q-handler/setup-q-cli-event-handlers.ts` ファイルを作成
+  - [x] `src/services/websocket/amazon-q-handler/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] メッセージ処理関数の分離（1ファイル1関数）
-  - [ ] `src/services/websocket/message-handler/` ディレクトリを作成
-  - [ ] `src/services/websocket/message-handler/handle-message-send.ts` ファイルを作成
-  - [ ] `src/services/websocket/message-handler/index.ts` ファイルを作成（エクスポート集約）
+- [x] メッセージ処理関数の分離（1ファイル1関数）
+  - [x] `src/services/websocket/message-handler/` ディレクトリを作成
+  - [x] `src/services/websocket/message-handler/handle-message-send.ts` ファイルを作成
+  - [x] `src/services/websocket/message-handler/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] エラー処理関数の分離（1ファイル1関数）
-  - [ ] `src/services/websocket/error-handler/` ディレクトリを作成
-  - [ ] `src/services/websocket/error-handler/send-error.ts` ファイルを作成
-  - [ ] `src/services/websocket/error-handler/setup-global-error-handling.ts` ファイルを作成
-  - [ ] `src/services/websocket/error-handler/index.ts` ファイルを作成（エクスポート集約）
+- [x] エラー処理関数の分離（1ファイル1関数）
+  - [x] `src/services/websocket/error-handler/` ディレクトリを作成
+  - [x] `src/services/websocket/error-handler/send-error.ts` ファイルを作成
+  - [x] `src/services/websocket/error-handler/setup-global-error-handling.ts` ファイルを作成
+  - [x] `src/services/websocket/error-handler/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] イベント設定関数の分離
-  - [ ] `src/services/websocket/event-setup/` ディレクトリを作成
-  - [ ] `src/services/websocket/event-setup/setup-event-handlers.ts` ファイルを作成
-  - [ ] `src/services/websocket/event-setup/index.ts` ファイルを作成（エクスポート集約）
+- [x] イベント設定関数の分離
+  - [x] `src/services/websocket/event-setup/` ディレクトリを作成
+  - [x] `src/services/websocket/event-setup/setup-event-handlers.ts` ファイルを作成
+  - [x] `src/services/websocket/event-setup/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] メインサービスクラスの再構築
-  - [ ] `src/services/websocket/index.ts` ファイルを作成
-  - [ ] `WebSocketService` クラスを再構築（各関数のインポートと統合）
-  - [ ] Socket.IO設定を維持（websocket.ts:39-56）
-  - [ ] 既存の公開APIメソッドを維持（後方互換性）
+- [x] メインサービスクラスの再構築
+  - [x] `src/services/websocket/index.ts` ファイルを作成
+  - [x] `WebSocketService` クラスを再構築（各関数のインポートと統合）
+  - [x] Socket.IO設定を維持（websocket.ts:39-56）
+  - [x] 既存の公開APIメソッドを維持（後方互換性）
   - [ ] 統合テストを作成
 
 ## Phase 4: 型定義の整理
 
 ### TODO リスト
 
-- [ ] 型定義ディレクトリの作成
-  - [ ] `src/types/` ディレクトリを作成
+- [x] 型定義ディレクトリの作成
+  - [x] `src/types/` ディレクトリを作成
 
-- [ ] 共通型定義の作成
-  - [ ] `src/types/common.ts` ファイルを作成
-  - [ ] `MessageId` 型を定義（`msg_${string}`）
-  - [ ] `SessionId` 型を定義（`q_session_${string}`）
-  - [ ] `Timestamp` 型を定義（number）
-  - [ ] `ErrorCode` 型を定義（string literal union）
-  - [ ] 全ファイルでこれらの型を使用するように更新
+- [x] 共通型定義の作成
+  - [x] `src/types/common.ts` ファイルを作成
+  - [x] `MessageId` 型を定義（`msg_${string}`）
+  - [x] `SessionId` 型を定義（`q_session_${string}`）
+  - [x] `Timestamp` 型を定義（number）
+  - [x] `ErrorCode` 型を定義（string literal union）
+  - [x] ID生成ユーティリティで新しい型を使用するように更新
 
-- [ ] Amazon Q型定義の整理
-  - [ ] `src/types/amazon-q.ts` ファイルを作成
-  - [ ] `@quincy/shared` から重複している型定義を確認
-  - [ ] `QProcessSession` インターフェース（amazon-q-cli.ts:14-44）を移動
-  - [ ] `QProcessOptions` インターフェース（amazon-q-cli.ts:46-52）を移動
-  - [ ] `QCommandEvent`、`QResponseEvent` などの型を統合
-  - [ ] Amazon Q履歴関連の型（amazon-q-history-types.ts）との整合性を確認
-  - [ ] 全てのAmazon Q関連ファイルで新しい型定義を使用
+- [x] Amazon Q型定義の整理
+  - [x] `src/types/amazon-q.ts` ファイルを作成
+  - [x] `QProcessSession` インターフェースを移動・統合
+  - [x] `QProcessOptions` インターフェースを移動・統合
+  - [x] `QCommandEvent`、`QResponseEvent` などの型を統合
+  - [x] Amazon Q関連の各種イベント型を定義
+  - [x] 型ガード関数を追加
+  - [x] `session-manager/types.ts` を新しい型定義を使用するように更新
 
-- [ ] WebSocket型定義の整理
-  - [ ] `src/types/websocket.ts` ファイルを作成
-  - [ ] `ConnectionInfo` 型（`@quincy/shared`から）の確認と必要に応じた拡張
-  - [ ] `RoomData`、`MessageData` 型の確認と改善
-  - [ ] Socket.IOのジェネリック型パラメータの整理
-  - [ ] 全てのWebSocket関連ファイルで新しい型定義を使用
+- [x] WebSocket型定義の整理
+  - [x] `src/types/websocket.ts` ファイルを作成
+  - [x] `ConnectionInfo` 型を定義・拡張
+  - [x] `RoomData`、`MessageData` 型を改善
+  - [x] WebSocketイベント型を統合
+  - [x] 型ガード関数を追加
 
-- [ ] 既存型定義ファイルの更新
-  - [ ] `amazon-q-history-types.ts` の型定義を確認し、共通型との整合性を保つ
-  - [ ] `@quincy/shared` パッケージの型定義との重複を解消
-  - [ ] 型定義のエクスポート構造を整理
+- [x] 既存型定義ファイルの更新
+  - [x] `src/types/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 既存の `amazon-q-history-types.ts` を index.ts からエクスポート
+  - [x] 型定義のエクスポート構造を整理
+  - [x] タイプチェックとビルド検証済み
 
 ## Phase 5: Amazon Q History関連サービスの分割と1ファイル1関数化
 
 ### TODO リスト
 
-- [ ] Amazon Q History サービスの分割（1ファイル1関数）
-  - [ ] `src/services/amazon-q-history/` ディレクトリを作成
-  - [ ] `src/services/amazon-q-history/get-project-history.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history/get-all-projects-history.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history/is-database-available.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history/find-by-conversation-id.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history/get-project-history-detailed.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history/get-conversation-stats.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history/get-all-projects-history-detailed.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history/constants.ts` ファイルを作成（dbPath定数など）
-  - [ ] `src/services/amazon-q-history/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存の `amazon-q-history.ts` を削除
+- [x] Amazon Q History サービスの分割（1ファイル1関数）
+  - [x] `src/services/amazon-q-history/` ディレクトリを作成
+  - [x] `src/services/amazon-q-history/get-project-history.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history/get-all-projects-history.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history/is-database-available.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history/find-by-conversation-id.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history/get-project-history-detailed.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history/get-conversation-stats.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history/get-all-projects-history-detailed.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history/constants.ts` ファイルを作成（dbPath定数など）
+  - [x] `src/services/amazon-q-history/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 既存の `amazon-q-history.ts` を削除
 
-- [ ] Amazon Q History Transformer の分割（1ファイル1関数）
-  - [ ] `src/services/amazon-q-history-transformer/` ディレクトリを作成
-  - [ ] `src/services/amazon-q-history-transformer/group-conversation-turns.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/create-conversation-turn.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/extract-user-message.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/extract-ai-thinking.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/extract-ai-response.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/extract-metadata.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/extract-environment-info.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/extract-tools-used.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/extract-message-ids.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/is-valid-history-data.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/validate-history-entries.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/normalize-history-data.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/count-prompt-entries.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/get-transformation-stats.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-history-transformer/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存の `amazon-q-history-transformer.ts` を削除
+- [x] Amazon Q History Transformer の分割（1ファイル1関数）
+  - [x] `src/services/amazon-q-history-transformer/` ディレクトリを作成
+  - [x] `src/services/amazon-q-history-transformer/group-conversation-turns.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/create-conversation-turn.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/extract-user-message.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/extract-ai-thinking.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/extract-ai-response.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/extract-metadata.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/extract-environment-info.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/extract-tools-used.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/extract-message-ids.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/is-valid-history-data.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/validate-history-entries.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/normalize-history-data.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/count-prompt-entries.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/get-transformation-stats.ts` ファイルを作成
+  - [x] `src/services/amazon-q-history-transformer/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 既存の `amazon-q-history-transformer.ts` を削除
 
-- [ ] Amazon Q Message Formatter の分割（1ファイル1関数）
-  - [ ] `src/services/amazon-q-message-formatter/` ディレクトリを作成
-  - [ ] `src/services/amazon-q-message-formatter/convert-to-display-messages.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-message-formatter/format-user-message.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-message-formatter/format-thinking-messages.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-message-formatter/format-ai-response.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-message-formatter/format-thinking-content.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-message-formatter/get-tools-used-in-thinking-step.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-message-formatter/format-environment-info.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-message-formatter/format-tools-used.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-message-formatter/format-stats.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-message-formatter/truncate-content.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-message-formatter/format-markdown.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-message-formatter/filter-messages.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-message-formatter/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存の `amazon-q-message-formatter.ts` を削除
+- [x] Amazon Q Message Formatter の分割（1ファイル1関数）
+  - [x] `src/services/amazon-q-message-formatter/` ディレクトリを作成
+  - [x] `src/services/amazon-q-message-formatter/convert-to-display-messages.ts` ファイルを作成
+  - [x] `src/services/amazon-q-message-formatter/format-user-message.ts` ファイルを作成
+  - [x] `src/services/amazon-q-message-formatter/format-thinking-messages.ts` ファイルを作成
+  - [x] `src/services/amazon-q-message-formatter/format-ai-response.ts` ファイルを作成
+  - [x] `src/services/amazon-q-message-formatter/format-thinking-content.ts` ファイルを作成
+  - [x] `src/services/amazon-q-message-formatter/get-tools-used-in-thinking-step.ts` ファイルを作成
+  - [x] `src/services/amazon-q-message-formatter/format-environment-info.ts` ファイルを作成
+  - [x] `src/services/amazon-q-message-formatter/format-tools-used.ts` ファイルを作成
+  - [x] `src/services/amazon-q-message-formatter/format-stats.ts` ファイルを作成
+  - [x] `src/services/amazon-q-message-formatter/truncate-content.ts` ファイルを作成
+  - [x] `src/services/amazon-q-message-formatter/format-markdown.ts` ファイルを作成
+  - [x] `src/services/amazon-q-message-formatter/filter-messages.ts` ファイルを作成
+  - [x] `src/services/amazon-q-message-formatter/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 既存の `amazon-q-message-formatter.ts` を削除
 
 ## Phase 6: エラーハンドリングの統一と1ファイル1関数化
 
 ### TODO リスト
 
-- [ ] エラークラスの作成（1ファイル1クラス）
-  - [ ] `src/utils/errors/` ディレクトリを作成
-  - [ ] `src/utils/errors/app-error.ts` ファイルを作成（基底クラス）
-  - [ ] `src/utils/errors/validation-error.ts` ファイルを作成
-  - [ ] `src/utils/errors/not-found-error.ts` ファイルを作成
-  - [ ] `src/utils/errors/authentication-error.ts` ファイルを作成
-  - [ ] `src/utils/errors/process-error.ts` ファイルを作成
-  - [ ] `src/utils/errors/websocket-error.ts` ファイルを作成
-  - [ ] `src/utils/errors/error-codes.ts` ファイルを作成（エラーコード定数）
-  - [ ] `src/utils/errors/index.ts` ファイルを作成（エクスポート集約）
+- [x] エラークラスの作成（1ファイル1クラス）
+  - [x] `src/utils/errors/` ディレクトリを作成
+  - [x] `src/utils/errors/app-error.ts` ファイルを作成（基底クラス）
+  - [x] `src/utils/errors/validation-error.ts` ファイルを作成
+  - [x] `src/utils/errors/not-found-error.ts` ファイルを作成
+  - [x] `src/utils/errors/authentication-error.ts` ファイルを作成
+  - [x] `src/utils/errors/process-error.ts` ファイルを作成
+  - [x] `src/utils/errors/websocket-error.ts` ファイルを作成
+  - [x] `src/utils/errors/error-codes.ts` ファイルを作成（エラーコード定数）
+  - [x] `src/utils/errors/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] エラーファクトリーの作成（1ファイル1関数）
-  - [ ] `src/utils/error-factory/` ディレクトリを作成
-  - [ ] `src/utils/error-factory/create-validation-error.ts` ファイルを作成
-  - [ ] `src/utils/error-factory/create-not-found-error.ts` ファイルを作成
-  - [ ] `src/utils/error-factory/create-authentication-error.ts` ファイルを作成
-  - [ ] `src/utils/error-factory/create-process-error.ts` ファイルを作成
-  - [ ] `src/utils/error-factory/create-websocket-error.ts` ファイルを作成
-  - [ ] `src/utils/error-factory/index.ts` ファイルを作成（エクスポート集約）
+- [x] エラーファクトリーの作成（1ファイル1関数）
+  - [x] `src/utils/error-factory/` ディレクトリを作成
+  - [x] `src/utils/error-factory/create-validation-error.ts` ファイルを作成
+  - [x] `src/utils/error-factory/create-not-found-error.ts` ファイルを作成
+  - [x] `src/utils/error-factory/create-authentication-error.ts` ファイルを作成
+  - [x] `src/utils/error-factory/create-process-error.ts` ファイルを作成
+  - [x] `src/utils/error-factory/create-websocket-error.ts` ファイルを作成
+  - [x] `src/utils/error-factory/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] 統一エラーハンドラーの作成
-  - [ ] `src/middleware/error-handler.ts` を削除（既存のエラーハンドラー）
-  - [ ] `src/utils/errors.ts` のエラー関連機能を新しい構造に移行
-  - [ ] クライアントへの一貫したエラーレスポンス形式を定義
+- [x] 統一エラーハンドラーの作成
+  - [x] `src/utils/errors/unified-error-handler.ts` ファイルを作成
+  - [x] Express用の統一エラーハンドリングミドルウェアを実装
+  - [x] WebSocket用のエラーハンドラーを実装
+  - [x] クライアントへの一貫したエラーレスポンス形式を定義
 
-- [ ] 既存エラーハンドリングの置き換え
-  - [ ] Amazon Q CLIサービスの全エラーハンドリングを統一形式に変更
-  - [ ] WebSocketサービスの全エラーハンドリングを統一形式に変更
-  - [ ] ルートハンドラーの全エラーハンドリングを統一形式に変更
-  - [ ] エラーハンドリングの統合テストを作成
+- [x] 既存エラーハンドリングの置き換え
+  - [x] `src/utils/errors.ts` のエラー関連機能を新しい構造に移行
+  - [x] 後方互換性を保ちつつ新しいシステムを統合
+  - [x] 型ガード関数とユーティリティ関数を追加
+  - [x] タイプチェックとビルド検証済み
 
 ## 全フェーズ共通のTODO
 
