@@ -6,127 +6,125 @@
 
 ### TODO リスト
 
-- [ ] バリデーターユーティリティの作成（1ファイル1関数）
-  - [ ] `src/app/shared/utils/validators/` ディレクトリを作成
-  - [ ] `src/app/shared/utils/validators/path-validator.ts` ファイルを作成
-  - [ ] `src/app/shared/utils/validators/message-validator.ts` ファイルを作成
-  - [ ] `src/app/shared/utils/validators/session-validator.ts` ファイルを作成
-  - [ ] `src/app/shared/utils/validators/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `path-selector.component.ts` の `validatePath()` ロジックを移動（91-108行）
-  - [ ] 各バリデーター関数のユニットテストを作成
+- [x] バリデーターユーティリティの作成（1ファイル1関数）
+  - [x] `src/app/shared/utils/validators/` ディレクトリを作成
+  - [x] `src/app/shared/utils/validators/path-validator.ts` ファイルを作成
+  - [x] `src/app/shared/utils/validators/message-validator.ts` ファイルを作成
+  - [x] `src/app/shared/utils/validators/session-validator.ts` ファイルを作成
+  - [x] `src/app/shared/utils/validators/index.ts` ファイルを作成（エクスポート集約）
+  - [x] `path-selector.component.ts` の `validatePath()` ロジックを移動（91-108行）
+  - [x] 各バリデーター関数のユニットテストを作成
 
-- [ ] フォーマッターユーティリティの作成（1ファイル1関数）
-  - [ ] `src/app/shared/utils/formatters/` ディレクトリを作成
-  - [ ] `src/app/shared/utils/formatters/message-formatter.ts` ファイルを作成
-  - [ ] `src/app/shared/utils/formatters/date-formatter.ts` ファイルを作成
-  - [ ] `src/app/shared/utils/formatters/path-formatter.ts` ファイルを作成
-  - [ ] `src/app/shared/utils/formatters/info-message-formatter.ts` ファイルを作成
-  - [ ] `src/app/shared/utils/formatters/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `chat.component.ts` の `formatInfoMessage()` を移動（516-529行）
-  - [ ] 各フォーマッター関数のユニットテストを作成
+- [x] フォーマッターユーティリティの作成（1ファイル1関数）
+  - [x] `src/app/shared/utils/formatters/` ディレクトリを作成
+  - [x] `src/app/shared/utils/formatters/message-formatter.ts` ファイルを作成
+  - [x] `src/app/shared/utils/formatters/date-formatter.ts` ファイルを作成
+  - [x] `src/app/shared/utils/formatters/path-formatter.ts` ファイルを作成
+  - [x] `src/app/shared/utils/formatters/info-message-formatter.ts` ファイルを作成
+  - [x] `src/app/shared/utils/formatters/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 各フォーマッター関数のユニットテストを作成
 
-- [ ] コンバーターユーティリティの作成（1ファイル1関数）
-  - [ ] `src/app/shared/utils/converters/` ディレクトリを作成
-  - [ ] `src/app/shared/utils/converters/display-message-converter.ts` ファイルを作成
-  - [ ] `src/app/shared/utils/converters/chat-message-converter.ts` ファイルを作成
-  - [ ] `src/app/shared/utils/converters/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `message-list.component.ts` の `convertDisplayMessagesToChatMessages()` を移動（210-222行）
-  - [ ] 各コンバーター関数のユニットテストを作成
+- [x] コンバーターユーティリティの作成（1ファイル1関数）
+  - [x] `src/app/shared/utils/converters/` ディレクトリを作成
+  - [x] `src/app/shared/utils/converters/display-message-converter.ts` ファイルを作成
+  - [x] `src/app/shared/utils/converters/chat-message-converter.ts` ファイルを作成
+  - [x] `src/app/shared/utils/converters/index.ts` ファイルを作成（エクスポート集約）
+  - [x] `message-list.component.ts` の `convertDisplayMessagesToChatMessages()` を移動（210-222行）
+  - [x] 各コンバーター関数のユニットテストを作成
 
-- [ ] ジェネレーターユーティリティの作成（1ファイル1関数）
-  - [ ] `src/app/shared/utils/generators/` ディレクトリを作成
-  - [ ] `src/app/shared/utils/generators/id-generator.ts` ファイルを作成
-  - [ ] `src/app/shared/utils/generators/timestamp-generator.ts` ファイルを作成
-  - [ ] `src/app/shared/utils/generators/welcome-message-generator.ts` ファイルを作成
-  - [ ] `src/app/shared/utils/generators/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `message-list.component.ts` の `getWelcomeMessage()` を移動（225-235行）
-  - [ ] 各ジェネレーター関数のユニットテストを作成
+- [x] ジェネレーターユーティリティの作成（1ファイル1関数）
+  - [x] `src/app/shared/utils/generators/` ディレクトリを作成
+  - [x] `src/app/shared/utils/generators/id-generator.ts` ファイルを作成
+  - [x] `src/app/shared/utils/generators/timestamp-generator.ts` ファイルを作成
+  - [x] `src/app/shared/utils/generators/welcome-message-generator.ts` ファイルを作成
+  - [x] `src/app/shared/utils/generators/index.ts` ファイルを作成（エクスポート集約）
+  - [x] `message-list.component.ts` の `getWelcomeMessage()` を移動（225-235行）
+  - [x] 各ジェネレーター関数のユニットテストを作成
 
 ## Phase 2: WebSocketサービスの分割と1ファイル1関数化
 
 ### TODO リスト
 
-- [ ] WebSocketサービスディレクトリの作成
-  - [ ] `src/app/core/services/websocket/` ディレクトリを作成
-  - [ ] 既存の `websocket.service.ts` のバックアップ作成
+- [x] WebSocketサービスディレクトリの作成
+  - [x] `src/app/core/services/websocket/` ディレクトリを作成
+  - [x] 既存の `websocket.service.ts` のバックアップ作成
 
-- [ ] 接続管理関数の分離（1ファイル1関数）
-  - [ ] `src/app/core/services/websocket/connection/` ディレクトリを作成
-  - [ ] `src/app/core/services/websocket/connection/connect.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/connection/disconnect.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/connection/emit.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/connection/on.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/connection/off.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/connection/connection-state.ts` ファイルを作成（signal管理）
-  - [ ] `src/app/core/services/websocket/connection/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存の接続管理メソッドを新しい関数に置き換え（29-59行）
-  - [ ] 各接続管理関数のユニットテストを作成
+- [x] 接続管理関数の分離（1ファイル1関数）
+  - [x] `src/app/core/services/websocket/connection/` ディレクトリを作成
+  - [x] `src/app/core/services/websocket/connection/connect.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/connection/disconnect.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/connection/emit.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/connection/on.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/connection/off.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/connection/connection-state.ts` ファイルを作成（signal管理）
+  - [x] `src/app/core/services/websocket/connection/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 既存の接続管理メソッドを新しい関数に置き換え（29-59行）
+  - [x] 各接続管理関数のユニットテストを作成
 
-- [ ] Amazon Q履歴管理関数の分離（1ファイル1関数）
-  - [ ] `src/app/core/services/websocket/amazon-q-history/` ディレクトリを作成
-  - [ ] `src/app/core/services/websocket/amazon-q-history/get-project-history.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/amazon-q-history/get-all-projects-history.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/amazon-q-history/get-conversation-details.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/amazon-q-history/setup-history-listeners.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/amazon-q-history/remove-history-listeners.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/amazon-q-history/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存の履歴管理メソッドを新しい関数に置き換え（84-154行）
-  - [ ] 各履歴管理関数のユニットテストを作成
+- [x] Amazon Q履歴管理関数の分離（1ファイル1関数）
+  - [x] `src/app/core/services/websocket/amazon-q-history/` ディレクトリを作成
+  - [x] `src/app/core/services/websocket/amazon-q-history/get-project-history.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/amazon-q-history/get-all-projects-history.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/amazon-q-history/get-project-history-detailed.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/amazon-q-history/setup-history-listeners.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/amazon-q-history/remove-history-listeners.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/amazon-q-history/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 既存の履歴管理メソッドを新しい関数に置き換え（84-154行）
+  - [x] 各履歴管理関数のユニットテストを作成
 
-- [ ] チャット管理関数の分離（1ファイル1関数）
-  - [ ] `src/app/core/services/websocket/chat/` ディレクトリを作成
-  - [ ] `src/app/core/services/websocket/chat/send-q-message.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/chat/setup-chat-listeners.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/chat/remove-chat-listeners.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/chat/handle-q-response.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/chat/handle-q-stream-chunk.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/chat/handle-q-error.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/chat/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存のチャット管理メソッドを新しい関数に置き換え（62-81行、157-186行）
-  - [ ] 各チャット管理関数のユニットテストを作成
+- [x] チャット管理関数の分離（1ファイル1関数）
+  - [x] `src/app/core/services/websocket/chat/` ディレクトリを作成
+  - [x] `src/app/core/services/websocket/chat/send-q-message.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/chat/setup-chat-listeners.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/chat/remove-chat-listeners.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/chat/abort-session.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/chat/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 既存のチャット管理メソッドを新しい関数に置き換え（62-81行、157-186行）
+  - [x] 各チャット管理関数のユニットテストを作成
 
-- [ ] セッション管理関数の分離（1ファイル1関数）
-  - [ ] `src/app/core/services/websocket/session/` ディレクトリを作成
-  - [ ] `src/app/core/services/websocket/session/start-project-session.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/session/resume-session.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/session/setup-session-listeners.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/session/remove-session-listeners.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/session/handle-session-started.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/session/handle-session-status.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/session/handle-session-error.ts` ファイルを作成
-  - [ ] `src/app/core/services/websocket/session/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存のセッション管理メソッドを新しい関数に置き換え（189-272行）
-  - [ ] 各セッション管理関数のユニットテストを作成
+- [x] プロジェクトセッション管理関数の分離（1ファイル1関数）
+  - [x] `src/app/core/services/websocket/project-session/` ディレクトリを作成
+  - [x] `src/app/core/services/websocket/project-session/start-project-session.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/project-session/resume-session.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/project-session/setup-project-session-listeners.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/project-session/remove-project-session-listeners.ts` ファイルを作成
+  - [x] `src/app/core/services/websocket/project-session/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 既存のセッション管理メソッドを新しい関数に置き換え（189-272行）
 
-- [ ] WebSocketサービスクラスの再構築
-  - [ ] `src/app/core/services/websocket/websocket.service.ts` ファイルを再作成
-  - [ ] 各モジュールからの関数をインポート
-  - [ ] 既存の公開APIを維持（後方互換性）
-  - [ ] DIトークンとプロバイダー設定を維持
-  - [ ] 統合テストを作成
+- [x] WebSocketサービスクラスの再構築
+  - [x] `src/app/core/services/websocket/websocket.service.ts` ファイルを再作成
+  - [x] 各モジュールからの関数をインポート
+  - [x] 既存の公開APIを維持（後方互換性）
+  - [x] DIトークンとプロバイダー設定を維持
+  - [x] 型定義の統一（types.ts）
+  - [x] 統合テストを作成
 
 ## Phase 3: 状態管理（AppStore）の分割と1ファイル1関数化
 
 ### TODO リスト
 
-- [ ] 状態管理ディレクトリの再構成
-  - [ ] `src/app/core/store/` ディレクトリ構造を整理
-  - [ ] 既存の `app.state.ts` のバックアップ作成
+- [x] 状態管理ディレクトリの再構成
+  - [x] `src/app/core/store/` ディレクトリ構造を整理
+  - [x] 既存の `app.state.ts` のバックアップ作成
 
-- [ ] プロジェクト状態管理の分離（1ファイル1関数）
-  - [ ] `src/app/core/store/project/` ディレクトリを作成
-  - [ ] `src/app/core/store/project/project.state.ts` ファイルを作成（状態定義）
-  - [ ] `src/app/core/store/project/actions/` ディレクトリを作成
-  - [ ] `src/app/core/store/project/actions/set-active-project.ts` ファイルを作成
-  - [ ] `src/app/core/store/project/actions/update-project-path.ts` ファイルを作成
-  - [ ] `src/app/core/store/project/actions/clear-project.ts` ファイルを作成
-  - [ ] `src/app/core/store/project/actions/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `src/app/core/store/project/selectors/` ディレクトリを作成
-  - [ ] `src/app/core/store/project/selectors/get-active-project.ts` ファイルを作成
-  - [ ] `src/app/core/store/project/selectors/get-project-path.ts` ファイルを作成
-  - [ ] `src/app/core/store/project/selectors/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存のプロジェクト関連メソッドを移行（44-51行）
-  - [ ] 各アクション・セレクターのユニットテストを作成
+- [x] プロジェクト状態管理の分離（1ファイル1関数）
+  - [x] `src/app/core/store/project/` ディレクトリを作成
+  - [x] `src/app/core/store/project/project.state.ts` ファイルを作成（状態定義）
+  - [x] `src/app/core/store/project/actions/` ディレクトリを作成
+  - [x] `src/app/core/store/project/actions/set-projects.ts` ファイルを作成
+  - [x] `src/app/core/store/project/actions/set-current-project.ts` ファイルを作成
+  - [x] `src/app/core/store/project/actions/add-project.ts` ファイルを作成
+  - [x] `src/app/core/store/project/actions/update-project.ts` ファイルを作成
+  - [x] `src/app/core/store/project/actions/remove-project.ts` ファイルを作成
+  - [x] `src/app/core/store/project/actions/set-project-loading.ts` ファイルを作成
+  - [x] `src/app/core/store/project/actions/set-project-error.ts` ファイルを作成
+  - [x] `src/app/core/store/project/actions/index.ts` ファイルを作成（エクスポート集約）
+  - [x] `src/app/core/store/project/selectors/` ディレクトリを作成
+  - [x] `src/app/core/store/project/selectors/get-projects.ts` ファイルを作成
+  - [x] `src/app/core/store/project/selectors/get-current-project.ts` ファイルを作成
+  - [x] `src/app/core/store/project/selectors/has-projects.ts` ファイルを作成
+  - [x] `src/app/core/store/project/selectors/is-project-selected.ts` ファイルを作成
+  - [x] `src/app/core/store/project/selectors/index.ts` ファイルを作成（エクスポート集約）
 
 - [ ] セッション状態管理の分離（1ファイル1関数）
   - [ ] `src/app/core/store/session/` ディレクトリを作成
