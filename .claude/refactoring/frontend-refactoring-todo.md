@@ -126,57 +126,69 @@
   - [x] `src/app/core/store/project/selectors/is-project-selected.ts` ファイルを作成
   - [x] `src/app/core/store/project/selectors/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] セッション状態管理の分離（1ファイル1関数）
-  - [ ] `src/app/core/store/session/` ディレクトリを作成
-  - [ ] `src/app/core/store/session/session.state.ts` ファイルを作成（状態定義）
-  - [ ] `src/app/core/store/session/actions/` ディレクトリを作成
-  - [ ] `src/app/core/store/session/actions/start-session.ts` ファイルを作成
-  - [ ] `src/app/core/store/session/actions/update-session-status.ts` ファイルを作成
-  - [ ] `src/app/core/store/session/actions/end-session.ts` ファイルを作成
-  - [ ] `src/app/core/store/session/actions/set-session-id.ts` ファイルを作成
-  - [ ] `src/app/core/store/session/actions/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `src/app/core/store/session/selectors/` ディレクトリを作成
-  - [ ] `src/app/core/store/session/selectors/get-session-id.ts` ファイルを作成
-  - [ ] `src/app/core/store/session/selectors/get-session-status.ts` ファイルを作成
-  - [ ] `src/app/core/store/session/selectors/is-session-active.ts` ファイルを作成
-  - [ ] `src/app/core/store/session/selectors/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存のセッション関連メソッドを移行（53-60行）
-  - [ ] 各アクション・セレクターのユニットテストを作成
+- [x] セッション状態管理の分離（1ファイル1関数）
+  - [x] `src/app/core/store/session/` ディレクトリを作成
+  - [x] `src/app/core/store/session/session.state.ts` ファイルを作成（状態定義）
+  - [x] `src/app/core/store/session/actions/` ディレクトリを作成
+  - [x] `src/app/core/store/session/actions/set-sessions.ts` ファイルを作成
+  - [x] `src/app/core/store/session/actions/set-current-session.ts` ファイルを作成
+  - [x] `src/app/core/store/session/actions/set-current-q-session.ts` ファイルを作成
+  - [x] `src/app/core/store/session/actions/add-session.ts` ファイルを作成
+  - [x] `src/app/core/store/session/actions/set-session-starting.ts` ファイルを作成
+  - [x] `src/app/core/store/session/actions/set-session-error.ts` ファイルを作成
+  - [x] `src/app/core/store/session/actions/switch-to-active-session.ts` ファイルを作成
+  - [x] `src/app/core/store/session/actions/clear-current-session.ts` ファイルを作成
+  - [x] `src/app/core/store/session/actions/index.ts` ファイルを作成（エクスポート集約）
+  - [x] `src/app/core/store/session/selectors/` ディレクトリを作成
+  - [x] `src/app/core/store/session/selectors/get-sessions.ts` ファイルを作成
+  - [x] `src/app/core/store/session/selectors/get-current-session.ts` ファイルを作成
+  - [x] `src/app/core/store/session/selectors/get-current-q-session.ts` ファイルを作成
+  - [x] `src/app/core/store/session/selectors/is-session-active.ts` ファイルを作成
+  - [x] `src/app/core/store/session/selectors/get-session-starting.ts` ファイルを作成
+  - [x] `src/app/core/store/session/selectors/get-session-error.ts` ファイルを作成
+  - [x] `src/app/core/store/session/selectors/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] Amazon Q履歴状態管理の分離（1ファイル1関数）
-  - [ ] `src/app/core/store/amazon-q-history/` ディレクトリを作成
-  - [ ] `src/app/core/store/amazon-q-history/history.state.ts` ファイルを作成（状態定義）
-  - [ ] `src/app/core/store/amazon-q-history/actions/` ディレクトリを作成
-  - [ ] `src/app/core/store/amazon-q-history/actions/set-project-history.ts` ファイルを作成
-  - [ ] `src/app/core/store/amazon-q-history/actions/set-all-projects-history.ts` ファイルを作成
-  - [ ] `src/app/core/store/amazon-q-history/actions/set-conversation-details.ts` ファイルを作成
-  - [ ] `src/app/core/store/amazon-q-history/actions/clear-history.ts` ファイルを作成
-  - [ ] `src/app/core/store/amazon-q-history/actions/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `src/app/core/store/amazon-q-history/selectors/` ディレクトリを作成
-  - [ ] `src/app/core/store/amazon-q-history/selectors/get-project-history.ts` ファイルを作成
-  - [ ] `src/app/core/store/amazon-q-history/selectors/get-all-projects-history.ts` ファイルを作成
-  - [ ] `src/app/core/store/amazon-q-history/selectors/get-conversation-details.ts` ファイルを作成
-  - [ ] `src/app/core/store/amazon-q-history/selectors/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存の履歴関連メソッドを移行（62-74行）
-  - [ ] 各アクション・セレクターのユニットテストを作成
+- [x] Amazon Q履歴状態管理の分離（1ファイル1関数）
+  - [x] `src/app/core/store/amazon-q-history/` ディレクトリを作成
+  - [x] `src/app/core/store/amazon-q-history/amazon-q-history.state.ts` ファイルを作成（状態定義）
+  - [x] `src/app/core/store/amazon-q-history/actions/` ディレクトリを作成
+  - [x] `src/app/core/store/amazon-q-history/actions/set-amazon-q-history.ts` ファイルを作成
+  - [x] `src/app/core/store/amazon-q-history/actions/set-current-q-conversation.ts` ファイルを作成
+  - [x] `src/app/core/store/amazon-q-history/actions/set-detailed-history-messages.ts` ファイルを作成
+  - [x] `src/app/core/store/amazon-q-history/actions/set-history-stats.ts` ファイルを作成
+  - [x] `src/app/core/store/amazon-q-history/actions/set-q-history-loading.ts` ファイルを作成
+  - [x] `src/app/core/store/amazon-q-history/actions/switch-to-history-view.ts` ファイルを作成
+  - [x] `src/app/core/store/amazon-q-history/actions/switch-to-detailed-history-view.ts` ファイルを作成
+  - [x] `src/app/core/store/amazon-q-history/actions/add-q-history-item.ts` ファイルを作成
+  - [x] `src/app/core/store/amazon-q-history/actions/index.ts` ファイルを作成（エクスポート集約）
+  - [x] `src/app/core/store/amazon-q-history/selectors/` ディレクトリを作成
+  - [x] `src/app/core/store/amazon-q-history/selectors/get-amazon-q-history.ts` ファイルを作成
+  - [x] `src/app/core/store/amazon-q-history/selectors/get-current-q-conversation.ts` ファイルを作成
+  - [x] `src/app/core/store/amazon-q-history/selectors/get-detailed-history-messages.ts` ファイルを作成
+  - [x] `src/app/core/store/amazon-q-history/selectors/get-history-stats.ts` ファイルを作成
+  - [x] `src/app/core/store/amazon-q-history/selectors/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] チャット状態管理の分離（1ファイル1関数）
-  - [ ] `src/app/core/store/chat/` ディレクトリを作成
-  - [ ] `src/app/core/store/chat/chat.state.ts` ファイルを作成（状態定義）
-  - [ ] `src/app/core/store/chat/actions/` ディレクトリを作成
-  - [ ] `src/app/core/store/chat/actions/add-message.ts` ファイルを作成
-  - [ ] `src/app/core/store/chat/actions/update-message.ts` ファイルを作成
-  - [ ] `src/app/core/store/chat/actions/delete-message.ts` ファイルを作成
-  - [ ] `src/app/core/store/chat/actions/clear-messages.ts` ファイルを作成
-  - [ ] `src/app/core/store/chat/actions/set-messages.ts` ファイルを作成
-  - [ ] `src/app/core/store/chat/actions/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `src/app/core/store/chat/selectors/` ディレクトリを作成
-  - [ ] `src/app/core/store/chat/selectors/get-messages.ts` ファイルを作成
-  - [ ] `src/app/core/store/chat/selectors/get-message-by-id.ts` ファイルを作成
-  - [ ] `src/app/core/store/chat/selectors/get-latest-message.ts` ファイルを作成
-  - [ ] `src/app/core/store/chat/selectors/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存のメッセージ関連メソッドを移行（76-127行）
-  - [ ] 各アクション・セレクターのユニットテストを作成
+- [x] チャット状態管理の分離（1ファイル1関数）
+  - [x] `src/app/core/store/chat/` ディレクトリを作成
+  - [x] `src/app/core/store/chat/chat.state.ts` ファイルを作成（状態定義）
+  - [x] `src/app/core/store/chat/actions/` ディレクトリを作成
+  - [x] `src/app/core/store/chat/actions/add-chat-message.ts` ファイルを作成
+  - [x] `src/app/core/store/chat/actions/update-chat-message.ts` ファイルを作成
+  - [x] `src/app/core/store/chat/actions/remove-chat-message.ts` ファイルを作成
+  - [x] `src/app/core/store/chat/actions/set-chat-messages.ts` ファイルを作成
+  - [x] `src/app/core/store/chat/actions/clear-chat-messages.ts` ファイルを作成
+  - [x] `src/app/core/store/chat/actions/index.ts` ファイルを作成（エクスポート集約）
+  - [x] `src/app/core/store/chat/selectors/` ディレクトリを作成
+  - [x] `src/app/core/store/chat/selectors/get-chat-messages.ts` ファイルを作成
+  - [x] `src/app/core/store/chat/selectors/get-session-messages.ts` ファイルを作成
+  - [x] `src/app/core/store/chat/selectors/has-chat-messages.ts` ファイルを作成
+  - [x] `src/app/core/store/chat/selectors/index.ts` ファイルを作成（エクスポート集約）
+
+- [ ] 統合状態管理の作成（1ファイル1関数）
+  - [ ] `src/app/core/store/app.state.ts` ファイルを新しいモジュラー構造で再作成
+  - [ ] 各分離されたストアを統合する包括的なストア作成
+  - [ ] 従来のAppStoreと互換性のあるインターフェース提供
+  - [ ] 既存コンポーネントでの使用を新しいストアに移行
 
 - [ ] UI状態管理の分離（1ファイル1関数）
   - [ ] `src/app/core/store/ui/` ディレクトリを作成
