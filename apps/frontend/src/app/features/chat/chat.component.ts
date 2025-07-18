@@ -46,6 +46,7 @@ import {
   selector: 'app-chat',
   imports: [
     CommonModule, 
+    MessageListComponent,
     ChatHeaderComponent,
     SessionStartComponent,
     ChatErrorComponent,
@@ -71,7 +72,7 @@ import {
           ></app-chat-messages>
         } @else if (appStore.sessionStarting()) {
           <!-- Session Starting -->
-          <app-session-start [sessionStatus]="sessionStatus"></app-session-start>
+          <app-session-start [sessionStatus]="sessionStatus()"></app-session-start>
         } @else if (appStore.sessionError()) {
           <!-- Session Error -->
           <app-chat-error 

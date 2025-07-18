@@ -20,7 +20,8 @@ export function formatPath(
 
   // ホームディレクトリを ~ に置換
   if (options.showHome) {
-    const homeDir = process?.env?.HOME || '/Users';
+    // ブラウザ環境では一般的なパスを使用
+    const homeDir = '/Users';
     if (formatted.startsWith(homeDir)) {
       formatted = formatted.replace(homeDir, '~');
     }

@@ -173,7 +173,7 @@ export interface AppUIState {
 }
 
 // UI状態の部分更新型
-export type PartialUIState<T> = Partial<T> & Pick<T, 'loading' | 'error'>;
+export type PartialUIState<T> = Partial<T> & Pick<T, keyof T & ('loading' | 'error')>;
 
 // 型ガード関数
 export function isDisplayMessage(data: unknown): data is DisplayMessage {
