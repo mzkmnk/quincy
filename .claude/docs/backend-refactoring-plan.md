@@ -68,74 +68,74 @@
 
 ### TODO リスト
 
-- [ ] Amazon Q CLIサービスディレクトリの作成
-  - [ ] `src/services/amazon-q-cli/` ディレクトリを作成
-  - [ ] 既存の `amazon-q-cli.ts` を `amazon-q-cli.bak.ts` にリネーム（バックアップ）
+- [x] Amazon Q CLIサービスディレクトリの作成
+  - [x] `src/services/amazon-q-cli/` ディレクトリを作成
+  - [x] 既存の `amazon-q-cli.ts` を削除（git管理のためバックアップ不要）
 
-- [ ] プロセス管理関数の分離（1ファイル1関数）
-  - [ ] `src/services/amazon-q-cli/process-manager/` ディレクトリを作成
-  - [ ] `src/services/amazon-q-cli/process-manager/spawn-process.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/process-manager/kill-process.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/process-manager/monitor-resources.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/process-manager/wait-for-process-start.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/process-manager/start-resource-monitoring.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/process-manager/update-all-session-resources.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/process-manager/cleanup-inactive-sessions.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/process-manager/setup-cleanup-handlers.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/process-manager/destroy.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/process-manager/index.ts` ファイルを作成（エクスポート集約）
+- [x] プロセス管理関数の分離（1ファイル1関数）
+  - [x] `src/services/amazon-q-cli/process-manager/` ディレクトリを作成
+  - [x] `src/services/amazon-q-cli/process-manager/spawn-process.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/process-manager/kill-process.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/process-manager/monitor-resources.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/process-manager/wait-for-process-start.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/process-manager/start-resource-monitoring.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/process-manager/update-all-session-resources.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/process-manager/cleanup-inactive-sessions.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/process-manager/setup-cleanup-handlers.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/process-manager/destroy.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/process-manager/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] セッション管理関数の分離（1ファイル1関数）
-  - [ ] `src/services/amazon-q-cli/session-manager/` ディレクトリを作成
-  - [ ] `src/services/amazon-q-cli/session-manager/types.ts` ファイルを作成（QProcessSession型など）
-  - [ ] `src/services/amazon-q-cli/session-manager/create-session.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/session-manager/get-session.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/session-manager/get-active-sessions.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/session-manager/get-session-runtime.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/session-manager/get-session-stats.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/session-manager/terminate-all-sessions.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/session-manager/update-session-resources.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/session-manager/send-input.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/session-manager/abort-session.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/session-manager/index.ts` ファイルを作成（エクスポート集約）
+- [x] セッション管理関数の分離（1ファイル1関数）
+  - [x] `src/services/amazon-q-cli/session-manager/` ディレクトリを作成
+  - [x] `src/services/amazon-q-cli/session-manager/types.ts` ファイルを作成（QProcessSession型など）
+  - [x] `src/services/amazon-q-cli/session-manager/create-session.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/session-manager/get-session.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/session-manager/get-active-sessions.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/session-manager/get-session-runtime.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/session-manager/get-session-stats.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/session-manager/terminate-all-sessions.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/session-manager/update-session-resources.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/session-manager/send-input.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/session-manager/abort-session.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/session-manager/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] メッセージ処理関数の分離（1ファイル1関数）
-  - [ ] `src/services/amazon-q-cli/message-handler/` ディレクトリを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/handle-stdout.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/handle-stderr.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/classify-stderr-message.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/get-info-message-type.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/should-skip-output.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/is-thinking-message.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/is-initialization-message.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/is-initialization-complete.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/should-skip-thinking.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/update-thinking-state.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/should-skip-duplicate-info.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/setup-process-handlers.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/message-handler/index.ts` ファイルを作成（エクスポート集約）
+- [x] メッセージ処理関数の分離（1ファイル1関数）
+  - [x] `src/services/amazon-q-cli/message-handler/` ディレクトリを作成
+  - [x] `src/services/amazon-q-cli/message-handler/handle-stdout.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/message-handler/handle-stderr.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/message-handler/classify-stderr-message.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/message-handler/get-info-message-type.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/message-handler/should-skip-output.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/message-handler/is-thinking-message.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/message-handler/is-initialization-message.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/message-handler/is-initialization-complete.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/message-handler/should-skip-thinking.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/message-handler/update-thinking-state.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/message-handler/should-skip-duplicate-info.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/message-handler/setup-process-handlers.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/message-handler/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] バッファ管理関数の分離（1ファイル1関数）
-  - [ ] `src/services/amazon-q-cli/buffer-manager/` ディレクトリを作成
-  - [ ] `src/services/amazon-q-cli/buffer-manager/flush-incomplete-output-line.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/buffer-manager/flush-incomplete-error-line.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/buffer-manager/flush-output-buffer.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/buffer-manager/add-to-initialization-buffer.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/buffer-manager/flush-initialization-buffer.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/buffer-manager/combine-initialization-messages.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/buffer-manager/index.ts` ファイルを作成（エクスポート集約）
+- [x] バッファ管理関数の分離（1ファイル1関数）
+  - [x] `src/services/amazon-q-cli/buffer-manager/` ディレクトリを作成
+  - [x] `src/services/amazon-q-cli/buffer-manager/flush-incomplete-output-line.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/buffer-manager/flush-incomplete-error-line.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/buffer-manager/flush-output-buffer.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/buffer-manager/add-to-initialization-buffer.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/buffer-manager/flush-initialization-buffer.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/buffer-manager/combine-initialization-messages.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/buffer-manager/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] CLI可用性チェック関数の分離（Phase 1で一部実装済み）
-  - [ ] `src/services/amazon-q-cli/cli-checker/` ディレクトリを作成
-  - [ ] `src/services/amazon-q-cli/cli-checker/check-cli-availability.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/cli-checker/build-command-args.ts` ファイルを作成
-  - [ ] `src/services/amazon-q-cli/cli-checker/index.ts` ファイルを作成（エクスポート集約）
+- [x] CLI可用性チェック関数の分離（Phase 1で一部実装済み）
+  - [x] `src/services/amazon-q-cli/cli-checker/` ディレクトリを作成
+  - [x] `src/services/amazon-q-cli/cli-checker/check-cli-availability.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/cli-checker/build-command-args.ts` ファイルを作成
+  - [x] `src/services/amazon-q-cli/cli-checker/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] メインサービスクラスの作成
-  - [ ] `src/services/amazon-q-cli/index.ts` ファイルを作成
-  - [ ] `AmazonQCLIService` クラスを再構築（各関数のインポートと統合）
-  - [ ] 既存の公開APIメソッドを維持（後方互換性）
-  - [ ] イベントエミッターの設定を維持
+- [x] メインサービスクラスの作成
+  - [x] `src/services/amazon-q-cli/index.ts` ファイルを作成
+  - [x] `AmazonQCLIService` クラスを再構築（各関数のインポートと統合）
+  - [x] 既存の公開APIメソッドを維持（後方互換性）
+  - [x] イベントエミッターの設定を維持
   - [ ] 統合テストを作成
 
 ## Phase 3: WebSocketサービスの分割と1ファイル1関数化
