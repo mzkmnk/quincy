@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { getProjectHistory, getAllProjectsHistory, getProjectHistoryDetailed } from '../amazon-q-history';
 
 describe('Amazon Q History Functions', () => {
@@ -5,8 +6,8 @@ describe('Amazon Q History Functions', () => {
 
   beforeEach(() => {
     mockSocket = {
-      emit: jest.fn(),
-      once: jest.fn(),
+      emit: vi.fn(),
+      once: vi.fn(),
       connected: true
     };
   });
@@ -40,11 +41,11 @@ describe('Amazon Q History Functions', () => {
       const promise = getAllProjectsHistory(mockSocket);
 
       // 成功レスポンスをシミュレート
-      const successCallback = mockSocket.once.mock.calls.find(call => call[0] === 'q:history:list')[1];
+      const successCallback = mockSocket.once.mock.calls.find((call: any) => call[0] === 'q:history:list')[1];
       successCallback();
 
       await expect(promise).resolves.toBeUndefined();
-      expect(mockSocket.emit).toHaveBeenCalledWith('q:projects');
+      expect(mockSocket.emit).toHaveBeenCalledWith('q:projects', undefined);
     });
 
     it('未接続のソケットでエラーを返す', async () => {
@@ -58,16 +59,16 @@ describe('Amazon Q History Functions', () => {
     });
 
     it('タイムアウトでエラーを返す', async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       
       const promise = getAllProjectsHistory(mockSocket);
       
       // タイムアウトを発生させる
-      jest.advanceTimersByTime(10000);
+      vi.advanceTimersByTime(10000);
       
       await expect(promise).rejects.toThrow('履歴取得がタイムアウトしました');
       
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
   });
 });

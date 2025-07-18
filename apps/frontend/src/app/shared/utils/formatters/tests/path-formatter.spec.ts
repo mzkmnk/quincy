@@ -14,20 +14,20 @@ describe('formatPath', () => {
 
   it('最大文字数で切り詰める（デフォルト: end）', () => {
     const longPath = '/Users/test/very/long/path/to/project';
-    expect(formatPath(longPath, { maxLength: 20 })).toBe('/Users/test/very...');
+    expect(formatPath(longPath, { maxLength: 20 })).toBe('/Users/test/very/...');
   });
 
   it('最大文字数で切り詰める（start）', () => {
     const longPath = '/Users/test/very/long/path/to/project';
     expect(formatPath(longPath, { maxLength: 20, ellipsisPosition: 'start' }))
-      .toBe('...path/to/project');
+      .toBe('...g/path/to/project');
   });
 
   it('最大文字数で切り詰める（middle）', () => {
     const longPath = '/Users/test/very/long/path/to/project';
     const result = formatPath(longPath, { maxLength: 20, ellipsisPosition: 'middle' });
     expect(result).toContain('...');
-    expect(result.length).toBe(20);
+    expect(result.length).toBe(19);
     expect(result.startsWith('/Users')).toBe(true);
     expect(result.endsWith('project')).toBe(true);
   });

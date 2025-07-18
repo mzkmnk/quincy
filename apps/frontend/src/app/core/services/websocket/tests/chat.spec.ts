@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { sendQMessage, abortQSession } from '../chat';
 
 describe('Chat Functions', () => {
@@ -5,7 +6,7 @@ describe('Chat Functions', () => {
 
   beforeEach(() => {
     mockSocket = {
-      emit: jest.fn(),
+      emit: vi.fn(),
       connected: true
     };
   });

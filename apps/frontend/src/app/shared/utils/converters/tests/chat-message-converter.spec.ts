@@ -8,19 +8,19 @@ describe('convertDisplayMessagesToChatMessages', () => {
         id: 'msg1',
         type: 'user',
         content: 'First message',
-        timestamp: 1000000000000
+        timestamp: new Date(1000000000000)
       },
       {
         id: 'msg2',
         type: 'assistant',
         content: 'Second message',
-        timestamp: 1000000001000
+        timestamp: new Date(1000000001000)
       },
       {
         id: 'msg3',
         type: 'thinking',
         content: 'Thinking...',
-        timestamp: 1000000002000
+        timestamp: new Date(1000000002000)
       }
     ];
 

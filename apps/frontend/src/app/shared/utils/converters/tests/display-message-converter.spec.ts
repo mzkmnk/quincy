@@ -7,7 +7,7 @@ describe('convertDisplayMessageToChatMessage', () => {
       id: 'msg123',
       type: 'user',
       content: 'Hello',
-      timestamp: 1234567890000
+      timestamp: new Date(1234567890000)
     };
 
     const result = convertDisplayMessageToChatMessage(displayMessage);
@@ -26,7 +26,7 @@ describe('convertDisplayMessageToChatMessage', () => {
       id: 'msg456',
       type: 'assistant',
       content: 'Hi there!',
-      timestamp: 1234567890000
+      timestamp: new Date(1234567890000)
     };
 
     const result = convertDisplayMessageToChatMessage(displayMessage);
@@ -45,7 +45,7 @@ describe('convertDisplayMessageToChatMessage', () => {
       id: 'msg789',
       type: 'thinking',
       content: 'Processing...',
-      timestamp: 1234567890000
+      timestamp: new Date(1234567890000)
     };
 
     const result = convertDisplayMessageToChatMessage(displayMessage);
