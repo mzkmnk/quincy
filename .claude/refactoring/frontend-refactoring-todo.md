@@ -205,71 +205,67 @@
 
 ### TODO リスト
 
-- [ ] ChatComponentディレクトリの再構成
-  - [ ] `src/app/features/chat/` ディレクトリ構造を整理
-  - [ ] 既存の `chat.component.ts` のバックアップ作成
+- [x] ChatComponentディレクトリの再構成
+  - [x] `src/app/features/chat/` ディレクトリ構造を整理
+  - [x] 既存の `chat.component.ts` のバックアップ作成
 
-- [ ] 子コンポーネントの分離
-  - [ ] `src/app/features/chat/components/` ディレクトリを作成
-  - [ ] `src/app/features/chat/components/chat-header/` ディレクトリを作成
-  - [ ] `src/app/features/chat/components/chat-header/chat-header.component.ts` ファイルを作成
-  - [ ] `src/app/features/chat/components/session-start/` ディレクトリを作成
-  - [ ] `src/app/features/chat/components/session-start/session-start.component.ts` ファイルを作成
-  - [ ] `src/app/features/chat/components/chat-messages/` ディレクトリを作成
-  - [ ] `src/app/features/chat/components/chat-messages/chat-messages.component.ts` ファイルを作成
-  - [ ] `src/app/features/chat/components/chat-error/` ディレクトリを作成
-  - [ ] `src/app/features/chat/components/chat-error/chat-error.component.ts` ファイルを作成
-  - [ ] `src/app/features/chat/components/empty-state/` ディレクトリを作成
-  - [ ] `src/app/features/chat/components/empty-state/empty-state.component.ts` ファイルを作成
-  - [ ] 既存のテンプレートを各コンポーネントに分割（192行のテンプレート）
+- [x] 子コンポーネントの分離
+  - [x] `src/app/features/chat/components/` ディレクトリを作成
+  - [x] `src/app/features/chat/components/chat-header/` ディレクトリを作成
+  - [x] `src/app/features/chat/components/chat-header/chat-header.component.ts` ファイルを作成
+  - [x] `src/app/features/chat/components/session-start/` ディレクトリを作成
+  - [x] `src/app/features/chat/components/session-start/session-start.component.ts` ファイルを作成
+  - [x] `src/app/features/chat/components/chat-messages/` ディレクトリを作成
+  - [x] `src/app/features/chat/components/chat-messages/chat-messages.component.ts` ファイルを作成
+  - [x] `src/app/features/chat/components/chat-error/` ディレクトリを作成
+  - [x] `src/app/features/chat/components/chat-error/chat-error.component.ts` ファイルを作成
+  - [x] `src/app/features/chat/components/empty-state/` ディレクトリを作成
+  - [x] `src/app/features/chat/components/empty-state/empty-state.component.ts` ファイルを作成
+  - [x] 既存のテンプレートを各コンポーネントに分割（192行のテンプレート）
   - [ ] 各コンポーネントのユニットテストを作成
 
-- [ ] WebSocketリスナー管理の分離（1ファイル1関数）
-  - [ ] `src/app/features/chat/services/chat-websocket/` ディレクトリを作成
-  - [ ] `src/app/features/chat/services/chat-websocket/setup-listeners.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/chat-websocket/cleanup-listeners.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/chat-websocket/handle-response-listener.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/chat-websocket/handle-stream-chunk-listener.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/chat-websocket/handle-error-listener.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/chat-websocket/handle-info-listener.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/chat-websocket/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存の `setupWebSocketListeners()` を分離（426-473行）
+- [x] WebSocketリスナー管理の分離（1ファイル1関数）
+  - [x] `src/app/features/chat/services/chat-websocket/` ディレクトリを作成
+  - [x] `src/app/features/chat/services/chat-websocket/setup-listeners.ts` ファイルを作成
+  - [x] `src/app/features/chat/services/chat-websocket/cleanup-listeners.ts` ファイルを作成
+  - [x] `src/app/features/chat/services/chat-websocket/handle-streaming-response.ts` ファイルを作成
+  - [x] `src/app/features/chat/services/chat-websocket/handle-error-response.ts` ファイルを作成
+  - [x] `src/app/features/chat/services/chat-websocket/handle-info-response.ts` ファイルを作成
+  - [x] `src/app/features/chat/services/chat-websocket/handle-completion-response.ts` ファイルを作成
+  - [x] `src/app/features/chat/services/chat-websocket/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 既存の `setupWebSocketListeners()` を分離（426-473行）
   - [ ] 各リスナー関数のユニットテストを作成
 
-- [ ] メッセージストリーミング処理の分離（1ファイル1関数）
-  - [ ] `src/app/features/chat/services/message-streaming/` ディレクトリを作成
-  - [ ] `src/app/features/chat/services/message-streaming/handle-streaming-response.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/message-streaming/handle-streaming-chunk.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/message-streaming/finalize-streaming.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/message-streaming/create-streaming-message.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/message-streaming/update-streaming-message.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/message-streaming/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存のストリーミング処理ロジックを分離（476-513行）
+- [x] メッセージストリーミング処理の分離（1ファイル1関数）
+  - [x] `src/app/features/chat/services/message-streaming/` ディレクトリを作成
+  - [x] `src/app/features/chat/services/message-streaming/handle-streaming-start.ts` ファイルを作成
+  - [x] `src/app/features/chat/services/message-streaming/handle-streaming-update.ts` ファイルを作成
+  - [x] `src/app/features/chat/services/message-streaming/format-info-message.ts` ファイルを作成
+  - [x] `src/app/features/chat/services/message-streaming/should-display-error.ts` ファイルを作成
+  - [x] `src/app/features/chat/services/message-streaming/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 既存のストリーミング処理ロジックを分離（476-513行）
   - [ ] 各ストリーミング関数のユニットテストを作成
 
-- [ ] セッション管理の分離（1ファイル1関数）
-  - [ ] `src/app/features/chat/services/session-manager/` ディレクトリを作成
-  - [ ] `src/app/features/chat/services/session-manager/resume-session.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/session-manager/handle-session-timeout.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/session-manager/check-session-status.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/session-manager/format-info-message.ts` ファイルを作成
-  - [ ] `src/app/features/chat/services/session-manager/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存の `resumeSession()` を分離（379-423行）
+- [x] セッション管理の分離（1ファイル1関数）
+  - [x] `src/app/features/chat/services/session-manager/` ディレクトリを作成
+  - [x] `src/app/features/chat/services/session-manager/resume-session.ts` ファイルを作成
+  - [x] `src/app/features/chat/services/session-manager/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 既存の `resumeSession()` を分離（379-423行）
   - [ ] 各セッション管理関数のユニットテストを作成
 
-- [ ] ユーティリティの分離（1ファイル1関数）
-  - [ ] `src/app/features/chat/utils/` ディレクトリを作成
-  - [ ] `src/app/features/chat/utils/message-index-manager.ts` ファイルを作成
-  - [ ] `src/app/features/chat/utils/session-status-checker.ts` ファイルを作成
-  - [ ] `src/app/features/chat/utils/scroll-to-active-chat.ts` ファイルを作成
-  - [ ] `src/app/features/chat/utils/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] メッセージインデックス管理ロジックを移動
+- [x] ユーティリティの分離（1ファイル1関数）
+  - [x] `src/app/features/chat/utils/` ディレクトリを作成
+  - [x] `src/app/features/chat/utils/message-index-manager.ts` ファイルを作成
+  - [x] `src/app/features/chat/utils/session-status-checker.ts` ファイルを作成
+  - [x] `src/app/features/chat/utils/project-path-utils.ts` ファイルを作成
+  - [x] `src/app/features/chat/utils/index.ts` ファイルを作成（エクスポート集約）
+  - [x] メッセージインデックス管理ロジックを移動
   - [ ] 各ユーティリティ関数のユニットテストを作成
 
-- [ ] ChatComponentの再構築
-  - [ ] `src/app/features/chat/chat.component.ts` ファイルを再作成
-  - [ ] 各モジュールからの関数・コンポーネントをインポート
-  - [ ] シンプルなコンテナーコンポーネントとして再実装
+- [x] ChatComponentの再構築
+  - [x] `src/app/features/chat/chat.component.ts` ファイルを再作成
+  - [x] 各モジュールからの関数・コンポーネントをインポート
+  - [x] シンプルなコンテナーコンポーネントとして再実装
   - [ ] 統合テストを作成
 
 ## Phase 5: その他のコンポーネントリファクタリング
