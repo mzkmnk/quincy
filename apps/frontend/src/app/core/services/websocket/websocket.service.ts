@@ -3,7 +3,7 @@ import { Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
 
 // Connection管理
-import { connect, disconnect, emit, on, off, ConnectionStateManager } from './websocket/connection';
+import { connect, disconnect, emit, on, off, ConnectionStateManager } from './connection';
 
 // Amazon Q履歴管理
 import { 
@@ -14,7 +14,7 @@ import {
   setupHistoryDetailedListeners,
   removeHistoryListeners,
   removeHistoryDetailedListeners
-} from './websocket/amazon-q-history';
+} from './amazon-q-history';
 
 // チャット管理
 import { 
@@ -22,7 +22,7 @@ import {
   setupChatListeners, 
   removeChatListeners, 
   abortQSession 
-} from './websocket/chat';
+} from './chat';
 
 // プロジェクトセッション管理
 import { 
@@ -31,7 +31,7 @@ import {
   setupProjectSessionListeners, 
   createSessionFailedObservable, 
   removeProjectSessionListeners 
-} from './websocket/project-session';
+} from './project-session';
 
 // 型定義
 import { 
@@ -40,7 +40,7 @@ import {
   HistoryListeners, 
   ProjectSessionListeners, 
   ListenerFlags 
-} from './websocket/types';
+} from './types';
 
 import type { ConversationMetadata, AmazonQConversation, QProjectStartEvent, QSessionStartedEvent } from '@quincy/shared';
 
