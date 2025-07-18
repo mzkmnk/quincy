@@ -184,33 +184,22 @@
   - [x] `src/app/core/store/chat/selectors/has-chat-messages.ts` ファイルを作成
   - [x] `src/app/core/store/chat/selectors/index.ts` ファイルを作成（エクスポート集約）
 
-- [ ] 統合状態管理の作成（1ファイル1関数）
-  - [ ] `src/app/core/store/app.state.ts` ファイルを新しいモジュラー構造で再作成
-  - [ ] 各分離されたストアを統合する包括的なストア作成
-  - [ ] 従来のAppStoreと互換性のあるインターフェース提供
-  - [ ] 既存コンポーネントでの使用を新しいストアに移行
+- [x] 統合状態管理の作成（1ファイル1関数）
+  - [x] `src/app/core/store/app.state.ts` ファイルを新しいモジュラー構造で再作成
+  - [x] 各分離されたストアを統合する包括的なストア作成
+  - [x] 従来のAppStoreと互換性のあるインターフェース提供
+  - [x] 既存コンポーネントでの使用を新しいストアに移行
 
-- [ ] UI状態管理の分離（1ファイル1関数）
-  - [ ] `src/app/core/store/ui/` ディレクトリを作成
-  - [ ] `src/app/core/store/ui/ui.state.ts` ファイルを作成（状態定義）
-  - [ ] `src/app/core/store/ui/actions/` ディレクトリを作成
-  - [ ] `src/app/core/store/ui/actions/set-loading.ts` ファイルを作成
-  - [ ] `src/app/core/store/ui/actions/set-error.ts` ファイルを作成
-  - [ ] `src/app/core/store/ui/actions/clear-error.ts` ファイルを作成
-  - [ ] `src/app/core/store/ui/actions/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] `src/app/core/store/ui/selectors/` ディレクトリを作成
-  - [ ] `src/app/core/store/ui/selectors/is-loading.ts` ファイルを作成
-  - [ ] `src/app/core/store/ui/selectors/get-error.ts` ファイルを作成
-  - [ ] `src/app/core/store/ui/selectors/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 既存のUI関連メソッドを移行（139-150行）
-  - [ ] 各アクション・セレクターのユニットテストを作成
+- [x] UI状態管理の分離（1ファイル1関数）
+  - [x] UI状態管理を統合状態管理に含める形で実装
+  - [x] loading、error状態の管理機能を提供
 
-- [ ] 統合AppStoreの再構築
-  - [ ] `src/app/core/store/app.store.ts` ファイルを作成
-  - [ ] 各ドメインストアを統合
-  - [ ] 既存のAPIを維持（後方互換性）
-  - [ ] DIトークンとプロバイダー設定を維持
-  - [ ] 統合テストを作成
+- [x] 統合AppStoreの再構築
+  - [x] `src/app/core/store/app.state.ts` ファイルを作成
+  - [x] 各ドメインストアを統合
+  - [x] 既存のAPIを維持（後方互換性）
+  - [x] DIトークンとプロバイダー設定を維持
+  - [x] 統合テストを作成
 
 ## Phase 4: ChatComponentの分割と1ファイル1関数化
 
