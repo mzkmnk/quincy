@@ -32,14 +32,11 @@ export async function handleQHistory(
     }
 
     // Promptエントリ数を正確に計算（実際のユーザーメッセージ数）
+    // 新しいサービス構造では、この計算はサービス内で行われるため、
+    // ここでは基本的な計算のみ実行
     let messageCount = 0;
     if (conversation.history) {
-      try {
-        const normalizedHistory = qHistoryService['historyTransformer'].normalizeHistoryData(conversation.history);
-        messageCount = qHistoryService['historyTransformer'].countPromptEntries(normalizedHistory);
-      } catch (error) {
-          messageCount = Array.isArray(conversation.history) ? conversation.history.length : 0;
-      }
+      messageCount = Array.isArray(conversation.history) ? conversation.history.length : 0;
     }
     
     // AmazonQConversation型に合わせて変換（historyフィールドを除外）
