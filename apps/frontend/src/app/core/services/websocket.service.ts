@@ -1,6 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
+import type { 
+  IWebSocketService, 
+  WebSocketConnectionState, 
+  WebSocketMessage,
+  WebSocketEventType,
+  WebSocketEventListener
+} from '../types/websocket.types';
+import type { SessionId } from '../types/common.types';
 
 // Connection管理
 import { connect, disconnect, emit, on, off, ConnectionStateManager } from './websocket/connection';

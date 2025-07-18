@@ -1,12 +1,14 @@
 import { signal, computed } from '@angular/core';
+import type { MessageId, SessionId, Timestamp } from '../../types/common.types';
+import type { AmazonQMessageSender } from '../../types/amazon-q.types';
 
 export interface ChatMessage {
-  id: string;
+  id: MessageId;
   content: string;
-  sender: 'user' | 'assistant';
-  timestamp: Date;
+  sender: AmazonQMessageSender;
+  timestamp: Timestamp;
   isTyping?: boolean;
-  sessionId?: string;
+  sessionId?: SessionId;
 }
 
 export interface ChatState {

@@ -335,40 +335,40 @@
 
 ### TODO リスト
 
-- [ ] 型定義ディレクトリの作成
-  - [ ] `src/app/core/types/` ディレクトリを作成
-  - [ ] `src/app/shared/types/` ディレクトリを作成
+- [x] 型定義ディレクトリの作成
+  - [x] `src/app/core/types/` ディレクトリを作成
+  - [x] `src/app/shared/types/` ディレクトリを作成
 
-- [ ] 共通型定義の作成
-  - [ ] `src/app/core/types/common.types.ts` ファイルを作成
-  - [ ] `MessageId` 型を定義
-  - [ ] `SessionId` 型を定義
-  - [ ] `Timestamp` 型を定義
-  - [ ] `ErrorCode` 型を定義
-  - [ ] 型ガード関数を追加
+- [x] 共通型定義の作成
+  - [x] `src/app/core/types/common.types.ts` ファイルを作成
+  - [x] `MessageId` 型を定義
+  - [x] `SessionId` 型を定義
+  - [x] `Timestamp` 型を定義
+  - [x] `ErrorCode` 型を定義
+  - [x] 型ガード関数を追加
 
-- [ ] WebSocket型定義の整理
-  - [ ] `src/app/core/types/websocket.types.ts` ファイルを作成
-  - [ ] WebSocketイベント型を定義
-  - [ ] WebSocketメッセージ型を定義
-  - [ ] WebSocket接続状態型を定義
+- [x] WebSocket型定義の整理
+  - [x] `src/app/core/types/websocket.types.ts` ファイルを作成
+  - [x] WebSocketイベント型を定義
+  - [x] WebSocketメッセージ型を定義
+  - [x] WebSocket接続状態型を定義
 
-- [ ] Amazon Q型定義の整理
-  - [ ] `src/app/core/types/amazon-q.types.ts` ファイルを作成
-  - [ ] Amazon Qメッセージ型を定義
-  - [ ] Amazon Q履歴型を定義
-  - [ ] Amazon Qセッション型を定義
+- [x] Amazon Q型定義の整理
+  - [x] `src/app/core/types/amazon-q.types.ts` ファイルを作成
+  - [x] Amazon Qメッセージ型を定義
+  - [x] Amazon Q履歴型を定義
+  - [x] Amazon Qセッション型を定義
 
-- [ ] UI型定義の整理
-  - [ ] `src/app/shared/types/ui.types.ts` ファイルを作成
-  - [ ] UIコンポーネント用の型を定義
-  - [ ] フォーム型を定義
-  - [ ] 表示用メッセージ型を定義
+- [x] UI型定義の整理
+  - [x] `src/app/shared/types/ui.types.ts` ファイルを作成
+  - [x] UIコンポーネント用の型を定義
+  - [x] フォーム型を定義
+  - [x] 表示用メッセージ型を定義
 
-- [ ] 既存型定義の移行
-  - [ ] 各コンポーネント・サービスの型定義を整理
-  - [ ] 重複する型定義を統合
-  - [ ] 型定義のエクスポート構造を最適化
+- [x] 既存型定義の移行
+  - [x] 各コンポーネント・サービスの型定義を整理
+  - [x] 重複する型定義を統合
+  - [x] 型定義のエクスポート構造を最適化
 
 ## Phase 7: テストとドキュメントの更新
 

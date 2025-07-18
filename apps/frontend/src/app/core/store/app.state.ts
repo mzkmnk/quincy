@@ -48,11 +48,11 @@ import * as ChatActions from './chat/actions';
 import type { Project, Session, ConversationMetadata, AmazonQConversation, QSessionStartedEvent } from '@quincy/shared';
 import type { ChatMessage } from './chat/chat.state';
 import type { DisplayMessage } from './amazon-q-history/amazon-q-history.state';
+import type { BaseUIState } from '../../shared/types/ui.types';
 
 // UI状態
-interface UIState {
-  loading: boolean;
-  error: string | null;
+interface UIState extends BaseUIState {
+  // 追加のUI状態があれば、ここに定義
 }
 
 const uiState = signal<UIState>({
