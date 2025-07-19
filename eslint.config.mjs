@@ -116,7 +116,7 @@ export default tseslint.config(
 
   // Better TailwindCSS 設定（TypeScriptファイルのみ）
   {
-    files: ['apps/frontend/**/*.ts'],
+    files: ['apps/frontend/**/*.{ts,html}'],
     plugins: {
       'better-tailwindcss': eslintPluginBetterTailwindCSS,
     },
