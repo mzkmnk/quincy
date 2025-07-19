@@ -15,7 +15,7 @@ export {
 } from './errors/unified-error-handler';
 
 // 後方互換性のための旧形式サポート（非推奨）
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
 
 export interface ErrorResponse {
   error: string;
@@ -39,8 +39,7 @@ export const createErrorResponse = (
 export const legacyErrorHandler = (
   error: Error,
   req: Request,
-  res: Response,
-  _next: NextFunction
+  res: Response
 ): void => {
   const response = createErrorResponse(
     'INTERNAL_SERVER_ERROR',

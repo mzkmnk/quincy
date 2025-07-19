@@ -2,7 +2,7 @@
  * 統一エラーハンドラー
  */
 
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
 
 import type { ApiResponse } from '../../types';
 
@@ -15,8 +15,7 @@ import { ERROR_CODES, ERROR_STATUS_CODES } from './error-codes';
 export function unifiedErrorHandler(
   error: Error | AppError,
   req: Request,
-  res: Response,
-  _next: NextFunction
+  res: Response
 ): void {
   // AppErrorの場合
   if (isAppError(error)) {

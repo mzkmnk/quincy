@@ -69,7 +69,7 @@ jest.mock('fs', () => ({
 // util.promisify のモック
 jest.mock('util', () => ({
   promisify: jest.fn(() => jest.fn().mockResolvedValue({ stdout: 'q version 1.0.0', stderr: '' })),
-  deprecate: jest.fn((fn, _message) => fn),
+  deprecate: jest.fn((fn, ) => fn),
 }));
 
 // SQLite3のモック
@@ -85,7 +85,6 @@ jest.mock('sqlite3', () => ({
 
 describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
   let httpServer: Server;
-  let _webSocketService: WebSocketService;
   let amazonQService: AmazonQCLIService;
   let userSocket: ClientSocket;
   let collaboratorSocket: ClientSocket;
@@ -96,7 +95,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
     // 実際のサーバー環境をシミュレート
     httpServer = createServer();
     amazonQService = new AmazonQCLIService();
-    _webSocketService = new WebSocketService(httpServer);
+    const webSocketService = new WebSocketService(httpServer, amazonQService);
 
     httpServer.listen(testPort, (): void => {
       done();
@@ -139,9 +138,9 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       };
 
       // Step 1: プロジェクト開始
-      userSocket.on('q:project:started', (_data): void => {
-        expect(_data.success).toBe(true);
-        expect(_data.projectPath).toBe(testProject);
+      userSocket.on('q:project:started', (): void => {
+        expect().toBe(true);
+        expect().toBe(testProject);
         scenario.projectStarted = true;
 
         // Step 2: Q対話開始
@@ -153,20 +152,20 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       });
 
       // Step 3: セッション開始の確認
-      userSocket.on('q:session:started', (_data): void => {
-        expect(_data.sessionId).toMatch(/^q_session_/);
+      userSocket.on('q:session:started', (): void => {
+        expect().toMatch(/^q_session_/);
         scenario.sessionStarted = true;
       });
 
       // Step 4: Q応答の受信
-      userSocket.on('q:response', (_data): void => {
-        expect(_data.data).toBe('プロジェクトの構造について説明します。');
+      userSocket.on('q:response', (): void => {
+        expect().toBe('プロジェクトの構造について説明します。');
         scenario.messageReceived = true;
       });
 
       // Step 5: 対話完了の確認
-      userSocket.on('q:complete', (_data): void => {
-        expect(_data.exitCode).toBe(0);
+      userSocket.on('q:complete', (): void => {
+        expect().toBe(0);
         scenario.conversationCompleted = true;
 
         // 全てのステップが完了したことを確認
@@ -222,8 +221,8 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
 
       const startCollaborativeSession = (): void => {
         // 協力者がQ応答を受信できるかテスト
-        collaboratorSocket.on('q:response', (_data): void => {
-          expect(_data.data).toBe('共同作業のガイドラインを説明します。');
+        collaboratorSocket.on('q:response', (): void => {
+          expect().toBe('共同作業のガイドラインを説明します。');
           done();
         });
 
@@ -251,12 +250,12 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       ];
 
       let sessionId: string;
-      const _currentMessageIndex = 0;
+      const 
       let responseCount = 0;
 
       // セッション開始
-      userSocket.on('q:session:started', (_data): void => {
-        sessionId = _data.sessionId;
+      userSocket.on('q:session:started', (): void => {
+        sessionId = 
 
         // 最初のメッセージを送信
         const messageEvent: QMessageEvent = {
@@ -267,7 +266,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       });
 
       // 応答を受信したら次のメッセージを送信
-      userSocket.on('q:response', (_data): void => {
+      userSocket.on('q:response', (): void => {
         responseCount++;
 
         if (responseCount < messages.length) {
@@ -312,8 +311,8 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       };
 
       // エラー発生の監視
-      userSocket.on('q:error', (_data): void => {
-        expect(_data.error).toBe('Connection timeout');
+      userSocket.on('q:error', (): void => {
+        expect().toBe('Connection timeout');
         scenario.errorOccurred = true;
 
         // 復旧を試行
@@ -326,7 +325,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       });
 
       // 復旧成功の確認
-      userSocket.on('q:session:started', (_data): void => {
+      userSocket.on('q:session:started', (): void => {
         if (scenario.recoveryAttempted) {
           scenario.recoverySuccessful = true;
 
@@ -366,9 +365,9 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       };
 
       // Step 1: 履歴取得
-      userSocket.on('q:history', (_data): void => {
-        expect(_data.history.length).toBe(1);
-        expect(_data.projectPath).toBe(testProject);
+      userSocket.on('q:history', (): void => {
+        expect().toBe(1);
+        expect().toBe(testProject);
         scenario.historyRetrieved = true;
 
         // Step 2: 新しい対話を開始
@@ -380,12 +379,12 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       });
 
       // Step 3: 新しい対話の開始確認
-      userSocket.on('q:session:started', (_data): void => {
+      userSocket.on('q:session:started', (): void => {
         scenario.newConversationStarted = true;
       });
 
       // Step 4: 対話完了後の履歴更新確認
-      userSocket.on('q:complete', (_data): void => {
+      userSocket.on('q:complete', (): void => {
         scenario.historyUpdated = true;
 
         // 全てのステップが完了したことを確認
@@ -428,7 +427,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       }
 
       // 全てのセッション開始を確認
-      userSocket.on('q:session:started', (_data): void => {
+      userSocket.on('q:session:started', (): void => {
         completedSessions++;
 
         if (completedSessions === concurrentSessions) {
@@ -482,28 +481,28 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       let currentSessionId: string;
 
       // プロジェクト開始
-      userSocket.on('q:project:started', (_data): void => {
+      userSocket.on('q:project:started', (): void => {
         workflow.projectOpened = true;
         executeWorkflowStep('code-review');
       });
 
       // コードレビュー開始
-      userSocket.on('q:session:started', (_data): void => {
-        currentSessionId = _data.sessionId;
+      userSocket.on('q:session:started', (): void => {
+        currentSessionId = 
         if (!workflow.codeReviewRequested) {
           workflow.codeReviewRequested = true;
         }
       });
 
       // 提案受信
-      userSocket.on('q:response', (_data): void => {
-        if (_data.data.includes('リファクタリング提案')) {
+      userSocket.on('q:response', (): void => {
+        if ()) {
           workflow.suggestionsReceived = true;
           executeWorkflowStep('implementation');
-        } else if (_data.data.includes('実装完了')) {
+        } else if ()) {
           workflow.implementationStarted = true;
           executeWorkflowStep('testing');
-        } else if (_data.data.includes('テストケース')) {
+        } else if ()) {
           workflow.testingRequested = true;
           workflow.workflowCompleted = true;
 

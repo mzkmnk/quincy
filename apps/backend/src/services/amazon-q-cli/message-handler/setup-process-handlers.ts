@@ -37,7 +37,7 @@ export function setupProcessHandlers(
   });
 
   // プロセス終了の処理
-  process.on('exit', (code: number | null, _signal: string | null) => {
+  process.on('exit', (code: number | null) => {
     // 残りの初期化バッファをフラッシュ
     if (session.initializationPhase && session.initializationBuffer.length > 0) {
       flushInitializationBufferCallback(session);

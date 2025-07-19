@@ -58,7 +58,7 @@ jest.mock('fs', () => ({
 // util.promisify のモック
 jest.mock('util', () => ({
   promisify: jest.fn(() => jest.fn().mockResolvedValue({ stdout: 'q version 1.0.0', stderr: '' })),
-  deprecate: jest.fn((fn, _message) => fn),
+  deprecate: jest.fn((fn, ) => fn),
 }));
 
 describe('Amazon Q CLI Service Integration Test', () => {
@@ -268,7 +268,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
 
   describe('イベント統合テスト', () => {
     it('複数のイベントが順序立てて発行されること', async () => {
-      const _sessionId = await service.startSession(testCommand, {
+      const _result = startAmazonQCli('test message', {
         workingDir: testWorkingDir,
       });
 

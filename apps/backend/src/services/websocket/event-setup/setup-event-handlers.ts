@@ -121,12 +121,12 @@ export function setupEventHandlers(
     });
 
     // Handle disconnection
-    socket.on('disconnect', _reason => {
+    socket.on('disconnect', () => {
       handleDisconnection(socket, userRooms, cleanupSocketFromSessions);
     });
 
     // Handle connection errors
-    socket.on('error', _error => {
+    socket.on('error', () => {
       sendError(socket, 'SOCKET_ERROR', 'WebSocket connection error');
     });
   });

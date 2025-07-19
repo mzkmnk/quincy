@@ -7,6 +7,7 @@
  * @param text 処理対象のテキスト
  * @returns クリーンなテキスト
  */
+/* eslint-disable no-control-regex, no-useless-escape */
 export function stripAnsiCodes(text: string): string {
   let cleanText = text;
 

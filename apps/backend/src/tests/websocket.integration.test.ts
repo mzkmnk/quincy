@@ -65,7 +65,7 @@ jest.mock('fs', () => ({
 // util.promisify のモック
 jest.mock('util', () => ({
   promisify: jest.fn(() => jest.fn().mockResolvedValue({ stdout: 'q version 1.0.0', stderr: '' })),
-  deprecate: jest.fn((_fn: unknown, _message: string) => _fn),
+  deprecate: jest.fn((_fn: unknown, ) => _fn),
 }));
 
 describe('WebSocket Service Integration Test', () => {

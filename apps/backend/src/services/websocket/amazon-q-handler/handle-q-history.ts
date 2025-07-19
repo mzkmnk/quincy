@@ -46,7 +46,8 @@ export async function handleQHistory(
     // }
 
     // AmazonQConversation型に合わせて変換（historyフィールドを除外）
-    const { history: _history, ...conversationForClient } = conversation;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
+    const { history, ...conversationForClient } = conversation;
     socket.emit('q:history:data', {
       projectPath: data.projectPath,
       conversation: conversationForClient as AmazonQConversation,

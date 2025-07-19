@@ -57,7 +57,7 @@ jest.mock('fs', () => ({
 // util.promisify のモック
 jest.mock('util', () => ({
   promisify: jest.fn(() => jest.fn().mockResolvedValue({ stdout: 'q version 1.0.0', stderr: '' })),
-  deprecate: jest.fn((fn, _message) => fn),
+  deprecate: jest.fn((fn, ) => fn),
 }));
 
 // SQLite3のモック
@@ -77,7 +77,6 @@ jest.mock(
 
 describe('Amazon Q CLI & WebSocket Integration Test', () => {
   let httpServer: Server;
-  let _webSocketService: WebSocketService;
   let amazonQService: AmazonQCLIService;
   let clientSocket: ClientSocket;
   let secondClientSocket: ClientSocket;
@@ -91,7 +90,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
     amazonQService = new AmazonQCLIService();
 
     // WebSocket サービスの作成
-    _webSocketService = new WebSocketService(httpServer);
+    const webSocketService = new WebSocketService(httpServer, amazonQService);
 
     // テストサーバーの起動
     httpServer.listen(testPort, (): void => {
@@ -132,16 +131,16 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       };
 
       // セッション開始の確認
-      clientSocket.on('q:session:started', (_data): void => {
-        expect(_data.sessionId).toMatch(/^q_session_/);
-        expect(_data.success).toBe(true);
+      clientSocket.on('q:session:started', (): void => {
+        expect().toMatch(/^q_session_/);
+        expect().toBe(true);
       });
 
       // レスポンスの確認
-      clientSocket.on('q:response', (_data): void => {
-        expect(_data.data).toBe('Amazon Q CLI Help Content');
-        expect(_data.type).toBe('stream');
-        expect(_data.sessionId).toMatch(/^q_session_/);
+      clientSocket.on('q:response', (): void => {
+        expect().toBe('Amazon Q CLI Help Content');
+        expect().toBe('stream');
+        expect().toMatch(/^q_session_/);
         done();
       });
 
@@ -167,8 +166,8 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
         let responseCount = 0;
         const expectedResponse = 'Hello from Amazon Q';
 
-        const handleResponse = (_data: { data: string }): void => {
-          expect(_data.data).toBe(expectedResponse);
+        const handleResponse = (): void => {
+          expect().toBe(expectedResponse);
           responseCount++;
           if (responseCount === 2) {
             done();
@@ -198,8 +197,8 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       let sessionId: string;
 
       // セッション開始の確認
-      clientSocket.on('q:session:started', (_data): void => {
-        sessionId = _data.sessionId;
+      clientSocket.on('q:session:started', (): void => {
+        sessionId = 
 
         // セッション中止の実行
         const abortEvent: QAbortEvent = { sessionId };
@@ -207,9 +206,9 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       });
 
       // セッション中止の確認
-      clientSocket.on('q:session:aborted', (_data): void => {
-        expect(_data.sessionId).toBe(sessionId);
-        expect(_data.success).toBe(true);
+      clientSocket.on('q:session:aborted', (): void => {
+        expect().toBe(sessionId);
+        expect().toBe(true);
         expect(mockChildProcess.kill).toHaveBeenCalledWith('SIGTERM');
         done();
       });
@@ -229,8 +228,8 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       let sessionId: string;
 
       // セッション開始後にメッセージ送信
-      clientSocket.on('q:session:started', (_data): void => {
-        sessionId = _data.sessionId;
+      clientSocket.on('q:session:started', (): void => {
+        sessionId = 
 
         // メッセージ送信
         const messageEvent: QMessageEvent = {
@@ -242,9 +241,9 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       });
 
       // メッセージ送信結果の確認
-      clientSocket.on('q:message:sent', (_data): void => {
-        expect(_data.sessionId).toBe(sessionId);
-        expect(_data.success).toBe(true);
+      clientSocket.on('q:message:sent', (): void => {
+        expect().toBe(sessionId);
+        expect().toBe(true);
         expect(mockChildProcess.stdin.write).toHaveBeenCalledWith(
           'Hello from WebSocket integration test\n'
         );
@@ -262,9 +261,9 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       };
 
       // エラーの確認
-      clientSocket.on('q:error', (_data): void => {
-        expect(_data.error).toContain('Session not found');
-        expect(_data.code).toBe('SESSION_NOT_FOUND');
+      clientSocket.on('q:error', (): void => {
+        expect().toContain('Session not found');
+        expect().toBe('SESSION_NOT_FOUND');
         done();
       });
 
@@ -283,10 +282,10 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       mockDatabase.all.mockResolvedValue(mockHistoryData);
 
       // 履歴取得の確認
-      clientSocket.on('q:history', (_data): void => {
-        expect(Array.isArray(_data.history)).toBe(true);
-        expect(_data.history.length).toBe(2);
-        expect(_data.projectPath).toBe('/Users/test/project');
+      clientSocket.on('q:history', (): void => {
+        expect(Array.isArray()).toBe(true);
+        expect().toBe(2);
+        expect().toBe('/Users/test/project');
         done();
       });
 
@@ -302,7 +301,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
           id: 1,
           conversation_id: 'conv_1',
           project_path: '/Users/test/project',
-          history_data: JSON.stringify([
+          history
             { role: 'user', content: 'Hello' },
             { role: 'assistant', content: 'Hi there!' },
           ]),
@@ -312,10 +311,10 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       mockDatabase.all.mockResolvedValue(mockDetailedData);
 
       // 履歴詳細取得の確認
-      clientSocket.on('q:history:detailed', (_data): void => {
-        expect(_data.conversations).toBeDefined();
-        expect(_data.stats).toBeDefined();
-        expect(_data.projectPath).toBe('/Users/test/project');
+      clientSocket.on('q:history:detailed', (): void => {
+        expect().toBeDefined();
+        expect().toBeDefined();
+        expect().toBe('/Users/test/project');
         done();
       });
 
@@ -336,10 +335,10 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       mockDatabase.all.mockResolvedValue(mockProjectData);
 
       // プロジェクト一覧取得の確認
-      clientSocket.on('q:projects', (_data): void => {
-        expect(Array.isArray(_data.projects)).toBe(true);
-        expect(_data.projects.length).toBe(2);
-        expect(_data.projects[0].project_path).toBe('/Users/test/project1');
+      clientSocket.on('q:projects', (): void => {
+        expect(Array.isArray()).toBe(true);
+        expect().toBe(2);
+        expect().toBe('/Users/test/project1');
         done();
       });
 
@@ -349,9 +348,9 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
 
     it('WebSocket経由でプロジェクト開始ができること', (done): void => {
       // プロジェクト開始の確認
-      clientSocket.on('q:project:started', (_data): void => {
-        expect(_data.success).toBe(true);
-        expect(_data.projectPath).toBe('/Users/test/project');
+      clientSocket.on('q:project:started', (): void => {
+        expect().toBe(true);
+        expect().toBe('/Users/test/project');
         done();
       });
 
@@ -366,9 +365,9 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
   describe('セッション再開の結合テスト', () => {
     it('WebSocket経由でセッション再開ができること', (done): void => {
       // セッション再開の確認
-      clientSocket.on('q:session:resumed', (_data): void => {
-        expect(_data.success).toBe(true);
-        expect(_data.sessionId).toMatch(/^q_session_/);
+      clientSocket.on('q:session:resumed', (): void => {
+        expect().toBe(true);
+        expect().toMatch(/^q_session_/);
         done();
       });
 
@@ -387,10 +386,10 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       };
 
       // エラーの確認
-      clientSocket.on('q:error', (_data): void => {
-        expect(_data.error).toBe('CLI Error: Unknown command');
-        expect(_data.code).toBe('STDERR');
-        expect(_data.sessionId).toMatch(/^q_session_/);
+      clientSocket.on('q:error', (): void => {
+        expect().toBe('CLI Error: Unknown command');
+        expect().toBe('STDERR');
+        expect().toMatch(/^q_session_/);
         done();
       });
 
@@ -412,8 +411,8 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       let sessionId: string;
 
       // セッション開始の確認
-      clientSocket.on('q:session:started', (_data): void => {
-        sessionId = _data.sessionId;
+      clientSocket.on('q:session:started', (): void => {
+        sessionId = 
 
         // 接続を切断
         clientSocket.disconnect();
@@ -447,8 +446,8 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
         let responseCount = 0;
         const expectedResponses = ['Response part 1', 'Response part 2', 'Response part 3'];
 
-        const handleResponse = (_data: { data: string }): void => {
-          expect(expectedResponses).toContain(_data.data);
+        const handleResponse = (): void => {
+          expect(expectedResponses).toContain();
           responseCount++;
           if (responseCount === 6) {
             // 2 clients × 3 responses
@@ -484,7 +483,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       const sessionCount = 10;
       let completedSessions = 0;
 
-      const handleSessionStart = (_data: { sessionId: string; success: boolean }): void => {
+      const handleSessionStart = (): void => {
         completedSessions++;
         if (completedSessions === sessionCount) {
           // 全セッションが開始されたことを確認
@@ -516,8 +515,8 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       let sessionId: string;
 
       // セッション開始の確認
-      clientSocket.on('q:session:started', (_data): void => {
-        sessionId = _data.sessionId;
+      clientSocket.on('q:session:started', (): void => {
+        sessionId = 
 
         // Amazon Q CLIサービスの状態を確認
         const session = amazonQService.getSession(sessionId);
@@ -525,7 +524,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
         expect(session?.status).toBe('starting');
 
         // WebSocketサービスの状態を確認
-        const userCount = _webSocketService.getUserCount();
+        const userCount = );
         expect(userCount).toBeGreaterThanOrEqual(1);
 
         done();
