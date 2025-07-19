@@ -20,7 +20,7 @@ export default tseslint.config(
             "apps/frontend/**/*.html"
         ],
     },
-    
+
     // 基本設定
     {
         extends: [eslint.configs.recommended, ...tseslint.configs.recommended],
@@ -52,7 +52,6 @@ export default tseslint.config(
         rules: {
             "@typescript-eslint/no-unused-vars": "off", // unused-importsプラグインを使用
             "@typescript-eslint/explicit-function-return-type": "warn",
-            "@typescript-eslint/no-explicit-any": "warn",
             "prefer-const": "error",
             "@typescript-eslint/no-namespace": "off",
         },
@@ -93,20 +92,6 @@ export default tseslint.config(
             ],
         },
     },
-
-    // Angular HTMLテンプレート専用設定（一時的に無効化）
-    // {
-    //     files: ["apps/frontend/**/*.html"],
-    //     languageOptions: {
-    //         parser: angularTemplate.parser || "@angular-eslint/template-parser",
-    //     },
-    //     plugins: {
-    //         "@angular-eslint/template": angularTemplate,
-    //     },
-    //     rules: {
-    //         // HTMLテンプレート固有のルールを必要に応じて追加
-    //     },
-    // },
 
     // Better TailwindCSS 設定
     {
