@@ -3,7 +3,6 @@ import tseslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import * as eslintPluginImport from 'eslint-plugin-import';
 import eslintPluginUnusedImports from 'eslint-plugin-unused-imports';
-import eslintPluginBetterTailwindCSS from 'eslint-plugin-better-tailwindcss';
 import angular from '@angular-eslint/eslint-plugin';
 import angularTemplateParser from '@angular-eslint/template-parser';
 import angularTemplate from '@angular-eslint/eslint-plugin-template';
@@ -111,24 +110,6 @@ export default tseslint.config(
       '@angular-eslint/template/banana-in-box': 'error',
       '@angular-eslint/template/eqeqeq': 'error',
       '@angular-eslint/template/no-negated-async': 'error',
-    },
-  },
-
-  // Better TailwindCSS 設定（TypeScriptファイルのみ）
-  {
-    files: ['apps/frontend/**/*.{ts,html}'],
-    plugins: {
-      'better-tailwindcss': eslintPluginBetterTailwindCSS,
-    },
-    rules: {
-      'better-tailwindcss/enforce-consistent-class-order': 'warn',
-      'better-tailwindcss/no-duplicate-classes': 'error',
-    },
-    settings: {
-      'better-tailwindcss': {
-        // TailwindCSS v4対応 - CSSエントリーポイントを指定
-        entryPoint: './apps/frontend/src/styles.css',
-      },
     },
   },
 
