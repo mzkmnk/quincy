@@ -35,10 +35,7 @@ describe('handleErrorResponse', () => {
 
       handleErrorResponse(data, sessionId, mockShouldDisplayError, mockOnHandleError);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Received Q error for current session:',
-        data
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('Received Q error for current session:', data);
     });
   });
 
@@ -61,10 +58,7 @@ describe('handleErrorResponse', () => {
 
       handleErrorResponse(data, sessionId, mockShouldDisplayError, mockOnHandleError);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Received Q error for current session:',
-        data
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('Received Q error for current session:', data);
     });
   });
 
@@ -96,7 +90,10 @@ describe('handleErrorResponse', () => {
     });
 
     it('長いエラーメッセージを処理する', () => {
-      const longError = 'This is a very long error message that contains detailed information about what went wrong during the process. '.repeat(10);
+      const longError =
+        'This is a very long error message that contains detailed information about what went wrong during the process. '.repeat(
+          10
+        );
       const data = { sessionId: 'session-123', error: longError };
       const sessionId = 'session-123';
 
@@ -116,7 +113,8 @@ describe('handleErrorResponse', () => {
     });
 
     it('JSONフォーマットのエラーメッセージを処理する', () => {
-      const jsonError = '{"code": 500, "message": "Internal Server Error", "details": "Database connection failed"}';
+      const jsonError =
+        '{"code": 500, "message": "Internal Server Error", "details": "Database connection failed"}';
       const data = { sessionId: 'session-123', error: jsonError };
       const sessionId = 'session-123';
 
@@ -129,10 +127,10 @@ describe('handleErrorResponse', () => {
   describe('shouldDisplayError関数の動作', () => {
     it('異なるエラーメッセージに対して適切に判定する', () => {
       const sessionId = 'session-123';
-      
+
       // 表示すべきエラー
-      mockShouldDisplayError.mockImplementation((error: string) => 
-        error.includes('Connection') || error.includes('Timeout')
+      mockShouldDisplayError.mockImplementation(
+        (error: string) => error.includes('Connection') || error.includes('Timeout')
       );
 
       const criticalError = { sessionId, error: 'Connection failed' };
@@ -146,7 +144,7 @@ describe('handleErrorResponse', () => {
       // 表示しないエラー
       const minorError = { sessionId, error: 'Minor warning' };
       handleErrorResponse(minorError, sessionId, mockShouldDisplayError, mockOnHandleError);
-      
+
       expect(mockOnHandleError).toHaveBeenCalledTimes(2); // Critical and timeout only
     });
 
@@ -154,7 +152,7 @@ describe('handleErrorResponse', () => {
       const data = { sessionId: 'session-123', error: 'Test error' };
       const sessionId = 'session-123';
       const error = new Error('shouldDisplayError failed');
-      
+
       mockShouldDisplayError.mockImplementation(() => {
         throw error;
       });
@@ -174,7 +172,7 @@ describe('handleErrorResponse', () => {
       const data = { sessionId: 'session-123', error: 'Test error' };
       const sessionId = 'session-123';
       const error = new Error('onHandleError failed');
-      
+
       mockOnHandleError.mockImplementation(() => {
         throw error;
       });
@@ -187,7 +185,7 @@ describe('handleErrorResponse', () => {
     it('onHandleErrorが非同期処理を行っても関数は同期的に完了する', () => {
       const data = { sessionId: 'session-123', error: 'Test error' };
       const sessionId = 'session-123';
-      
+
       mockOnHandleError.mockImplementation(() => {
         setTimeout(() => {
           // 非同期処理
@@ -205,12 +203,8 @@ describe('handleErrorResponse', () => {
   describe('複数のエラーの連続処理', () => {
     it('同じセッションの複数エラーを順次処理する', () => {
       const sessionId = 'session-123';
-      const errors = [
-        'Connection failed',
-        'Timeout occurred',
-        'Authentication error'
-      ];
-      
+      const errors = ['Connection failed', 'Timeout occurred', 'Authentication error'];
+
       mockShouldDisplayError.mockReturnValue(true);
 
       errors.forEach(error => {
@@ -227,13 +221,13 @@ describe('handleErrorResponse', () => {
     it('混在するセッションIDからのエラーを適切にフィルタリングする', () => {
       const currentSessionId = 'current-session';
       const otherSessionId = 'other-session';
-      
+
       mockShouldDisplayError.mockReturnValue(true);
 
       const errors = [
         { sessionId: currentSessionId, error: 'Current session error 1' },
         { sessionId: otherSessionId, error: 'Other session error' },
-        { sessionId: currentSessionId, error: 'Current session error 2' }
+        { sessionId: currentSessionId, error: 'Current session error 2' },
       ];
 
       errors.forEach(data => {
@@ -252,12 +246,12 @@ describe('handleErrorResponse', () => {
       mockShouldDisplayError.mockReturnValue(true);
 
       const start = performance.now();
-      
+
       for (let i = 0; i < 1000; i++) {
         const data = { sessionId, error: `Error ${i}` };
         handleErrorResponse(data, sessionId, mockShouldDisplayError, mockOnHandleError);
       }
-      
+
       const end = performance.now();
 
       expect(end - start).toBeLessThan(100); // 100ms以内
@@ -271,7 +265,12 @@ describe('handleErrorResponse', () => {
       const sessionId = 'session-123';
       mockShouldDisplayError.mockReturnValue(true);
 
-      const result = handleErrorResponse(data, sessionId, mockShouldDisplayError, mockOnHandleError);
+      const result = handleErrorResponse(
+        data,
+        sessionId,
+        mockShouldDisplayError,
+        mockOnHandleError
+      );
 
       expect(result).toBeUndefined();
     });

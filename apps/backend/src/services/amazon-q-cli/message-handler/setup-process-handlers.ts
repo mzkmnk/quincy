@@ -7,7 +7,10 @@ import { handleStderr } from './handle-stderr';
 
 export function setupProcessHandlers(
   session: QProcessSession,
-  emitCallback: (event: string, data: QResponseEvent | QInfoEvent | QErrorEvent | QCompleteEvent) => void,
+  emitCallback: (
+    event: string,
+    data: QResponseEvent | QInfoEvent | QErrorEvent | QCompleteEvent
+  ) => void,
   flushIncompleteOutputLineCallback: (session: QProcessSession) => void,
   flushIncompleteErrorLineCallback: (session: QProcessSession) => void,
   addToInitializationBufferCallback: (session: QProcessSession, message: string) => void,
@@ -39,7 +42,7 @@ export function setupProcessHandlers(
     if (session.initializationPhase && session.initializationBuffer.length > 0) {
       flushInitializationBufferCallback(session);
     }
-    
+
     // 残りの不完全な行をフラッシュ
     if (session.incompleteOutputLine.trim()) {
       flushIncompleteOutputLineCallback(session);
@@ -47,39 +50,39 @@ export function setupProcessHandlers(
     if (session.incompleteErrorLine.trim()) {
       flushIncompleteErrorLineCallback(session);
     }
-    
+
     // 残りのバッファをフラッシュ（後方互換性のため）
     if (session.outputBuffer.trim()) {
       flushOutputBufferCallback(session);
     }
-    
+
     // タイムアウトをクリア
     if (session.bufferTimeout) {
       clearTimeout(session.bufferTimeout);
       session.bufferTimeout = undefined;
     }
-    
+
     // 初期化タイムアウトをクリア
     if (session.initializationTimeout) {
       clearTimeout(session.initializationTimeout);
       session.initializationTimeout = undefined;
     }
-    
+
     session.status = code === 0 ? 'completed' : 'error';
-    
+
     const completeEvent: QCompleteEvent = {
       sessionId: session.sessionId,
-      exitCode: code || -1
+      exitCode: code || -1,
     };
-    
+
     emitCallback('q:complete', completeEvent);
-    
+
     // セッションを即座に無効化してID衝突を防ぐ
     session.status = 'terminated';
-    
+
     // Thinking状態をリセット
     session.isThinkingActive = false;
-    
+
     // セッションをクリーンアップ（遅延実行）
     setTimeout(() => {
       deleteSessionCallback(session.sessionId);
@@ -89,13 +92,13 @@ export function setupProcessHandlers(
   // プロセスエラーの処理
   process.on('error', (error: Error) => {
     session.status = 'error';
-    
+
     const errorEvent: QErrorEvent = {
       sessionId: session.sessionId,
       error: error.message,
-      code: 'PROCESS_ERROR'
+      code: 'PROCESS_ERROR',
     };
-    
+
     emitCallback('q:error', errorEvent);
   });
 }

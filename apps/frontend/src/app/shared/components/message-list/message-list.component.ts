@@ -1,21 +1,27 @@
-import { Component, inject, signal, ChangeDetectionStrategy, computed, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+  computed,
+  ViewChild,
+  ElementRef,
+  AfterViewChecked,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { AppStore } from '../../../core/store/app.state';
 import { UserMessageComponent } from '../user-message/user-message.component';
 import { AmazonQMessageComponent } from '../amazon-q-message/amazon-q-message.component';
 
-import { 
-  addMessage, 
-  addTypingIndicator, 
-  removeTypingIndicator, 
-  clearMessages, 
-  getMessageCount 
+import {
+  addMessage,
+  addTypingIndicator,
+  removeTypingIndicator,
+  clearMessages,
+  getMessageCount,
 } from './services/message-manager';
-import { 
-  scrollToBottom, 
-  markForScrollUpdate 
-} from './services/scroll-manager';
+import { scrollToBottom, markForScrollUpdate } from './services/scroll-manager';
 import { selectMessages } from './utils';
 
 @Component({
@@ -31,18 +37,20 @@ import { selectMessages } from './utils';
             <div class="mb-4">
               <i class="pi pi-comments text-[var(--text-muted)] text-5xl"></i>
             </div>
-            <h3 class="text-lg font-medium text-[var(--text-primary)] mb-2">Start the conversation</h3>
-            <p class="text-[var(--text-secondary)] text-sm">Send a message to begin chatting with your AI assistant.</p>
+            <h3 class="text-lg font-medium text-[var(--text-primary)] mb-2">
+              Start the conversation
+            </h3>
+            <p class="text-[var(--text-secondary)] text-sm">
+              Send a message to begin chatting with your AI assistant.
+            </p>
           </div>
         } @else {
           @for (message of messages(); track message.id) {
             <div class="message-block">
               @if (message.sender === 'user') {
-                <app-user-message 
-                  [content]="message.content"
-                />
+                <app-user-message [content]="message.content" />
               } @else {
-                <app-amazon-q-message 
+                <app-amazon-q-message
                   [content]="message.content"
                   [isTyping]="message.isTyping || false"
                 />
@@ -52,7 +60,7 @@ import { selectMessages } from './utils';
         }
       </div>
     </div>
-  `
+  `,
 })
 export class MessageListComponent implements AfterViewChecked {
   @ViewChild('messageContainer') messageContainer!: ElementRef<HTMLDivElement>;

@@ -1,6 +1,6 @@
-export { 
-  handleCompositionStart, 
-  handleCompositionEnd, 
-  adjustTextareaHeight, 
-  handleKeyDown 
+export {
+  handleCompositionStart,
+  handleCompositionEnd,
+  adjustTextareaHeight,
+  handleKeyDown,
 } from './composition-state-manager';

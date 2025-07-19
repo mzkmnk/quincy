@@ -37,7 +37,7 @@ export function isValidPath(path: string): { valid: boolean; error?: string } {
  */
 export function isDangerousPath(normalizedPath: string): boolean {
   const dangerousPaths = getDangerousPaths();
-  return dangerousPaths.some(dangerous => 
-    normalizedPath === dangerous || normalizedPath.startsWith(dangerous + '/')
+  return dangerousPaths.some(
+    dangerous => normalizedPath === dangerous || normalizedPath.startsWith(dangerous + '/')
   );
 }

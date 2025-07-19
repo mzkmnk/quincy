@@ -3,10 +3,10 @@
  * @param data 情報データ
  * @returns フォーマットされたメッセージ（または null）
  */
-export function formatInfoMessage(data: { 
-  sessionId: string; 
-  message: string; 
-  type?: string 
+export function formatInfoMessage(data: {
+  sessionId: string;
+  message: string;
+  type?: string;
 }): string | null {
   const trimmed = data.message.trim();
 

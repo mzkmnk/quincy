@@ -9,7 +9,7 @@ export type SessionId = `q_session_${string}`;
 export type Timestamp = number;
 
 // エラーコード型の定義
-export type ErrorCode = 
+export type ErrorCode =
   | 'VALIDATION_ERROR'
   | 'NOT_FOUND'
   | 'AUTHENTICATION_ERROR'
@@ -59,7 +59,13 @@ export interface SuccessResponse<T = unknown> extends BaseResponse {
 export type ApiResponse<T = unknown> = SuccessResponse<T> | ErrorResponse;
 
 // ステータス型の定義
-export type ProcessStatus = 'starting' | 'running' | 'completed' | 'error' | 'aborted' | 'terminated';
+export type ProcessStatus =
+  | 'starting'
+  | 'running'
+  | 'completed'
+  | 'error'
+  | 'aborted'
+  | 'terminated';
 export type ConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 'reconnecting';
 
 // ファイルパス型の定義

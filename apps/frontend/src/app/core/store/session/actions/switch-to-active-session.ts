@@ -11,6 +11,6 @@ export function switchToActiveSession(qSession: QSessionStartedEvent): void {
     ...state,
     currentQSession: qSession,
     sessionStarting: false,
-    sessionError: null
+    sessionError: null,
   }));
 }

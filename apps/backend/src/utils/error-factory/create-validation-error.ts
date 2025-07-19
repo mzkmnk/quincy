@@ -17,19 +17,16 @@ export function createFieldValidationError(
   actualValue?: unknown
 ): ValidationError {
   const details: Record<string, string | number | boolean | null> = {
-    field: fieldName
+    field: fieldName,
   };
-  
+
   if (expectedType) {
     details.expectedType = expectedType;
   }
-  
+
   if (actualValue !== undefined) {
     details.actualValue = String(actualValue);
   }
-  
-  return new ValidationError(
-    `Validation failed for field '${fieldName}'`,
-    details
-  );
+
+  return new ValidationError(`Validation failed for field '${fieldName}'`, details);
 }

@@ -1,14 +1,14 @@
-import { Router } from 'express'
+import { Router } from 'express';
 
-import { websocket } from './websocket'
-import { healthRoute } from './health'
+import { websocket } from './websocket';
+import { healthRoute } from './health';
 
-const routes = Router()
+const routes = Router();
 
 // Health check endpoint
-routes.use('/health', healthRoute)
+routes.use('/health', healthRoute);
 
 // WebSocket routes
-routes.use('/websocket', websocket)
+routes.use('/websocket', websocket);
 
-export { routes }
+export { routes };

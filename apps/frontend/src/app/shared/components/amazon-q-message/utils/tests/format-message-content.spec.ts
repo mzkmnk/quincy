@@ -102,40 +102,42 @@ describe('formatMessageContent', () => {
 1. Create an HTML form
 2. Add validation
 3. Handle submission  `;
-      
+
       const expected = `To implement a login form, you can:
       
 1. Create an HTML form
 2. Add validation
 3. Handle submission`;
-      
+
       expect(formatMessageContent(aiResponse)).toBe(expected);
     });
 
     it('エラーメッセージを正しく処理する', () => {
       const errorMessage = '  Error: Connection failed. Please try again.  ';
-      expect(formatMessageContent(errorMessage)).toBe('Error: Connection failed. Please try again.');
+      expect(formatMessageContent(errorMessage)).toBe(
+        'Error: Connection failed. Please try again.'
+      );
     });
   });
 
   describe('パフォーマンス', () => {
     it('大量の短いメッセージでも効率的に処理する', () => {
       const messages = Array.from({ length: 1000 }, (_, i) => `  Message ${i}  `);
-      
+
       const start = performance.now();
       messages.forEach(msg => formatMessageContent(msg));
       const end = performance.now();
-      
+
       expect(end - start).toBeLessThan(50); // 50ms以内
     });
 
     it('長いメッセージでも効率的に処理する', () => {
       const longMessage = '  ' + 'Very long message content. '.repeat(1000) + '  ';
-      
+
       const start = performance.now();
       const result = formatMessageContent(longMessage);
       const end = performance.now();
-      
+
       expect(end - start).toBeLessThan(10); // 10ms以内
       expect(result).toBe(longMessage.trim());
     });
@@ -145,7 +147,7 @@ describe('formatMessageContent', () => {
     it('チャットメッセージの表示準備', () => {
       const rawMessage = '  Hello! How are you doing today?  ';
       const formatted = formatMessageContent(rawMessage);
-      
+
       expect(formatted).toBe('Hello! How are you doing today?');
       expect(formatted.startsWith(' ')).toBe(false);
       expect(formatted.endsWith(' ')).toBe(false);
@@ -161,7 +163,7 @@ describe('formatMessageContent', () => {
       3. Ask questions when stuck
       
       `;
-      
+
       const formatted = formatMessageContent(apiResponse);
       expect(formatted).not.toMatch(/^\s+/); // 先頭に空白なし
       expect(formatted).not.toMatch(/\s+$/); // 末尾に空白なし
@@ -170,7 +172,7 @@ describe('formatMessageContent', () => {
 
     it('空のメッセージハンドリング', () => {
       const emptyMessages = ['', '  ', '\t', '\n', '   \t\n  '];
-      
+
       emptyMessages.forEach(msg => {
         expect(formatMessageContent(msg)).toBe('');
       });

@@ -8,6 +8,6 @@ export function setSessionError(error: string | null): void {
   sessionState.update(state => ({
     ...state,
     sessionError: error,
-    sessionStarting: false
+    sessionStarting: false,
   }));
 }

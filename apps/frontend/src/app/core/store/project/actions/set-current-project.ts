@@ -9,6 +9,6 @@ import { projectState } from '../project.state';
 export function setCurrentProject(project: Project | null): void {
   projectState.update(state => ({
     ...state,
-    currentProject: project
+    currentProject: project,
   }));
 }

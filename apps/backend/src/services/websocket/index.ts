@@ -1,12 +1,12 @@
 import { Server as HTTPServer } from 'http';
 
 import { Server as SocketIOServer } from 'socket.io';
-import type { 
-  ClientToServerEvents, 
-  ServerToClientEvents, 
-  InterServerEvents, 
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
   SocketData,
-  ConnectionInfo
+  ConnectionInfo,
 } from '@quincy/shared';
 
 import { AmazonQCLIService } from '../amazon-q-cli';
@@ -19,7 +19,12 @@ import { setupEventHandlers } from './event-setup';
 import { setupQCLIEventHandlers } from './amazon-q-handler';
 
 export class WebSocketService {
-  private io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+  private io: SocketIOServer<
+    ClientToServerEvents,
+    ServerToClientEvents,
+    InterServerEvents,
+    SocketData
+  >;
   private qCliService: AmazonQCLIService;
   private qHistoryService: AmazonQHistoryService;
 
@@ -28,7 +33,7 @@ export class WebSocketService {
       cors: {
         origin: ['http://localhost:4200'],
         methods: ['GET', 'POST'],
-        credentials: true
+        credentials: true,
       },
       pingTimeout: 60000,
       pingInterval: 25000,
@@ -40,7 +45,7 @@ export class WebSocketService {
       allowRequest: (req, fn): void => {
         // Basic request validation
         fn(null, true);
-      }
+      },
     });
 
     this.qCliService = new AmazonQCLIService();
@@ -71,21 +76,26 @@ export class WebSocketService {
   }
 
   public broadcastToRoom<K extends keyof ServerToClientEvents>(
-    roomId: string, 
-    event: K, 
+    roomId: string,
+    event: K,
     data: Parameters<ServerToClientEvents[K]>[0]
   ): void {
     broadcastToRoom(this.io, roomId, event, data);
   }
 
   public broadcastToAll<K extends keyof ServerToClientEvents>(
-    event: K, 
+    event: K,
     data: Parameters<ServerToClientEvents[K]>[0]
   ): void {
     broadcastToAll(this.io, event, data);
   }
 
-  public getSocketIOServer(): SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData> {
+  public getSocketIOServer(): SocketIOServer<
+    ClientToServerEvents,
+    ServerToClientEvents,
+    InterServerEvents,
+    SocketData
+  > {
     return this.io;
   }
 

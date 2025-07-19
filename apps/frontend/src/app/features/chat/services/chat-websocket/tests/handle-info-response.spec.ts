@@ -41,10 +41,7 @@ describe('handleInfoResponse', () => {
 
       handleInfoResponse(data, sessionId, mockOnHandleInfo);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Received Q info for current session:',
-        data
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('Received Q info for current session:', data);
     });
 
     it('空のメッセージでもハンドラーが呼び出される', () => {
@@ -57,7 +54,10 @@ describe('handleInfoResponse', () => {
     });
 
     it('長いメッセージでも正常に処理される', () => {
-      const longMessage = 'This is a very long information message that contains detailed instructions or updates about the current process. '.repeat(10);
+      const longMessage =
+        'This is a very long information message that contains detailed instructions or updates about the current process. '.repeat(
+          10
+        );
       const data = { sessionId: 'session-123', message: longMessage, type: 'info' };
       const sessionId = 'session-123';
 
@@ -136,7 +136,7 @@ describe('handleInfoResponse', () => {
 
     it('様々なtypeの値を正常に処理する', () => {
       const types = ['info', 'warning', 'error', 'success', 'debug', 'trace'];
-      
+
       types.forEach((type, index) => {
         const data = { sessionId, message: `Message ${index}`, type };
         handleInfoResponse(data, sessionId, mockOnHandleInfo);
@@ -147,7 +147,7 @@ describe('handleInfoResponse', () => {
         expect(mockOnHandleInfo).toHaveBeenNthCalledWith(index + 1, {
           sessionId,
           message: `Message ${index}`,
-          type
+          type,
         });
       });
     });
@@ -165,12 +165,12 @@ describe('handleInfoResponse', () => {
     const sessionId = 'session-123';
 
     it('元のデータオブジェクトがそのまま渡される', () => {
-      const originalData = { 
-        sessionId, 
-        message: 'Original message', 
+      const originalData = {
+        sessionId,
+        message: 'Original message',
         type: 'info',
         // 追加のプロパティがあっても保持される
-        extraProperty: 'extra value'
+        extraProperty: 'extra value',
       } as any;
 
       handleInfoResponse(originalData, sessionId, mockOnHandleInfo);
@@ -188,8 +188,8 @@ describe('handleInfoResponse', () => {
         metadata: {
           timestamp: Date.now(),
           source: 'test',
-          details: ['detail1', 'detail2']
-        }
+          details: ['detail1', 'detail2'],
+        },
       } as any;
 
       handleInfoResponse(complexData, sessionId, mockOnHandleInfo);
@@ -204,7 +204,7 @@ describe('handleInfoResponse', () => {
     it('onHandleInfoが例外を投げた場合、エラーが伝播される', () => {
       const data = { sessionId, message: 'Test message' };
       const error = new Error('Handler error');
-      
+
       mockOnHandleInfo.mockImplementation(() => {
         throw error;
       });
@@ -216,7 +216,7 @@ describe('handleInfoResponse', () => {
 
     it('onHandleInfoが非同期処理を行っても関数は同期的に完了する', () => {
       const data = { sessionId, message: 'Test message' };
-      
+
       mockOnHandleInfo.mockImplementation(() => {
         setTimeout(() => {
           // 非同期処理
@@ -239,7 +239,7 @@ describe('handleInfoResponse', () => {
         { sessionId, message: 'Step 1 completed', type: 'info' },
         { sessionId, message: 'Processing...', type: 'progress' },
         { sessionId, message: 'Step 2 completed', type: 'info' },
-        { sessionId, message: 'All done!', type: 'success' }
+        { sessionId, message: 'All done!', type: 'success' },
       ];
 
       messages.forEach(data => {
@@ -255,11 +255,11 @@ describe('handleInfoResponse', () => {
     it('混在するセッションIDからの情報を適切にフィルタリングする', () => {
       const currentSessionId = 'current-session';
       const otherSessionId = 'other-session';
-      
+
       const messages = [
         { sessionId: currentSessionId, message: 'Current session info 1' },
         { sessionId: otherSessionId, message: 'Other session info' },
-        { sessionId: currentSessionId, message: 'Current session info 2' }
+        { sessionId: currentSessionId, message: 'Current session info 2' },
       ];
 
       messages.forEach(data => {
@@ -277,12 +277,12 @@ describe('handleInfoResponse', () => {
       const sessionId = 'session-123';
 
       const start = performance.now();
-      
+
       for (let i = 0; i < 1000; i++) {
         const data = { sessionId, message: `Info message ${i}`, type: 'info' };
         handleInfoResponse(data, sessionId, mockOnHandleInfo);
       }
-      
+
       const end = performance.now();
 
       expect(end - start).toBeLessThan(100); // 100ms以内
@@ -321,7 +321,7 @@ describe('handleInfoResponse', () => {
         { sessionId, message: 'Processing files... (25%)', type: 'progress' },
         { sessionId, message: 'Processing files... (50%)', type: 'progress' },
         { sessionId, message: 'Processing files... (75%)', type: 'progress' },
-        { sessionId, message: 'Process completed successfully!', type: 'success' }
+        { sessionId, message: 'Process completed successfully!', type: 'success' },
       ];
 
       progressUpdates.forEach(update => {

@@ -1,3 +1,4 @@
+import type { ChatMessage } from '../../../../core/store/chat/chat.state';
 
 /**
  * ストリーミングメッセージを更新する
@@ -13,8 +14,8 @@ export function handleStreamingUpdate(
   content: string,
   streamingMessageId: string,
   messageIndexMap: Map<string, number>,
-  getCurrentMessages: () => any[],
-  updateChatMessage: (messageId: string, updates: any) => void,
+  getCurrentMessages: () => ChatMessage[],
+  updateChatMessage: (messageId: string, updates: Partial<ChatMessage>) => void,
   markForScrollUpdate: () => void,
   updateMessageIndexMap: () => void
 ): void {
@@ -22,8 +23,11 @@ export function handleStreamingUpdate(
   const messageIndex = messageIndexMap.get(streamingMessageId);
   const currentMessages = getCurrentMessages();
 
-  if (messageIndex !== undefined && messageIndex < currentMessages.length &&
-    currentMessages[messageIndex].id === streamingMessageId) {
+  if (
+    messageIndex !== undefined &&
+    messageIndex < currentMessages.length &&
+    currentMessages[messageIndex].id === streamingMessageId
+  ) {
     const updatedContent = currentMessages[messageIndex].content + content;
     updateChatMessage(streamingMessageId, { content: updatedContent });
 

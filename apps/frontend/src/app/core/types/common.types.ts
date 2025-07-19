@@ -12,7 +12,7 @@ export type ConversationId = string;
 export type Timestamp = Date;
 
 // エラーコード型
-export type ErrorCode = 
+export type ErrorCode =
   | 'Q_CLI_NOT_AVAILABLE'
   | 'Q_CLI_NOT_FOUND'
   | 'Q_CLI_PERMISSION_ERROR'
@@ -60,14 +60,17 @@ export function isValidTimestamp(timestamp: unknown): timestamp is Timestamp {
 }
 
 export function isValidErrorCode(code: unknown): code is ErrorCode {
-  return typeof code === 'string' && [
-    'Q_CLI_NOT_AVAILABLE',
-    'Q_CLI_NOT_FOUND', 
-    'Q_CLI_PERMISSION_ERROR',
-    'Q_CLI_SPAWN_ERROR',
-    'SESSION_TIMEOUT',
-    'WEBSOCKET_ERROR',
-    'VALIDATION_ERROR',
-    'UNKNOWN_ERROR'
-  ].includes(code);
+  return (
+    typeof code === 'string' &&
+    [
+      'Q_CLI_NOT_AVAILABLE',
+      'Q_CLI_NOT_FOUND',
+      'Q_CLI_PERMISSION_ERROR',
+      'Q_CLI_SPAWN_ERROR',
+      'SESSION_TIMEOUT',
+      'WEBSOCKET_ERROR',
+      'VALIDATION_ERROR',
+      'UNKNOWN_ERROR',
+    ].includes(code)
+  );
 }

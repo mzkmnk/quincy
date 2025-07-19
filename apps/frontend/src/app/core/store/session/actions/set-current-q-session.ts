@@ -9,6 +9,6 @@ import { sessionState } from '../session.state';
 export function setCurrentQSession(qSession: QSessionStartedEvent | null): void {
   sessionState.update(state => ({
     ...state,
-    currentQSession: qSession
+    currentQSession: qSession,
   }));
 }

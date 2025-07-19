@@ -20,7 +20,7 @@ export interface ClientToServerEvents {
   'message:send': (data: MessageSendEvent) => void;
   'room:join': (data: RoomData) => void;
   'room:leave': (data: RoomData) => void;
-  'ping': () => void;
+  ping: () => void;
   'projects:scan': () => void;
   'project:refresh': (data: { projectId: string }) => void;
 }
@@ -34,7 +34,7 @@ export interface ServerToClientEvents {
   'q:history:data': (data: QHistoryDataResponse) => void;
   'q:history:detailed:data': (data: QHistoryDetailedDataResponse) => void;
   'q:history:list': (data: QHistoryListResponse) => void;
-  'q:history:updated': () => void;  // 履歴が更新された通知
+  'q:history:updated': () => void; // 履歴が更新された通知
   'q:session:started': (data: QSessionStartedEvent) => void;
   'q:session:failed': (data: { error: string }) => void;
   'project:created': (data: { project: Project }) => void;
@@ -48,8 +48,8 @@ export interface ServerToClientEvents {
   'message:broadcast': (data: MessageData) => void;
   'room:joined': (data: RoomJoinedEvent) => void;
   'room:left': (data: RoomLeftEvent) => void;
-  'error': (data: ErrorData) => void;
-  'pong': () => void;
+  error: (data: ErrorData) => void;
+  pong: () => void;
 }
 
 // イベントペイロードの型定義
@@ -165,7 +165,6 @@ export interface DisplayMessage {
     messageId?: string;
   };
 }
-
 
 export interface ShellInitEvent {
   projectPath: string;

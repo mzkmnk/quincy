@@ -14,7 +14,7 @@ describe('SessionStartComponent', () => {
   ): SessionStatus => ({
     cliLaunched,
     connectionEstablished,
-    workspaceReady
+    workspaceReady,
   });
 
   const setSessionStatus = (status: SessionStatus) => {
@@ -24,7 +24,7 @@ describe('SessionStartComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SessionStartComponent]
+      imports: [SessionStartComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SessionStartComponent);
@@ -41,7 +41,7 @@ describe('SessionStartComponent', () => {
       const testStatus = createSessionStatus(true, false, false);
       fixture.componentRef.setInput('sessionStatus', testStatus);
       fixture.detectChanges();
-      
+
       expect(component.sessionStatus()).toEqual(testStatus);
     });
   });
@@ -67,7 +67,9 @@ describe('SessionStartComponent', () => {
 
     it('説明文が表示される', () => {
       const description = fixture.nativeElement.querySelector('p');
-      expect(description.textContent.trim()).toBe('Please wait while we initialize your Amazon Q session...');
+      expect(description.textContent.trim()).toBe(
+        'Please wait while we initialize your Amazon Q session...'
+      );
     });
 
     it('タイムアウト説明が表示される', () => {
@@ -80,15 +82,19 @@ describe('SessionStartComponent', () => {
     it('全ステップが未完了の状態を表示する', () => {
       setSessionStatus(createSessionStatus(false, false, false));
 
-      const steps = fixture.nativeElement.querySelectorAll('.flex.items-center.justify-center.text-sm');
+      const steps = fixture.nativeElement.querySelectorAll(
+        '.flex.items-center.justify-center.text-sm'
+      );
       expect(steps.length).toBe(3);
 
       // 全ステップが未完了状態（mutedカラー）
       steps.forEach(step => {
-        expect(step.textContent).toContain('🚀') || 
-        expect(step.textContent).toContain('🔗') || 
-        expect(step.textContent).toContain('📂');
-        
+        const hasExpectedIcon =
+          step.textContent?.includes('🚀') ||
+          step.textContent?.includes('🔗') ||
+          step.textContent?.includes('📂');
+        expect(hasExpectedIcon).toBeTruthy();
+
         // チェックマークアイコンがないことを確認
         const checkIcon = step.querySelector('svg.w-4.h-4');
         expect(checkIcon).toBeFalsy();
@@ -98,10 +104,12 @@ describe('SessionStartComponent', () => {
     it('CLI起動完了状態を正しく表示する', () => {
       setSessionStatus(createSessionStatus(true, false, false));
 
-      const cliStep = fixture.nativeElement.querySelectorAll('.flex.items-center.justify-center.text-sm')[0];
+      const cliStep = fixture.nativeElement.querySelectorAll(
+        '.flex.items-center.justify-center.text-sm'
+      )[0];
       expect(cliStep.textContent).toContain('🚀');
       expect(cliStep.textContent).toContain('Launching Amazon Q CLI');
-      
+
       // チェックマークアイコンが表示される
       const checkIcon = cliStep.querySelector('svg.w-4.h-4');
       expect(checkIcon).toBeTruthy();
@@ -110,10 +118,12 @@ describe('SessionStartComponent', () => {
     it('接続確立完了状態を正しく表示する', () => {
       setSessionStatus(createSessionStatus(true, true, false));
 
-      const connectionStep = fixture.nativeElement.querySelectorAll('.flex.items-center.justify-center.text-sm')[1];
+      const connectionStep = fixture.nativeElement.querySelectorAll(
+        '.flex.items-center.justify-center.text-sm'
+      )[1];
       expect(connectionStep.textContent).toContain('🔗');
       expect(connectionStep.textContent).toContain('Establishing connection');
-      
+
       const checkIcon = connectionStep.querySelector('svg.w-4.h-4');
       expect(checkIcon).toBeTruthy();
     });
@@ -121,10 +131,12 @@ describe('SessionStartComponent', () => {
     it('ワークスペース準備完了状態を正しく表示する', () => {
       setSessionStatus(createSessionStatus(true, true, true));
 
-      const workspaceStep = fixture.nativeElement.querySelectorAll('.flex.items-center.justify-center.text-sm')[2];
+      const workspaceStep = fixture.nativeElement.querySelectorAll(
+        '.flex.items-center.justify-center.text-sm'
+      )[2];
       expect(workspaceStep.textContent).toContain('📂');
       expect(workspaceStep.textContent).toContain('Setting up project workspace');
-      
+
       const checkIcon = workspaceStep.querySelector('svg.w-4.h-4');
       expect(checkIcon).toBeTruthy();
     });
@@ -132,16 +144,18 @@ describe('SessionStartComponent', () => {
     it('部分的に完了した状態を正しく表示する', () => {
       setSessionStatus(createSessionStatus(true, false, true));
 
-      const steps = fixture.nativeElement.querySelectorAll('.flex.items-center.justify-center.text-sm');
-      
+      const steps = fixture.nativeElement.querySelectorAll(
+        '.flex.items-center.justify-center.text-sm'
+      );
+
       // CLI起動ステップ（完了）
       const cliIcon = steps[0].querySelector('svg.w-4.h-4');
       expect(cliIcon).toBeTruthy();
-      
+
       // 接続ステップ（未完了）
       const connectionIcon = steps[1].querySelector('svg.w-4.h-4');
       expect(connectionIcon).toBeFalsy();
-      
+
       // ワークスペースステップ（完了）
       const workspaceIcon = steps[2].querySelector('svg.w-4.h-4');
       expect(workspaceIcon).toBeTruthy();
@@ -152,8 +166,10 @@ describe('SessionStartComponent', () => {
     it('ステップ1: CLI起動のみ完了', () => {
       setSessionStatus(createSessionStatus(true, false, false));
 
-      const steps = fixture.nativeElement.querySelectorAll('.flex.items-center.justify-center.text-sm');
-      
+      const steps = fixture.nativeElement.querySelectorAll(
+        '.flex.items-center.justify-center.text-sm'
+      );
+
       // 最初のステップのみチェックマーク
       expect(steps[0].querySelector('svg.w-4.h-4')).toBeTruthy();
       expect(steps[1].querySelector('svg.w-4.h-4')).toBeFalsy();
@@ -163,8 +179,10 @@ describe('SessionStartComponent', () => {
     it('ステップ2: CLI起動と接続確立完了', () => {
       setSessionStatus(createSessionStatus(true, true, false));
 
-      const steps = fixture.nativeElement.querySelectorAll('.flex.items-center.justify-center.text-sm');
-      
+      const steps = fixture.nativeElement.querySelectorAll(
+        '.flex.items-center.justify-center.text-sm'
+      );
+
       expect(steps[0].querySelector('svg.w-4.h-4')).toBeTruthy();
       expect(steps[1].querySelector('svg.w-4.h-4')).toBeTruthy();
       expect(steps[2].querySelector('svg.w-4.h-4')).toBeFalsy();
@@ -173,8 +191,10 @@ describe('SessionStartComponent', () => {
     it('ステップ3: 全ステップ完了', () => {
       setSessionStatus(createSessionStatus(true, true, true));
 
-      const steps = fixture.nativeElement.querySelectorAll('.flex.items-center.justify-center.text-sm');
-      
+      const steps = fixture.nativeElement.querySelectorAll(
+        '.flex.items-center.justify-center.text-sm'
+      );
+
       expect(steps[0].querySelector('svg.w-4.h-4')).toBeTruthy();
       expect(steps[1].querySelector('svg.w-4.h-4')).toBeTruthy();
       expect(steps[2].querySelector('svg.w-4.h-4')).toBeTruthy();
@@ -219,8 +239,10 @@ describe('SessionStartComponent', () => {
     });
 
     it('意味のあるテキストコンテンツを提供する', () => {
-      const steps = fixture.nativeElement.querySelectorAll('.flex.items-center.justify-center.text-sm');
-      
+      const steps = fixture.nativeElement.querySelectorAll(
+        '.flex.items-center.justify-center.text-sm'
+      );
+
       expect(steps[0].textContent).toContain('Launching Amazon Q CLI');
       expect(steps[1].textContent).toContain('Establishing connection');
       expect(steps[2].textContent).toContain('Setting up project workspace');
@@ -230,7 +252,7 @@ describe('SessionStartComponent', () => {
       // スピナーアニメーション
       const spinner = fixture.nativeElement.querySelector('.animate-spin');
       expect(spinner).toBeTruthy();
-      
+
       // 絵文字による視覚的区別
       const text = fixture.nativeElement.textContent;
       expect(text).toContain('🚀');
@@ -240,7 +262,7 @@ describe('SessionStartComponent', () => {
 
     it('完了状態を明確に示す', () => {
       setSessionStatus(createSessionStatus(true, true, true));
-      
+
       const checkIcons = fixture.nativeElement.querySelectorAll('svg.w-4.h-4');
       expect(checkIcons.length).toBe(3);
     });
@@ -250,8 +272,10 @@ describe('SessionStartComponent', () => {
     it('逆順での完了状態を処理する（ワークスペースが先に完了）', () => {
       setSessionStatus(createSessionStatus(false, false, true));
 
-      const steps = fixture.nativeElement.querySelectorAll('.flex.items-center.justify-center.text-sm');
-      
+      const steps = fixture.nativeElement.querySelectorAll(
+        '.flex.items-center.justify-center.text-sm'
+      );
+
       expect(steps[0].querySelector('svg.w-4.h-4')).toBeFalsy();
       expect(steps[1].querySelector('svg.w-4.h-4')).toBeFalsy();
       expect(steps[2].querySelector('svg.w-4.h-4')).toBeTruthy();
@@ -260,8 +284,10 @@ describe('SessionStartComponent', () => {
     it('飛び飛びの完了状態を処理する', () => {
       setSessionStatus(createSessionStatus(true, false, true));
 
-      const steps = fixture.nativeElement.querySelectorAll('.flex.items-center.justify-center.text-sm');
-      
+      const steps = fixture.nativeElement.querySelectorAll(
+        '.flex.items-center.justify-center.text-sm'
+      );
+
       expect(steps[0].querySelector('svg.w-4.h-4')).toBeTruthy();
       expect(steps[1].querySelector('svg.w-4.h-4')).toBeFalsy();
       expect(steps[2].querySelector('svg.w-4.h-4')).toBeTruthy();

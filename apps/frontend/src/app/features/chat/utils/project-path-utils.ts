@@ -1,3 +1,5 @@
+import type { AmazonQConversation, ConversationMetadata } from '@quincy/shared';
+
 /**
  * プロジェクトパスからプロジェクト名を取得する
  * @param projectPath プロジェクトパス
@@ -16,8 +18,8 @@ export function getProjectName(projectPath: string): string {
  * @returns プロジェクトパス
  */
 export function getProjectPathFromConversation(
-  currentConversation: any,
-  amazonQHistory: any[]
+  currentConversation: AmazonQConversation | null,
+  amazonQHistory: ConversationMetadata[]
 ): string {
   if (!currentConversation) return '';
 

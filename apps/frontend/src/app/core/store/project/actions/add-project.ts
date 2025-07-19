@@ -10,6 +10,6 @@ export function addProject(project: Project): void {
   projectState.update(state => ({
     ...state,
     projects: [...state.projects, project],
-    error: null
+    error: null,
   }));
 }

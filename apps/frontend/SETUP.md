@@ -126,17 +126,20 @@ src/app/
 ## Usage
 
 ### Dashboard
+
 - View application statistics
 - Monitor WebSocket connection status
 - Navigate to other sections
 
 ### Projects
+
 - View all projects
 - Create new projects
 - Select current project
 - Manage project settings
 
 ### Sessions
+
 - View sessions for selected project
 - Create new sessions
 - Manage session data

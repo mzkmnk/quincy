@@ -21,14 +21,16 @@ export function setupProjectSessionListeners(
  * @param socket Socket接続
  * @returns セッション失敗イベントのObservable
  */
-export function createSessionFailedObservable(socket: Socket | null): Observable<{ error: string }> {
-  return new Observable((subscriber) => {
+export function createSessionFailedObservable(
+  socket: Socket | null
+): Observable<{ error: string }> {
+  return new Observable(subscriber => {
     const handler = (data: { error: string }) => {
       subscriber.next(data);
     };
-    
+
     on(socket, 'q:session:failed', handler);
-    
+
     return () => {
       if (socket) {
         socket.off('q:session:failed', handler);

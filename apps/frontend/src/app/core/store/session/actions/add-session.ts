@@ -9,6 +9,6 @@ import { sessionState } from '../session.state';
 export function addSession(session: Session): void {
   sessionState.update(state => ({
     ...state,
-    sessions: [...state.sessions, session]
+    sessions: [...state.sessions, session],
   }));
 }

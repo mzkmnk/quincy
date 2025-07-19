@@ -4,12 +4,15 @@
  * @param type メッセージタイプ
  * @returns フォーマットされたメッセージ
  */
-export function formatInfoMessage(message: string, type: 'info' | 'warning' | 'error' | 'success' = 'info'): string {
+export function formatInfoMessage(
+  message: string,
+  type: 'info' | 'warning' | 'error' | 'success' = 'info'
+): string {
   const prefixes = {
     info: 'ℹ️',
     warning: '⚠️',
     error: '❌',
-    success: '✅'
+    success: '✅',
   };
 
   const prefix = prefixes[type] || '';

@@ -12,18 +12,18 @@ describe('resumeSession', () => {
 
   beforeEach(() => {
     sessionFailedSubject = new Subject();
-    
+
     mockWebSocketService = {
       onSessionFailed: vi.fn().mockReturnValue(sessionFailedSubject.asObservable()),
       resumeSession: vi.fn(),
-      setupProjectSessionListeners: vi.fn()
+      setupProjectSessionListeners: vi.fn(),
     };
 
     mockAppStore = {
       clearCurrentView: vi.fn(),
       setSessionStarting: vi.fn(),
       setSessionError: vi.fn(),
-      switchToActiveSession: vi.fn()
+      switchToActiveSession: vi.fn(),
     };
 
     mockUpdateSessionStatus = vi.fn();
@@ -41,7 +41,11 @@ describe('resumeSession', () => {
     it('有効なプロジェクトパスでセッション再開を開始する', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: true, connectionEstablished: true, workspaceReady: true };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: true,
+        connectionEstablished: true,
+        workspaceReady: true,
+      };
 
       resumeSession(
         projectPath,
@@ -61,7 +65,11 @@ describe('resumeSession', () => {
     it('初期セッションステータスが正しくリセットされる', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: true, connectionEstablished: true, workspaceReady: true };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: true,
+        connectionEstablished: true,
+        workspaceReady: true,
+      };
 
       resumeSession(
         projectPath,
@@ -75,14 +83,18 @@ describe('resumeSession', () => {
       expect(mockUpdateSessionStatus).toHaveBeenCalledWith({
         cliLaunched: false,
         connectionEstablished: false,
-        workspaceReady: false
+        workspaceReady: false,
       });
     });
 
     it('空のプロジェクトパスの場合、早期リターンする', () => {
       const projectPath = '';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       resumeSession(
         projectPath,
@@ -104,7 +116,11 @@ describe('resumeSession', () => {
     it('1秒後にcliLaunchedがtrueになる', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       resumeSession(
         projectPath,
@@ -121,14 +137,18 @@ describe('resumeSession', () => {
       expect(mockUpdateSessionStatus).toHaveBeenCalledWith({
         cliLaunched: true,
         connectionEstablished: false,
-        workspaceReady: false
+        workspaceReady: false,
       });
     });
 
     it('2秒後にconnectionEstablishedがtrueになる', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       resumeSession(
         projectPath,
@@ -145,14 +165,18 @@ describe('resumeSession', () => {
       expect(mockUpdateSessionStatus).toHaveBeenCalledWith({
         cliLaunched: true,
         connectionEstablished: true,
-        workspaceReady: false
+        workspaceReady: false,
       });
     });
 
     it('3秒後にworkspaceReadyがtrueになる', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       resumeSession(
         projectPath,
@@ -169,14 +193,18 @@ describe('resumeSession', () => {
       expect(mockUpdateSessionStatus).toHaveBeenCalledWith({
         cliLaunched: true,
         connectionEstablished: true,
-        workspaceReady: true
+        workspaceReady: true,
       });
     });
 
     it('段階的に呼び出される回数が正しい', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       resumeSession(
         projectPath,
@@ -208,7 +236,11 @@ describe('resumeSession', () => {
     it('30秒後にタイムアウトエラーが発生する', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -226,7 +258,9 @@ describe('resumeSession', () => {
 
       expect(consoleSpy).toHaveBeenCalledWith('Session resume timeout after 30 seconds');
       expect(mockAppStore.setSessionStarting).toHaveBeenCalledWith(false);
-      expect(mockAppStore.setSessionError).toHaveBeenCalledWith('Session resume timed out. Please try again.');
+      expect(mockAppStore.setSessionError).toHaveBeenCalledWith(
+        'Session resume timed out. Please try again.'
+      );
 
       consoleSpy.mockRestore();
     });
@@ -234,11 +268,15 @@ describe('resumeSession', () => {
     it('セッション成功時にタイムアウトがクリアされる', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
       const sessionData = { sessionId: 'session-123', projectPath };
 
       let sessionSuccessCallback: (data: any) => void = () => {};
-      mockWebSocketService.setupProjectSessionListeners = vi.fn().mockImplementation((callback) => {
+      mockWebSocketService.setupProjectSessionListeners = vi.fn().mockImplementation(callback => {
         sessionSuccessCallback = callback;
       });
 
@@ -269,7 +307,11 @@ describe('resumeSession', () => {
     it('セッション失敗時に適切なエラー処理が行われる', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
       const errorMessage = 'Connection failed';
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -288,7 +330,9 @@ describe('resumeSession', () => {
 
       expect(consoleSpy).toHaveBeenCalledWith('Session resume failed:', errorMessage);
       expect(mockAppStore.setSessionStarting).toHaveBeenCalledWith(false);
-      expect(mockAppStore.setSessionError).toHaveBeenCalledWith(`Failed to resume session: ${errorMessage}`);
+      expect(mockAppStore.setSessionError).toHaveBeenCalledWith(
+        `Failed to resume session: ${errorMessage}`
+      );
 
       consoleSpy.mockRestore();
     });
@@ -296,7 +340,11 @@ describe('resumeSession', () => {
     it('セッション失敗時にタイムアウトがクリアされる', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       resumeSession(
         projectPath,
@@ -324,11 +372,15 @@ describe('resumeSession', () => {
     it('セッション成功時に適切な処理が行われる', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
       const sessionData = { sessionId: 'session-123', projectPath };
 
       let sessionSuccessCallback: (data: any) => void = () => {};
-      mockWebSocketService.setupProjectSessionListeners = vi.fn().mockImplementation((callback) => {
+      mockWebSocketService.setupProjectSessionListeners = vi.fn().mockImplementation(callback => {
         sessionSuccessCallback = callback;
       });
 
@@ -357,7 +409,11 @@ describe('resumeSession', () => {
     it('特殊文字を含むプロジェクトパスでも正常に動作する', () => {
       const projectPath = '/Users/test/project with spaces & special chars!@#';
       const conversationId = 'conv-special-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       resumeSession(
         projectPath,
@@ -374,7 +430,11 @@ describe('resumeSession', () => {
     it('Unicode文字を含む会話IDでも正常に動作する', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-日本語-123-🚀';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       resumeSession(
         projectPath,
@@ -391,7 +451,11 @@ describe('resumeSession', () => {
     it('非常に長いパスでも正常に動作する', () => {
       const projectPath = '/Users/test/' + 'very-long-directory-name-'.repeat(10) + 'project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       resumeSession(
         projectPath,
@@ -408,7 +472,11 @@ describe('resumeSession', () => {
     it('空白のみのプロジェクトパスは空として扱われる', () => {
       const projectPath = '   ';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       resumeSession(
         projectPath,
@@ -428,7 +496,11 @@ describe('resumeSession', () => {
     it('WebSocketサービスのメソッドがエラーを投げても処理が継続される', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       mockWebSocketService.resumeSession = vi.fn().mockImplementation(() => {
         throw new Error('WebSocket error');
@@ -449,7 +521,11 @@ describe('resumeSession', () => {
     it('AppStoreのメソッドがエラーを投げても処理が継続される', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       mockAppStore.setSessionStarting = vi.fn().mockImplementation(() => {
         throw new Error('AppStore error');
@@ -470,7 +546,11 @@ describe('resumeSession', () => {
     it('updateSessionStatusがエラーを投げても処理が継続される', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       mockUpdateSessionStatus.mockImplementation(() => {
         throw new Error('UpdateSessionStatus error');
@@ -494,7 +574,11 @@ describe('resumeSession', () => {
       const projectPath = '/Users/test/project';
       const conversationId1 = 'conv-123';
       const conversationId2 = 'conv-456';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       // 1回目の呼び出し
       resumeSession(
@@ -517,8 +601,16 @@ describe('resumeSession', () => {
       );
 
       expect(mockWebSocketService.resumeSession).toHaveBeenCalledTimes(2);
-      expect(mockWebSocketService.resumeSession).toHaveBeenNthCalledWith(1, projectPath, conversationId1);
-      expect(mockWebSocketService.resumeSession).toHaveBeenNthCalledWith(2, projectPath, conversationId2);
+      expect(mockWebSocketService.resumeSession).toHaveBeenNthCalledWith(
+        1,
+        projectPath,
+        conversationId1
+      );
+      expect(mockWebSocketService.resumeSession).toHaveBeenNthCalledWith(
+        2,
+        projectPath,
+        conversationId2
+      );
     });
   });
 
@@ -526,16 +618,20 @@ describe('resumeSession', () => {
     it('セッション成功時にサブスクリプションが解除される', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
       const sessionData = { sessionId: 'session-123' };
 
       const mockUnsubscribe = vi.fn();
       sessionFailedSubject.asObservable = vi.fn().mockReturnValue({
-        subscribe: vi.fn().mockReturnValue({ unsubscribe: mockUnsubscribe })
+        subscribe: vi.fn().mockReturnValue({ unsubscribe: mockUnsubscribe }),
       });
 
       let sessionSuccessCallback: (data: any) => void = () => {};
-      mockWebSocketService.setupProjectSessionListeners = vi.fn().mockImplementation((callback) => {
+      mockWebSocketService.setupProjectSessionListeners = vi.fn().mockImplementation(callback => {
         sessionSuccessCallback = callback;
       });
 
@@ -557,11 +653,15 @@ describe('resumeSession', () => {
     it('セッション失敗時にサブスクリプションが解除される', () => {
       const projectPath = '/Users/test/project';
       const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = { cliLaunched: false, connectionEstablished: false, workspaceReady: false };
+      const sessionStatus: SessionStatus = {
+        cliLaunched: false,
+        connectionEstablished: false,
+        workspaceReady: false,
+      };
 
       const mockUnsubscribe = vi.fn();
       sessionFailedSubject.asObservable = vi.fn().mockReturnValue({
-        subscribe: vi.fn().mockReturnValue({ unsubscribe: mockUnsubscribe })
+        subscribe: vi.fn().mockReturnValue({ unsubscribe: mockUnsubscribe }),
       });
 
       resumeSession(

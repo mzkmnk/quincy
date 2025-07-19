@@ -16,14 +16,17 @@
 ### Health Check API
 
 #### GET /health
+
 システムの健康状態を確認します。
 
 **リクエスト**
+
 ```
 GET /health
 ```
 
 **レスポンス**
+
 ```json
 {
   "status": "healthy",
@@ -43,14 +46,17 @@ GET /health
 ### WebSocket API
 
 #### GET /websocket/status
+
 WebSocketサーバーの状態を確認します。
 
 **リクエスト**
+
 ```
 GET /websocket/status
 ```
 
 **レスポンス**
+
 ```json
 {
   "status": "running",
@@ -90,14 +96,17 @@ GET /websocket/status
 ```
 
 #### GET /websocket/info
+
 WebSocketサーバーの設定情報を取得します。
 
 **リクエスト**
+
 ```
 GET /websocket/info
 ```
 
 **レスポンス**
+
 ```json
 {
   "cors": {
@@ -129,20 +138,23 @@ GET /websocket/info
 **エンドポイント**: `ws://localhost:3000/socket.io/`
 
 **接続例**
+
 ```javascript
 import { io } from 'socket.io-client';
 
 const socket = io('http://localhost:3000', {
-  transports: ['websocket', 'polling']
+  transports: ['websocket', 'polling'],
 });
 ```
 
 ### Amazon Q CLI 関連イベント
 
 #### 1. q:command
+
 Amazon Q CLIコマンドを実行します。
 
 **送信**
+
 ```typescript
 socket.emit('q:command', {
   command: string;
@@ -154,48 +166,44 @@ socket.emit('q:command', {
 ```
 
 **受信**
+
 ```typescript
 // セッション作成通知
-socket.on('session:created', (data: {
-  sessionId: string;
-  timestamp: string;
-}) => {});
+socket.on('session:created', (data: { sessionId: string; timestamp: string }) => {});
 
 // セッション開始通知
-socket.on('q:session:started', (data: {
-  sessionId: string;
-  pid: number;
-  timestamp: string;
-}) => {});
+socket.on('q:session:started', (data: { sessionId: string; pid: number; timestamp: string }) => {});
 
 // レスポンス受信
-socket.on('q:response', (data: {
-  sessionId: string;
-  type: 'stdout' | 'stderr' | 'info' | 'error';
-  content: string;
-  timestamp: string;
-}) => {});
+socket.on(
+  'q:response',
+  (data: {
+    sessionId: string;
+    type: 'stdout' | 'stderr' | 'info' | 'error';
+    content: string;
+    timestamp: string;
+  }) => {}
+);
 
 // セッション完了
-socket.on('q:complete', (data: {
-  sessionId: string;
-  timestamp: string;
-}) => {});
+socket.on('q:complete', (data: { sessionId: string; timestamp: string }) => {});
 ```
 
 **エラー**
+
 ```typescript
-socket.on('q:error', (error: {
-  code: 'Q_COMMAND_ERROR';
-  message: string;
-  details?: Record<string, any>;
-}) => {});
+socket.on(
+  'q:error',
+  (error: { code: 'Q_COMMAND_ERROR'; message: string; details?: Record<string, any> }) => {}
+);
 ```
 
 #### 2. q:message
+
 Amazon Q セッションにメッセージを送信します。
 
 **送信**
+
 ```typescript
 socket.emit('q:message', {
   sessionId: string;
@@ -207,18 +215,20 @@ socket.emit('q:message', {
 ```
 
 **エラー**
+
 ```typescript
-socket.on('q:error', (error: {
-  code: 'Q_MESSAGE_ERROR';
-  message: string;
-  details?: Record<string, any>;
-}) => {});
+socket.on(
+  'q:error',
+  (error: { code: 'Q_MESSAGE_ERROR'; message: string; details?: Record<string, any> }) => {}
+);
 ```
 
 #### 3. q:abort
+
 Amazon Q セッションを中止します。
 
 **送信**
+
 ```typescript
 socket.emit('q:abort', {
   sessionId: string;
@@ -226,18 +236,20 @@ socket.emit('q:abort', {
 ```
 
 **エラー**
+
 ```typescript
-socket.on('q:error', (error: {
-  code: 'Q_ABORT_ERROR';
-  message: string;
-  details?: Record<string, any>;
-}) => {});
+socket.on(
+  'q:error',
+  (error: { code: 'Q_ABORT_ERROR'; message: string; details?: Record<string, any> }) => {}
+);
 ```
 
 #### 4. q:history
+
 プロジェクトの履歴を取得します。
 
 **送信**
+
 ```typescript
 socket.emit('q:history', {
   projectPath: string;
@@ -245,27 +257,33 @@ socket.emit('q:history', {
 ```
 
 **受信**
+
 ```typescript
-socket.on('q:history:data', (data: {
-  projectPath: string;
-  conversation: AmazonQConversation | null;
-  message?: string;
-}) => {});
+socket.on(
+  'q:history:data',
+  (data: { projectPath: string; conversation: AmazonQConversation | null; message?: string }) => {}
+);
 ```
 
 **エラー**
+
 ```typescript
-socket.on('q:error', (error: {
-  code: 'Q_HISTORY_ERROR' | 'Q_HISTORY_UNAVAILABLE';
-  message: string;
-  details?: Record<string, any>;
-}) => {});
+socket.on(
+  'q:error',
+  (error: {
+    code: 'Q_HISTORY_ERROR' | 'Q_HISTORY_UNAVAILABLE';
+    message: string;
+    details?: Record<string, any>;
+  }) => {}
+);
 ```
 
 #### 5. q:history:detailed
+
 詳細な履歴を取得します。
 
 **送信**
+
 ```typescript
 socket.emit('q:history:detailed', {
   projectPath: string;
@@ -273,53 +291,67 @@ socket.emit('q:history:detailed', {
 ```
 
 **受信**
+
 ```typescript
-socket.on('q:history:detailed:data', (data: {
-  projectPath: string;
-  displayMessages: DisplayMessage[];
-  stats: ConversationStats | null;
-  message?: string;
-}) => {});
+socket.on(
+  'q:history:detailed:data',
+  (data: {
+    projectPath: string;
+    displayMessages: DisplayMessage[];
+    stats: ConversationStats | null;
+    message?: string;
+  }) => {}
+);
 ```
 
 **エラー**
+
 ```typescript
-socket.on('q:error', (error: {
-  code: 'Q_HISTORY_DETAILED_ERROR' | 'Q_HISTORY_UNAVAILABLE';
-  message: string;
-  details?: Record<string, any>;
-}) => {});
+socket.on(
+  'q:error',
+  (error: {
+    code: 'Q_HISTORY_DETAILED_ERROR' | 'Q_HISTORY_UNAVAILABLE';
+    message: string;
+    details?: Record<string, any>;
+  }) => {}
+);
 ```
 
 #### 6. q:projects
+
 全プロジェクトの履歴一覧を取得します。
 
 **送信**
+
 ```typescript
 socket.emit('q:projects');
 ```
 
 **受信**
+
 ```typescript
-socket.on('q:history:list', (data: {
-  projects: ConversationMetadata[];
-  count: number;
-}) => {});
+socket.on('q:history:list', (data: { projects: ConversationMetadata[]; count: number }) => {});
 ```
 
 **エラー**
+
 ```typescript
-socket.on('q:error', (error: {
-  code: 'Q_PROJECTS_ERROR' | 'Q_PROJECTS_UNAVAILABLE';
-  message: string;
-  details?: Record<string, any>;
-}) => {});
+socket.on(
+  'q:error',
+  (error: {
+    code: 'Q_PROJECTS_ERROR' | 'Q_PROJECTS_UNAVAILABLE';
+    message: string;
+    details?: Record<string, any>;
+  }) => {}
+);
 ```
 
 #### 7. q:resume
+
 セッションを再開します。
 
 **送信**
+
 ```typescript
 socket.emit('q:resume', {
   projectPath: string;
@@ -328,34 +360,34 @@ socket.emit('q:resume', {
 ```
 
 **受信**
+
 ```typescript
 // 成功時
-socket.on('q:session:started', (data: {
-  sessionId: string;
-  pid: number;
-  timestamp: string;
-}) => {});
+socket.on('q:session:started', (data: { sessionId: string; pid: number; timestamp: string }) => {});
 
 // 失敗時
-socket.on('q:session:failed', (data: {
-  projectPath: string;
-  error: string;
-}) => {});
+socket.on('q:session:failed', (data: { projectPath: string; error: string }) => {});
 ```
 
 **エラー**
+
 ```typescript
-socket.on('q:error', (error: {
-  code: 'Q_RESUME_ERROR' | 'Q_RESUME_UNAVAILABLE' | 'Q_RESUME_NO_HISTORY';
-  message: string;
-  details?: Record<string, any>;
-}) => {});
+socket.on(
+  'q:error',
+  (error: {
+    code: 'Q_RESUME_ERROR' | 'Q_RESUME_UNAVAILABLE' | 'Q_RESUME_NO_HISTORY';
+    message: string;
+    details?: Record<string, any>;
+  }) => {}
+);
 ```
 
 #### 8. q:project:start
+
 プロジェクトセッションを開始します。
 
 **送信**
+
 ```typescript
 socket.emit('q:project:start', {
   projectPath: string;
@@ -364,34 +396,39 @@ socket.emit('q:project:start', {
 ```
 
 **受信**
-```typescript
-socket.on('q:session:started', (data: {
-  sessionId: string;
-  pid: number;
-  timestamp: string;
-}) => {});
 
-socket.on('session:created', (data: {
-  sessionId: string;
-  timestamp: string;
-}) => {});
+```typescript
+socket.on('q:session:started', (data: { sessionId: string; pid: number; timestamp: string }) => {});
+
+socket.on('session:created', (data: { sessionId: string; timestamp: string }) => {});
 ```
 
 **エラー**
+
 ```typescript
-socket.on('q:error', (error: {
-  code: 'Q_PROJECT_START_ERROR' | 'Q_CLI_NOT_AVAILABLE' | 'Q_CLI_NOT_FOUND' | 'Q_CLI_PERMISSION_ERROR' | 'Q_CLI_SPAWN_ERROR';
-  message: string;
-  details?: Record<string, any>;
-}) => {});
+socket.on(
+  'q:error',
+  (error: {
+    code:
+      | 'Q_PROJECT_START_ERROR'
+      | 'Q_CLI_NOT_AVAILABLE'
+      | 'Q_CLI_NOT_FOUND'
+      | 'Q_CLI_PERMISSION_ERROR'
+      | 'Q_CLI_SPAWN_ERROR';
+    message: string;
+    details?: Record<string, any>;
+  }) => {}
+);
 ```
 
 ### 基本的なWebSocketイベント
 
 #### 1. message:send
+
 メッセージを送信します。
 
 **送信**
+
 ```typescript
 socket.emit('message:send', {
   content: string;
@@ -400,27 +437,25 @@ socket.emit('message:send', {
 ```
 
 **受信**
-```typescript
-socket.on('message:received', (data: {
-  id: string;
-  content: string;
-  timestamp: string;
-  userId: string;
-}) => {});
 
-socket.on('message:broadcast', (data: {
-  id: string;
-  content: string;
-  timestamp: string;
-  userId: string;
-  room?: string;
-}) => {});
+```typescript
+socket.on(
+  'message:received',
+  (data: { id: string; content: string; timestamp: string; userId: string }) => {}
+);
+
+socket.on(
+  'message:broadcast',
+  (data: { id: string; content: string; timestamp: string; userId: string; room?: string }) => {}
+);
 ```
 
 #### 2. room:join
+
 ルームに参加します。
 
 **送信**
+
 ```typescript
 socket.emit('room:join', {
   roomId: string;
@@ -428,18 +463,17 @@ socket.emit('room:join', {
 ```
 
 **受信**
+
 ```typescript
-socket.on('room:joined', (data: {
-  roomId: string;
-  userId: string;
-  timestamp: string;
-}) => {});
+socket.on('room:joined', (data: { roomId: string; userId: string; timestamp: string }) => {});
 ```
 
 #### 3. room:leave
+
 ルームから離脱します。
 
 **送信**
+
 ```typescript
 socket.emit('room:leave', {
   roomId: string;
@@ -447,32 +481,31 @@ socket.emit('room:leave', {
 ```
 
 **受信**
+
 ```typescript
-socket.on('room:left', (data: {
-  roomId: string;
-  userId: string;
-  timestamp: string;
-}) => {});
+socket.on('room:left', (data: { roomId: string; userId: string; timestamp: string }) => {});
 ```
 
 #### 4. ping/pong
+
 ハートビート機能
 
 **送信**
+
 ```typescript
 socket.emit('ping');
 ```
 
 **受信**
+
 ```typescript
-socket.on('pong', (data: {
-  timestamp: string;
-}) => {});
+socket.on('pong', (data: { timestamp: string }) => {});
 ```
 
 ### 型定義
 
 #### AmazonQConversation
+
 ```typescript
 interface AmazonQConversation {
   id: string;
@@ -490,6 +523,7 @@ interface AmazonQConversation {
 ```
 
 #### DisplayMessage
+
 ```typescript
 interface DisplayMessage {
   id: string;
@@ -501,6 +535,7 @@ interface DisplayMessage {
 ```
 
 #### ConversationStats
+
 ```typescript
 interface ConversationStats {
   totalMessages: number;
@@ -515,6 +550,7 @@ interface ConversationStats {
 ```
 
 #### ConversationMetadata
+
 ```typescript
 interface ConversationMetadata {
   id: string;
@@ -529,6 +565,7 @@ interface ConversationMetadata {
 ### エラーハンドリング
 
 #### 共通エラー形式
+
 ```typescript
 interface ErrorData {
   code: string;
@@ -538,6 +575,7 @@ interface ErrorData {
 ```
 
 #### エラーコード一覧
+
 - `Q_COMMAND_ERROR` - コマンド実行エラー
 - `Q_MESSAGE_ERROR` - メッセージ送信エラー
 - `Q_ABORT_ERROR` - セッション中止エラー
@@ -558,6 +596,7 @@ interface ErrorData {
 ### 使用例
 
 #### 基本的な使用法
+
 ```typescript
 import { io } from 'socket.io-client';
 
@@ -571,28 +610,29 @@ socket.on('connect', () => {
 // Amazon Q コマンド実行
 socket.emit('q:command', {
   command: 'help',
-  workingDir: '/path/to/project'
+  workingDir: '/path/to/project',
 });
 
 // レスポンス受信
-socket.on('q:response', (data) => {
+socket.on('q:response', data => {
   console.log('Response:', data.content);
 });
 
 // エラーハンドリング
-socket.on('q:error', (error) => {
+socket.on('q:error', error => {
   console.error('Error:', error.message);
 });
 ```
 
 #### 履歴取得の例
+
 ```typescript
 // プロジェクト履歴取得
 socket.emit('q:history', {
-  projectPath: '/path/to/project'
+  projectPath: '/path/to/project',
 });
 
-socket.on('q:history:data', (data) => {
+socket.on('q:history:data', data => {
   if (data.conversation) {
     console.log('Conversation found:', data.conversation);
   } else {
@@ -602,43 +642,48 @@ socket.on('q:history:data', (data) => {
 
 // 詳細履歴取得
 socket.emit('q:history:detailed', {
-  projectPath: '/path/to/project'
+  projectPath: '/path/to/project',
 });
 
-socket.on('q:history:detailed:data', (data) => {
+socket.on('q:history:detailed:data', data => {
   console.log('Display messages:', data.displayMessages);
   console.log('Stats:', data.stats);
 });
 ```
 
 #### セッション管理の例
+
 ```typescript
 let currentSessionId: string | null = null;
 
 // セッション作成
-socket.on('session:created', (data) => {
+socket.on('session:created', data => {
   currentSessionId = data.sessionId;
   console.log('Session created:', data.sessionId);
 });
 
 // メッセージ送信
 if (currentSessionId) {
-  socket.emit('q:message', {
-    sessionId: currentSessionId,
-    message: 'Hello, Amazon Q!'
-  }, (response) => {
-    if (response.success) {
-      console.log('Message sent successfully');
-    } else {
-      console.error('Failed to send message:', response.error);
+  socket.emit(
+    'q:message',
+    {
+      sessionId: currentSessionId,
+      message: 'Hello, Amazon Q!',
+    },
+    response => {
+      if (response.success) {
+        console.log('Message sent successfully');
+      } else {
+        console.error('Failed to send message:', response.error);
+      }
     }
-  });
+  );
 }
 
 // セッション中止
 if (currentSessionId) {
   socket.emit('q:abort', {
-    sessionId: currentSessionId
+    sessionId: currentSessionId,
   });
 }
 ```

@@ -1,3 +1,9 @@
+import type {
+  AmazonQConversation,
+  ConversationMetadata,
+  QSessionStartedEvent,
+} from '@quincy/shared';
+
 export interface ConnectionState {
   connected: boolean;
   connecting: boolean;
@@ -12,12 +18,16 @@ export interface ChatListeners {
 }
 
 export interface HistoryListeners {
-  onHistoryData: (data: { projectPath: string; conversation: any; message?: string }) => void;
-  onHistoryList: (data: { projects: any[]; count: number }) => void;
+  onHistoryData: (data: {
+    projectPath: string;
+    conversation: AmazonQConversation | null;
+    message?: string;
+  }) => void;
+  onHistoryList: (data: { projects: ConversationMetadata[]; count: number }) => void;
 }
 
 export interface ProjectSessionListeners {
-  onSessionStarted: (data: any) => void;
+  onSessionStarted: (data: QSessionStartedEvent) => void;
 }
 
 export interface ListenerFlags {

@@ -6,14 +6,14 @@ import { mkdtemp, rmdir } from 'fs/promises';
 import { homedir } from 'os';
 import { join } from 'path';
 
-import { 
+import {
   validateProjectPath,
   isValidPath,
   isDangerousPath,
   getDangerousPaths,
   checkPathTraversal,
   normalizePath,
-  DANGEROUS_PATHS
+  DANGEROUS_PATHS,
 } from '../utils/path-validator';
 
 describe('パス検証ユーティリティ', () => {

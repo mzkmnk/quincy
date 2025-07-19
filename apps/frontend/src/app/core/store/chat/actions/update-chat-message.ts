@@ -8,8 +8,6 @@ import { ChatMessage, chatState } from '../chat.state';
 export function updateChatMessage(messageId: string, updates: Partial<ChatMessage>): void {
   chatState.update(state => ({
     ...state,
-    chatMessages: state.chatMessages.map(m => 
-      m.id === messageId ? { ...m, ...updates } : m
-    )
+    chatMessages: state.chatMessages.map(m => (m.id === messageId ? { ...m, ...updates } : m)),
   }));
 }

@@ -12,26 +12,26 @@ describe('startProject', () => {
       connect: vi.fn(),
       startProjectSession: vi.fn(),
       setupProjectSessionListeners: vi.fn(),
-      on: vi.fn()
+      on: vi.fn(),
     };
 
     mockAppStore = {
       clearCurrentView: vi.fn(),
       setSessionStarting: vi.fn(),
       switchToActiveSession: vi.fn(),
-      setSessionError: vi.fn()
+      setSessionError: vi.fn(),
     };
 
     mockMessageService = {
-      add: vi.fn()
+      add: vi.fn(),
     };
 
     mockRouter = {
-      navigate: vi.fn().mockResolvedValue(true)
+      navigate: vi.fn().mockResolvedValue(true),
     };
 
     mockStartingSignal = {
-      set: vi.fn()
+      set: vi.fn(),
     };
 
     // console.logとconsole.errorをモック
@@ -105,9 +105,7 @@ describe('startProject', () => {
         mockStartingSignal
       );
 
-      expect(mockWebSocket.setupProjectSessionListeners).toHaveBeenCalledWith(
-        expect.any(Function)
-      );
+      expect(mockWebSocket.setupProjectSessionListeners).toHaveBeenCalledWith(expect.any(Function));
     });
 
     it('セッション開始成功時にアクティブセッションに切り替わる', async () => {
@@ -124,7 +122,7 @@ describe('startProject', () => {
       // setupProjectSessionListenersのコールバックを実行
       const callback = mockWebSocket.setupProjectSessionListeners.mock.calls[0][0];
       const sessionData = { sessionId: 'test-session', projectPath: '/test/path' };
-      
+
       callback(sessionData);
 
       expect(mockAppStore.switchToActiveSession).toHaveBeenCalledWith(sessionData);
@@ -147,7 +145,7 @@ describe('startProject', () => {
       // エラーリスナーのコールバックを実行
       const errorCallback = mockWebSocket.on.mock.calls.find(call => call[0] === 'error')[1];
       const error = { code: 'GENERIC_ERROR', message: 'Test error' };
-      
+
       errorCallback(error);
 
       expect(mockAppStore.setSessionError).toHaveBeenCalledWith(
@@ -169,7 +167,7 @@ describe('startProject', () => {
 
       const errorCallback = mockWebSocket.on.mock.calls.find(call => call[0] === 'error')[1];
       const error = { code: 'Q_CLI_NOT_AVAILABLE' };
-      
+
       errorCallback(error);
 
       expect(mockAppStore.setSessionError).toHaveBeenCalledWith(
@@ -190,7 +188,7 @@ describe('startProject', () => {
 
       const errorCallback = mockWebSocket.on.mock.calls.find(call => call[0] === 'error')[1];
       const error = { code: 'Q_CLI_NOT_FOUND' };
-      
+
       errorCallback(error);
 
       expect(mockAppStore.setSessionError).toHaveBeenCalledWith(
@@ -211,7 +209,7 @@ describe('startProject', () => {
 
       const errorCallback = mockWebSocket.on.mock.calls.find(call => call[0] === 'error')[1];
       const error = { code: 'Q_CLI_PERMISSION_ERROR' };
-      
+
       errorCallback(error);
 
       expect(mockAppStore.setSessionError).toHaveBeenCalledWith(
@@ -232,7 +230,7 @@ describe('startProject', () => {
 
       const errorCallback = mockWebSocket.on.mock.calls.find(call => call[0] === 'error')[1];
       const error = { code: 'Q_CLI_SPAWN_ERROR' };
-      
+
       errorCallback(error);
 
       expect(mockAppStore.setSessionError).toHaveBeenCalledWith(
@@ -262,7 +260,7 @@ describe('startProject', () => {
         severity: 'error',
         summary: 'エラー',
         detail: 'プロジェクトの開始に失敗しました',
-        life: 5000
+        life: 5000,
       });
       expect(mockStartingSignal.set).toHaveBeenCalledWith(false);
     });
@@ -299,7 +297,7 @@ describe('startProject', () => {
 
     it('特殊文字を含むパスでも正常に処理する', async () => {
       const specialPath = '/path/with spaces & special chars!@#';
-      
+
       await startProject(
         specialPath,
         false,
@@ -342,7 +340,7 @@ describe('startProject', () => {
 
       const callback = mockWebSocket.setupProjectSessionListeners.mock.calls[0][0];
       const sessionData = { sessionId: 'test-session' };
-      
+
       callback(sessionData);
 
       expect(console.log).toHaveBeenCalledWith('Amazon Q session started:', sessionData);
@@ -361,7 +359,7 @@ describe('startProject', () => {
 
       const errorCallback = mockWebSocket.on.mock.calls.find(call => call[0] === 'error')[1];
       const error = { code: 'TEST_ERROR' };
-      
+
       errorCallback(error);
 
       expect(console.error).toHaveBeenCalledWith('WebSocket error:', error);

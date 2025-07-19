@@ -14,17 +14,17 @@ export function isDatabaseAvailable(): boolean {
     if (!existsSync(DB_PATH)) {
       return false;
     }
-    
+
     const db = new Database(DB_PATH, { readonly: true });
-    
+
     try {
       // 実際にconversationsテーブルが存在するか確認
       const tableExists = db.prepare(SQL_QUERIES.CHECK_TABLE_EXISTS).get();
-      
+
       if (!tableExists) {
         return false;
       }
-      
+
       // テーブルに実際にアクセスできるかテスト
       try {
         db.prepare(SQL_QUERIES.COUNT_CONVERSATIONS).get() as { count: number };

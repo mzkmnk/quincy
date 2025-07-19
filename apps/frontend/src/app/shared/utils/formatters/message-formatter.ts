@@ -10,7 +10,7 @@ export function formatMessageContent(content: string, maxLength?: number): strin
   }
 
   const trimmed = content.trim();
-  
+
   if (maxLength && trimmed.length > maxLength) {
     return trimmed.substring(0, maxLength) + '...';
   }

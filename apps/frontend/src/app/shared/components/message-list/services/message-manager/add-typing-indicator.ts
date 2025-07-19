@@ -16,7 +16,7 @@ export function addTypingIndicator(
     sender: 'assistant',
     timestamp: new Date(),
     isTyping: true,
-    sessionId: currentSession?.sessionId
+    sessionId: currentSession?.sessionId,
   };
 
   appStore.addChatMessage(typingMessage);

@@ -35,7 +35,9 @@ describe('project-path-utils', () => {
 
       it('特殊文字を含むプロジェクト名を正しく取得する', () => {
         expect(getProjectName('/Users/username/projects/my-app-v2')).toBe('my-app-v2');
-        expect(getProjectName('/path/to/project_with_underscores')).toBe('project_with_underscores');
+        expect(getProjectName('/path/to/project_with_underscores')).toBe(
+          'project_with_underscores'
+        );
         expect(getProjectName('/path/to/project with spaces')).toBe('project with spaces');
         expect(getProjectName('/path/to/project.with.dots')).toBe('project.with.dots');
         expect(getProjectName('/path/to/project@version')).toBe('project@version');
@@ -132,7 +134,7 @@ describe('project-path-utils', () => {
         const currentConversation = { conversation_id: 'conv-123' };
         const amazonQHistory = [
           { conversation_id: 'conv-123', projectPath: '/Users/test/project-1' },
-          { conversation_id: 'conv-456', projectPath: '/Users/test/project-2' }
+          { conversation_id: 'conv-456', projectPath: '/Users/test/project-2' },
         ];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
@@ -144,7 +146,7 @@ describe('project-path-utils', () => {
         const amazonQHistory = [
           { conversation_id: 'conv-123', projectPath: '/project-1' },
           { conversation_id: 'conv-456', projectPath: '/project-2' },
-          { conversation_id: 'conv-789', projectPath: '/project-3' }
+          { conversation_id: 'conv-789', projectPath: '/project-3' },
         ];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
@@ -154,10 +156,10 @@ describe('project-path-utils', () => {
       it('特殊文字を含むプロジェクトパスを正しく取得する', () => {
         const currentConversation = { conversation_id: 'conv-special' };
         const amazonQHistory = [
-          { 
-            conversation_id: 'conv-special', 
-            projectPath: '/Users/test/project with spaces & special chars!@#' 
-          }
+          {
+            conversation_id: 'conv-special',
+            projectPath: '/Users/test/project with spaces & special chars!@#',
+          },
         ];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
@@ -167,7 +169,7 @@ describe('project-path-utils', () => {
       it('Unicode文字を含むプロジェクトパスを正しく取得する', () => {
         const currentConversation = { conversation_id: 'conv-unicode' };
         const amazonQHistory = [
-          { conversation_id: 'conv-unicode', projectPath: '/Users/ユーザー/プロジェクト-🚀' }
+          { conversation_id: 'conv-unicode', projectPath: '/Users/ユーザー/プロジェクト-🚀' },
         ];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
@@ -179,15 +181,15 @@ describe('project-path-utils', () => {
           conversation_id: 'conv-complex',
           title: 'Complex Conversation',
           timestamp: Date.now(),
-          metadata: { type: 'chat' }
+          metadata: { type: 'chat' },
         };
         const amazonQHistory = [
-          { 
+          {
             conversation_id: 'conv-complex',
             projectPath: '/complex/project',
             title: 'History Item',
-            created: Date.now()
-          }
+            created: Date.now(),
+          },
         ];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
@@ -198,9 +200,7 @@ describe('project-path-utils', () => {
     describe('会話が見つからないケース', () => {
       it('currentConversationがnullの場合、空文字列を返す', () => {
         const currentConversation = null;
-        const amazonQHistory = [
-          { conversation_id: 'conv-123', projectPath: '/project-1' }
-        ];
+        const amazonQHistory = [{ conversation_id: 'conv-123', projectPath: '/project-1' }];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
         expect(result).toBe('');
@@ -208,9 +208,7 @@ describe('project-path-utils', () => {
 
       it('currentConversationがundefinedの場合、空文字列を返す', () => {
         const currentConversation = undefined;
-        const amazonQHistory = [
-          { conversation_id: 'conv-123', projectPath: '/project-1' }
-        ];
+        const amazonQHistory = [{ conversation_id: 'conv-123', projectPath: '/project-1' }];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
         expect(result).toBe('');
@@ -220,7 +218,7 @@ describe('project-path-utils', () => {
         const currentConversation = { conversation_id: 'conv-nonexistent' };
         const amazonQHistory = [
           { conversation_id: 'conv-123', projectPath: '/project-1' },
-          { conversation_id: 'conv-456', projectPath: '/project-2' }
+          { conversation_id: 'conv-456', projectPath: '/project-2' },
         ];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
@@ -238,7 +236,7 @@ describe('project-path-utils', () => {
       it('履歴アイテムにprojectPathがない場合、空文字列を返す', () => {
         const currentConversation = { conversation_id: 'conv-123' };
         const amazonQHistory = [
-          { conversation_id: 'conv-123' } // projectPathプロパティなし
+          { conversation_id: 'conv-123' }, // projectPathプロパティなし
         ];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
@@ -247,9 +245,7 @@ describe('project-path-utils', () => {
 
       it('履歴アイテムのprojectPathがundefinedの場合、空文字列を返す', () => {
         const currentConversation = { conversation_id: 'conv-123' };
-        const amazonQHistory = [
-          { conversation_id: 'conv-123', projectPath: undefined }
-        ];
+        const amazonQHistory = [{ conversation_id: 'conv-123', projectPath: undefined }];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
         expect(result).toBe('');
@@ -257,9 +253,7 @@ describe('project-path-utils', () => {
 
       it('履歴アイテムのprojectPathがnullの場合、空文字列を返す', () => {
         const currentConversation = { conversation_id: 'conv-123' };
-        const amazonQHistory = [
-          { conversation_id: 'conv-123', projectPath: null }
-        ];
+        const amazonQHistory = [{ conversation_id: 'conv-123', projectPath: null }];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
         expect(result).toBe('');
@@ -269,9 +263,7 @@ describe('project-path-utils', () => {
     describe('エッジケース', () => {
       it('currentConversationにconversation_idがない場合、空文字列を返す', () => {
         const currentConversation = { id: 'conv-123' }; // conversation_idではなくid
-        const amazonQHistory = [
-          { conversation_id: 'conv-123', projectPath: '/project-1' }
-        ];
+        const amazonQHistory = [{ conversation_id: 'conv-123', projectPath: '/project-1' }];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
         expect(result).toBe('');
@@ -279,9 +271,7 @@ describe('project-path-utils', () => {
 
       it('conversation_idが空文字列の場合、正しく処理する', () => {
         const currentConversation = { conversation_id: '' };
-        const amazonQHistory = [
-          { conversation_id: '', projectPath: '/empty-id-project' }
-        ];
+        const amazonQHistory = [{ conversation_id: '', projectPath: '/empty-id-project' }];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
         expect(result).toBe('/empty-id-project');
@@ -289,9 +279,7 @@ describe('project-path-utils', () => {
 
       it('conversation_idがnullの場合、見つからないとして処理する', () => {
         const currentConversation = { conversation_id: null };
-        const amazonQHistory = [
-          { conversation_id: 'conv-123', projectPath: '/project-1' }
-        ];
+        const amazonQHistory = [{ conversation_id: 'conv-123', projectPath: '/project-1' }];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
         expect(result).toBe('');
@@ -301,7 +289,7 @@ describe('project-path-utils', () => {
         const currentConversation = { conversation_id: 'conv-duplicate' };
         const amazonQHistory = [
           { conversation_id: 'conv-duplicate', projectPath: '/first-project' },
-          { conversation_id: 'conv-duplicate', projectPath: '/second-project' }
+          { conversation_id: 'conv-duplicate', projectPath: '/second-project' },
         ];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
@@ -310,9 +298,7 @@ describe('project-path-utils', () => {
 
       it('projectPathが空文字列の場合、空文字列を返す', () => {
         const currentConversation = { conversation_id: 'conv-123' };
-        const amazonQHistory = [
-          { conversation_id: 'conv-123', projectPath: '' }
-        ];
+        const amazonQHistory = [{ conversation_id: 'conv-123', projectPath: '' }];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
         expect(result).toBe('');
@@ -320,9 +306,7 @@ describe('project-path-utils', () => {
 
       it('非文字列のprojectPathの場合の動作', () => {
         const currentConversation = { conversation_id: 'conv-123' };
-        const amazonQHistory = [
-          { conversation_id: 'conv-123', projectPath: 123 as any }
-        ];
+        const amazonQHistory = [{ conversation_id: 'conv-123', projectPath: 123 as any }];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
         expect(result).toBe(123);
@@ -334,7 +318,7 @@ describe('project-path-utils', () => {
         const currentConversation = { conversation_id: 'conv-target' };
         const amazonQHistory = Array.from({ length: 10000 }, (_, i) => ({
           conversation_id: `conv-${i}`,
-          projectPath: `/project-${i}`
+          projectPath: `/project-${i}`,
         }));
         // ターゲットを中央に配置
         amazonQHistory[5000] = { conversation_id: 'conv-target', projectPath: '/target-project' };
@@ -351,7 +335,7 @@ describe('project-path-utils', () => {
         const currentConversation = { conversation_id: 'conv-nonexistent' };
         const amazonQHistory = Array.from({ length: 1000 }, (_, i) => ({
           conversation_id: `conv-${i}`,
-          projectPath: `/project-${i}`
+          projectPath: `/project-${i}`,
         }));
 
         const start = performance.now();
@@ -371,14 +355,14 @@ describe('project-path-utils', () => {
             conversation_id: 'chat-session-123',
             projectPath: '/Users/dev/old-project',
             title: 'Previous Chat',
-            timestamp: Date.now() - 86400000
+            timestamp: Date.now() - 86400000,
           },
           {
             conversation_id: 'chat-session-456',
             projectPath: '/Users/dev/current-project',
             title: 'Current Chat',
-            timestamp: Date.now()
-          }
+            timestamp: Date.now(),
+          },
         ];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
@@ -389,13 +373,13 @@ describe('project-path-utils', () => {
         const conversations = [
           { conversation_id: 'frontend-chat' },
           { conversation_id: 'backend-chat' },
-          { conversation_id: 'mobile-chat' }
+          { conversation_id: 'mobile-chat' },
         ];
 
         const amazonQHistory = [
           { conversation_id: 'frontend-chat', projectPath: '/projects/frontend' },
           { conversation_id: 'backend-chat', projectPath: '/projects/backend' },
-          { conversation_id: 'mobile-chat', projectPath: '/projects/mobile' }
+          { conversation_id: 'mobile-chat', projectPath: '/projects/mobile' },
         ];
 
         conversations.forEach((conv, index) => {
@@ -410,7 +394,7 @@ describe('project-path-utils', () => {
     it('getProjectPathFromConversationとgetProjectNameの連携', () => {
       const currentConversation = { conversation_id: 'conv-integration' };
       const amazonQHistory = [
-        { conversation_id: 'conv-integration', projectPath: '/Users/dev/my-awesome-project' }
+        { conversation_id: 'conv-integration', projectPath: '/Users/dev/my-awesome-project' },
       ];
 
       const projectPath = getProjectPathFromConversation(currentConversation, amazonQHistory);

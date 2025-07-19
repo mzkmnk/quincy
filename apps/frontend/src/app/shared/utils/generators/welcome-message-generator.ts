@@ -7,10 +7,13 @@ import { generateCurrentDate } from './timestamp-generator';
  * @returns ウェルカムメッセージの配列
  */
 export function generateWelcomeMessage(): ChatMessage[] {
-  return [{
-    id: 'welcome',
-    content: 'Hello! I\'m Amazon Q, your AI coding assistant. How can I help you with your project today?',
-    sender: 'assistant',
-    timestamp: generateCurrentDate()
-  }];
+  return [
+    {
+      id: 'welcome',
+      content:
+        "Hello! I'm Amazon Q, your AI coding assistant. How can I help you with your project today?",
+      sender: 'assistant',
+      timestamp: generateCurrentDate(),
+    },
+  ];
 }

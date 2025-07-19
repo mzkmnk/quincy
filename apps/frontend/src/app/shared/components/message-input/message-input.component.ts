@@ -1,4 +1,12 @@
-import { Component, signal, ViewChild, ElementRef, inject, ChangeDetectionStrategy, output } from '@angular/core';
+import {
+  Component,
+  signal,
+  ViewChild,
+  ElementRef,
+  inject,
+  ChangeDetectionStrategy,
+  output,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -9,11 +17,11 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 import { AppStore } from '../../../core/store/app.state';
 
 import { sendMessage, canSendMessage } from './services/message-sender';
-import { 
-  handleCompositionStart, 
-  handleCompositionEnd, 
-  adjustTextareaHeight, 
-  handleKeyDown 
+import {
+  handleCompositionStart,
+  handleCompositionEnd,
+  adjustTextareaHeight,
+  handleKeyDown,
 } from './utils';
 
 @Component({
@@ -23,7 +31,9 @@ import {
   template: `
     <div class="p-4 flex items-center justify-center">
       <!-- Input Area -->
-      <div class="flex gap-2 flex-col w-9/12 bg-[var(--secondary-bg)] border-1 border-[var(--border-color)] rounded-3xl p-2">
+      <div
+        class="flex gap-2 flex-col w-9/12 bg-[var(--secondary-bg)] border-1 border-[var(--border-color)] rounded-3xl p-2"
+      >
         <!-- Text Input -->
         <textarea
           #messageTextarea
@@ -52,7 +62,7 @@ import {
         </div>
       </div>
     </div>
-  `
+  `,
 })
 export class MessageInputComponent {
   @ViewChild('messageTextarea') messageTextarea!: ElementRef<HTMLTextAreaElement>;
@@ -89,12 +99,7 @@ export class MessageInputComponent {
   };
 
   onKeyDown = (event: KeyboardEvent): void => {
-    handleKeyDown(
-      event,
-      this.isComposing(),
-      this.onSendMessage,
-      () => this.adjustTextareaHeight()
-    );
+    handleKeyDown(event, this.isComposing(), this.onSendMessage, () => this.adjustTextareaHeight());
   };
 
   onCompositionStart = (): void => {

@@ -5,14 +5,15 @@ describe('cleanupChatWebSocketListeners', () => {
   let mockWebSocketService: Partial<WebSocketService>;
 
   // テストヘルパー関数
-  const createMockWebSocketService = (): Partial<WebSocketService> => ({
-    removeChatListeners: vi.fn(),
-    setupChatListeners: vi.fn(),
-    sendQMessage: vi.fn(),
-    abortSession: vi.fn(),
-    connected: vi.fn(),
-    connecting: vi.fn()
-  } as any);
+  const createMockWebSocketService = (): Partial<WebSocketService> =>
+    ({
+      removeChatListeners: vi.fn(),
+      setupChatListeners: vi.fn(),
+      sendQMessage: vi.fn(),
+      abortSession: vi.fn(),
+      connected: vi.fn(),
+      connecting: vi.fn(),
+    }) as any;
 
   beforeEach(() => {
     mockWebSocketService = createMockWebSocketService();
@@ -34,7 +35,7 @@ describe('cleanupChatWebSocketListeners', () => {
 
     it('引数として渡したWebSocketServiceのみを使用する', () => {
       const anotherMockService = createMockWebSocketService();
-      
+
       cleanupChatWebSocketListeners(mockWebSocketService as WebSocketService);
 
       expect(mockWebSocketService.removeChatListeners).toHaveBeenCalledTimes(1);
@@ -127,7 +128,7 @@ describe('cleanupChatWebSocketListeners', () => {
     it('セットアップとクリーンアップのペアでの使用', () => {
       // setup phase
       mockWebSocketService.setupChatListeners.mockImplementation(() => {});
-      
+
       // cleanup phase
       cleanupChatWebSocketListeners(mockWebSocketService as WebSocketService);
 
@@ -153,14 +154,14 @@ describe('cleanupChatWebSocketListeners', () => {
   describe('パフォーマンス', () => {
     it('大量のクリーンアップ呼び出しでも効率的に処理される', () => {
       const start = performance.now();
-      
+
       for (let i = 0; i < 1000; i++) {
         cleanupChatWebSocketListeners(mockWebSocketService as WebSocketService);
       }
-      
+
       const end = performance.now();
       const duration = end - start;
-      
+
       // 1000回の呼び出しが50ms以内に完了することを期待
       expect(duration).toBeLessThan(50);
       expect(mockWebSocketService.removeChatListeners).toHaveBeenCalledTimes(1000);
@@ -213,7 +214,7 @@ describe('cleanupChatWebSocketListeners', () => {
       expect(mockWebSocketService.setupChatListeners).not.toHaveBeenCalled();
       expect(mockWebSocketService.sendQMessage).not.toHaveBeenCalled();
       expect(mockWebSocketService.abortSession).not.toHaveBeenCalled();
-      
+
       // removeChatListenersのみが呼び出されている
       expect(mockWebSocketService.removeChatListeners).toHaveBeenCalledTimes(1);
     });

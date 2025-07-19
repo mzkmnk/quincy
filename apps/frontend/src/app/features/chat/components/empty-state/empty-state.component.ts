@@ -11,7 +11,6 @@ import { PathSelectorComponent } from '../../../../shared/components/path-select
     <div class="flex items-center justify-center min-h-full min-w-full">
       <app-path-selector></app-path-selector>
     </div>
-  `
+  `,
 })
-export class EmptyStateComponent {
-}
+export class EmptyStateComponent {}

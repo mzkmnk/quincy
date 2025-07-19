@@ -1,14 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 
-import { EmptyStateComponent } from './empty-state.component';
 import { PathSelectorComponent } from '../../../../shared/components/path-selector/path-selector.component';
+
+import { EmptyStateComponent } from './empty-state.component';
 
 // PathSelectorComponentのモック
 @Component({
   selector: 'app-path-selector',
   template: '<div>Path Selector Mock</div>',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class MockPathSelectorComponent {}
 
@@ -19,19 +20,17 @@ describe('EmptyStateComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EmptyStateComponent],
-      declarations: [MockPathSelectorComponent]
+      declarations: [MockPathSelectorComponent],
     })
-    .overrideComponent(EmptyStateComponent, {
-      remove: {
-        imports: [
-          PathSelectorComponent
-        ]
-      },
-      add: {
-        declarations: [MockPathSelectorComponent]
-      }
-    })
-    .compileComponents();
+      .overrideComponent(EmptyStateComponent, {
+        remove: {
+          imports: [PathSelectorComponent],
+        },
+        add: {
+          declarations: [MockPathSelectorComponent],
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(EmptyStateComponent);
     component = fixture.componentInstance;
@@ -103,16 +102,16 @@ describe('EmptyStateComponent', () => {
     it('複数回のレンダリングでも安定している', () => {
       fixture.detectChanges();
       const firstRender = fixture.nativeElement.innerHTML;
-      
+
       fixture.detectChanges();
       const secondRender = fixture.nativeElement.innerHTML;
-      
+
       expect(firstRender).toBe(secondRender);
     });
 
     it('コンポーネントの破棄時にエラーが発生しない', () => {
       fixture.detectChanges();
-      
+
       expect(() => {
         fixture.destroy();
       }).not.toThrow();
@@ -127,7 +126,7 @@ describe('EmptyStateComponent', () => {
     it('適切なDOM構造を提供する', () => {
       const container = fixture.nativeElement.querySelector('div');
       expect(container).toBeTruthy();
-      
+
       const pathSelector = container.querySelector('app-path-selector');
       expect(pathSelector).toBeTruthy();
     });
@@ -146,10 +145,10 @@ describe('EmptyStateComponent', () => {
     it('手動でのchange detectionが正常に動作する', () => {
       fixture.detectChanges();
       const initialHTML = fixture.nativeElement.innerHTML;
-      
+
       fixture.markForCheck();
       fixture.detectChanges();
-      
+
       expect(fixture.nativeElement.innerHTML).toBe(initialHTML);
     });
   });
@@ -158,12 +157,12 @@ describe('EmptyStateComponent', () => {
     it('コンポーネントの状態変更がないため常に同じ出力を生成する', () => {
       fixture.detectChanges();
       const html1 = fixture.nativeElement.innerHTML;
-      
+
       // 複数回レンダリング
       for (let i = 0; i < 5; i++) {
         fixture.detectChanges();
       }
-      
+
       const html2 = fixture.nativeElement.innerHTML;
       expect(html1).toBe(html2);
     });
@@ -171,22 +170,22 @@ describe('EmptyStateComponent', () => {
     it('親コンポーネントからの入力変更がない場合、再レンダリングされない', () => {
       fixture.detectChanges();
       const detectChangesSpy = spyOn(fixture, 'detectChanges').and.callThrough();
-      
+
       // 明示的にchange detectionを呼び出し
       fixture.detectChanges();
-      
+
       expect(detectChangesSpy).toHaveBeenCalled();
     });
 
     it('メモリリークが発生しない', () => {
       fixture.detectChanges();
-      
+
       // コンポーネントの参照を取得
       const componentRef = fixture.componentRef;
-      
+
       // コンポーネントを破棄
       fixture.destroy();
-      
+
       // コンポーネントが破棄されたことを確認
       expect(componentRef.hostView.destroyed).toBe(true);
     });

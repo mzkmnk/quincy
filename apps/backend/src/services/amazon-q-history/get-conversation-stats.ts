@@ -17,24 +17,26 @@ export async function getConversationStats(projectPath: string): Promise<{
 } | null> {
   const db = new Database(DB_PATH, { readonly: true });
   const historyTransformer = new HistoryTransformer();
-  
+
   try {
     const stmt = db.prepare(SQL_QUERIES.GET_CONVERSATION_BY_KEY);
     const result = stmt.get(projectPath) as { value: string } | undefined;
-    
+
     if (!result) {
       return null;
     }
 
     const conversationData: AmazonQConversationWithHistory = JSON.parse(result.value);
-    
-    if (!conversationData.history || !historyTransformer.isValidHistoryData(conversationData.history)) {
+
+    if (
+      !conversationData.history ||
+      !historyTransformer.isValidHistoryData(conversationData.history)
+    ) {
       return null;
     }
 
     const normalizedHistory = historyTransformer.normalizeHistoryData(conversationData.history);
     return historyTransformer.getTransformationStats(normalizedHistory);
-    
   } catch {
     return null;
   } finally {

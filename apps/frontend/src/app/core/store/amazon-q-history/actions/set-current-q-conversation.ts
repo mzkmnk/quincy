@@ -9,6 +9,6 @@ import { amazonQHistoryState } from '../amazon-q-history.state';
 export function setCurrentQConversation(conversation: AmazonQConversation | null): void {
   amazonQHistoryState.update(state => ({
     ...state,
-    currentQConversation: conversation
+    currentQConversation: conversation,
   }));
 }

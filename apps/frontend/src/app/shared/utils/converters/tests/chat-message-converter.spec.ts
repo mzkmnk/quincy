@@ -9,32 +9,32 @@ describe('convertDisplayMessagesToChatMessages', () => {
         id: 'msg1',
         type: 'user',
         content: 'First message',
-        timestamp: new Date(1000000000000)
+        timestamp: new Date(1000000000000),
       },
       {
         id: 'msg2',
         type: 'assistant',
         content: 'Second message',
-        timestamp: new Date(1000000001000)
+        timestamp: new Date(1000000001000),
       },
       {
         id: 'msg3',
         type: 'thinking',
         content: 'Thinking...',
-        timestamp: new Date(1000000002000)
-      }
+        timestamp: new Date(1000000002000),
+      },
     ];
 
     const result = convertDisplayMessagesToChatMessages(displayMessages);
 
     expect(result).toHaveLength(3);
-    
+
     expect(result[0]).toEqual({
       id: 'msg1',
       content: 'First message',
       sender: 'user',
       timestamp: new Date(1000000000000),
-      isTyping: false
+      isTyping: false,
     });
 
     expect(result[1]).toEqual({
@@ -42,7 +42,7 @@ describe('convertDisplayMessagesToChatMessages', () => {
       content: 'Second message',
       sender: 'assistant',
       timestamp: new Date(1000000001000),
-      isTyping: false
+      isTyping: false,
     });
 
     expect(result[2]).toEqual({
@@ -50,7 +50,7 @@ describe('convertDisplayMessagesToChatMessages', () => {
       content: 'Thinking...',
       sender: 'assistant',
       timestamp: new Date(1000000002000),
-      isTyping: true
+      isTyping: true,
     });
   });
 
@@ -64,8 +64,8 @@ describe('convertDisplayMessagesToChatMessages', () => {
       {
         id: 'msg1',
         type: 'user',
-        content: 'No timestamp'
-      }
+        content: 'No timestamp',
+      },
     ];
 
     const result = convertDisplayMessagesToChatMessages(displayMessages);

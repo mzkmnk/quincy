@@ -6,7 +6,7 @@ export function measureRenderPerformance(name: string): {
   end: () => number;
 } {
   let startTime: number;
-  
+
   return {
     start: () => {
       startTime = performance.now();
@@ -16,9 +16,9 @@ export function measureRenderPerformance(name: string): {
       const endTime = performance.now();
       performance.mark(`${name}-end`);
       performance.measure(name, `${name}-start`, `${name}-end`);
-      
+
       return endTime - startTime;
-    }
+    },
   };
 }
 
@@ -30,7 +30,7 @@ export function measureChangeDetection(
   name: string = 'change-detection'
 ): number {
   const measurement = measureRenderPerformance(name);
-  
+
   measurement.start();
   callback();
   return measurement.end();
@@ -40,14 +40,14 @@ export function measureChangeDetection(
  * FPS（フレームレート）を測定する
  */
 export function measureFPS(duration: number = 1000): Promise<number> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     let frames = 0;
     const startTime = performance.now();
-    
+
     function countFrame() {
       frames++;
       const currentTime = performance.now();
-      
+
       if (currentTime - startTime < duration) {
         requestAnimationFrame(countFrame);
       } else {
@@ -55,7 +55,7 @@ export function measureFPS(duration: number = 1000): Promise<number> {
         resolve(fps);
       }
     }
-    
+
     requestAnimationFrame(countFrame);
   });
 }

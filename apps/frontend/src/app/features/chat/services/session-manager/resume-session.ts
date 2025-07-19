@@ -36,7 +36,7 @@ export function resumeSession(
   const newSessionStatus: SessionStatus = {
     cliLaunched: false,
     connectionEstablished: false,
-    workspaceReady: false
+    workspaceReady: false,
   };
   updateSessionStatus(newSessionStatus);
 
@@ -48,7 +48,12 @@ export function resumeSession(
     updateSessionStatus({ ...newSessionStatus, cliLaunched: true, connectionEstablished: true });
   }, 2000);
   setTimeout(() => {
-    updateSessionStatus({ ...newSessionStatus, cliLaunched: true, connectionEstablished: true, workspaceReady: true });
+    updateSessionStatus({
+      ...newSessionStatus,
+      cliLaunched: true,
+      connectionEstablished: true,
+      workspaceReady: true,
+    });
   }, 3000);
 
   // タイムアウトを設定（30秒）
@@ -59,7 +64,7 @@ export function resumeSession(
   }, 30000);
 
   // セッション失敗リスナーを設定
-  const failedSubscription = websocketService.onSessionFailed().subscribe((data) => {
+  const failedSubscription = websocketService.onSessionFailed().subscribe(data => {
     console.error('Session resume failed:', data.error);
     clearTimeout(timeoutId);
     appStore.setSessionStarting(false);
@@ -71,7 +76,7 @@ export function resumeSession(
   websocketService.resumeSession(projectPath, conversationId);
 
   // セッション開始リスナーを設定
-  websocketService.setupProjectSessionListeners((data) => {
+  websocketService.setupProjectSessionListeners(data => {
     console.log('Amazon Q session resumed:', data);
     clearTimeout(timeoutId);
     failedSubscription.unsubscribe();

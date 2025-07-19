@@ -21,18 +21,18 @@ export async function abortSession(
 
   try {
     session.status = 'aborted';
-    
+
     // プロセスを強制終了
     killProcess(session.process);
 
     // Thinking状態をリセット
     session.isThinkingActive = false;
-    
+
     // 終了イベントを発行
     emitCallback('session:aborted', {
       sessionId,
       reason,
-      exitCode: 0 // 正常な中止として扱う
+      exitCode: 0, // 正常な中止として扱う
     });
 
     // セッションを遅延削除（プロセス完全終了を待つ）

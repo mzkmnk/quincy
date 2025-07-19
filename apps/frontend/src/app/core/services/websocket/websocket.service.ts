@@ -1,57 +1,51 @@
+import { Socket } from 'socket.io-client';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Socket } from 'socket.io-client';
-
-import type { ConversationMetadata, AmazonQConversation, QSessionStartedEvent } from '@quincy/shared';
+import type {
+  ConversationMetadata,
+  AmazonQConversation,
+  QSessionStartedEvent,
+  DisplayMessage,
+} from '@quincy/shared';
 
 // Connection管理
 import { connect, disconnect, emit, on, off, ConnectionStateManager } from './connection';
 // Amazon Q履歴管理
-import { 
-  getProjectHistory, 
-  getAllProjectsHistory, 
+import {
+  getProjectHistory,
+  getAllProjectsHistory,
   getProjectHistoryDetailed,
   setupHistoryListeners,
   setupHistoryDetailedListeners,
   removeHistoryListeners,
-  removeHistoryDetailedListeners
+  removeHistoryDetailedListeners,
 } from './amazon-q-history';
 // チャット管理
-import { 
-  sendQMessage, 
-  setupChatListeners, 
-  removeChatListeners, 
-  abortQSession 
-} from './chat';
+import { sendQMessage, setupChatListeners, removeChatListeners, abortQSession } from './chat';
 // プロジェクトセッション管理
-import { 
-  startProjectSession, 
-  resumeSession, 
-  setupProjectSessionListeners, 
-  createSessionFailedObservable, 
-  removeProjectSessionListeners 
+import {
+  startProjectSession,
+  resumeSession,
+  setupProjectSessionListeners,
+  createSessionFailedObservable,
+  removeProjectSessionListeners,
 } from './project-session';
 // 型定義
-import { 
-  ChatListeners, 
-  HistoryListeners, 
-  ListenerFlags 
-} from './types';
-
+import { ChatListeners, HistoryListeners, ListenerFlags } from './types';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class WebSocketService {
   private socket: Socket | null = null;
   private connectionStateManager = new ConnectionStateManager();
   private readonly backendUrl = 'http://localhost:3000';
-  
+
   // リスナーの重複防止用フラグ
   private listenerFlags: ListenerFlags = {
     chatListenersSetup: false,
     historyListenersSetup: false,
-    projectSessionListenersSetup: false
+    projectSessionListenersSetup: false,
   };
 
   // Connection state getters
@@ -78,7 +72,7 @@ export class WebSocketService {
   }
 
   on<T = unknown>(event: string, callback: (data: T) => void): void {
-    on(this.socket, event, callback);
+    on(this.socket, event, callback as (data: unknown) => void);
   }
 
   off<T = unknown>(event: string, callback?: (data: T) => void): void {
@@ -99,19 +93,23 @@ export class WebSocketService {
   }
 
   setupQHistoryListeners(
-    onHistoryData: (data: { projectPath: string; conversation: AmazonQConversation | null; message?: string }) => void,
+    onHistoryData: (data: {
+      projectPath: string;
+      conversation: AmazonQConversation | null;
+      message?: string;
+    }) => void,
     onHistoryList: (data: { projects: ConversationMetadata[]; count: number }) => void
   ): void {
     // 重複セットアップを防止
     if (this.listenerFlags.historyListenersSetup) {
       this.removeQHistoryListeners();
     }
-    
+
     const listeners: HistoryListeners = {
       onHistoryData,
-      onHistoryList
+      onHistoryList,
     };
-    
+
     setupHistoryListeners(this.socket, listeners);
     this.listenerFlags.historyListenersSetup = true;
   }
@@ -122,16 +120,16 @@ export class WebSocketService {
   }
 
   setupQHistoryDetailedListeners(
-    onDetailedHistoryData: (data: { 
-      projectPath: string; 
-      displayMessages: any[]; 
-      stats: { 
-        totalEntries: number; 
-        totalTurns: number; 
-        averageToolUsesPerTurn: number; 
-        totalToolUses: number; 
-      } | null; 
-      message?: string 
+    onDetailedHistoryData: (data: {
+      projectPath: string;
+      displayMessages: DisplayMessage[];
+      stats: {
+        totalEntries: number;
+        totalTurns: number;
+        averageToolUsesPerTurn: number;
+        totalToolUses: number;
+      } | null;
+      message?: string;
     }) => void
   ): void {
     setupHistoryDetailedListeners(this.socket, onDetailedHistoryData);
@@ -156,14 +154,14 @@ export class WebSocketService {
     if (this.listenerFlags.chatListenersSetup) {
       this.removeChatListeners();
     }
-    
+
     const listeners: ChatListeners = {
       onResponse,
       onError,
       onInfo,
-      onComplete
+      onComplete,
     };
-    
+
     setupChatListeners(this.socket, listeners);
     this.listenerFlags.chatListenersSetup = true;
   }
@@ -186,14 +184,12 @@ export class WebSocketService {
     resumeSession(this.socket, projectPath, conversationId);
   }
 
-  setupProjectSessionListeners(
-    onSessionStarted: (data: QSessionStartedEvent) => void
-  ): void {
+  setupProjectSessionListeners(onSessionStarted: (data: QSessionStartedEvent) => void): void {
     // 重複セットアップを防止
     if (this.listenerFlags.projectSessionListenersSetup) {
       this.removeProjectSessionListeners();
     }
-    
+
     setupProjectSessionListeners(this.socket, onSessionStarted);
     this.listenerFlags.projectSessionListenersSetup = true;
   }

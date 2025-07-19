@@ -21,7 +21,7 @@ export function addMessage(
     content,
     sender,
     timestamp: new Date(),
-    sessionId: currentSession?.sessionId
+    sessionId: currentSession?.sessionId,
   };
 
   appStore.addChatMessage(newMessage);

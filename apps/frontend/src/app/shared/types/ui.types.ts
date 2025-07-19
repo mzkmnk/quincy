@@ -137,7 +137,7 @@ export interface NotificationAction {
 export interface ModalUIState {
   isOpen: boolean;
   modalType: string | null;
-  modalData: any;
+  modalData: unknown;
   closable: boolean;
   backdrop: boolean;
 }
@@ -177,29 +177,35 @@ export type PartialUIState<T> = Partial<T> & Pick<T, keyof T & ('loading' | 'err
 
 // 型ガード関数
 export function isDisplayMessage(data: unknown): data is DisplayMessage {
-  return typeof data === 'object' && 
-         data !== null && 
-         'id' in data && 
-         'content' in data && 
-         'sender' in data && 
-         'timestamp' in data;
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'id' in data &&
+    'content' in data &&
+    'sender' in data &&
+    'timestamp' in data
+  );
 }
 
 export function isFormState(data: unknown): data is FormState {
-  return typeof data === 'object' && 
-         data !== null && 
-         'valid' in data && 
-         'dirty' in data && 
-         'touched' in data;
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'valid' in data &&
+    'dirty' in data &&
+    'touched' in data
+  );
 }
 
 export function isNotificationInfo(data: unknown): data is NotificationInfo {
-  return typeof data === 'object' && 
-         data !== null && 
-         'id' in data && 
-         'type' in data && 
-         'title' in data && 
-         'message' in data;
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'id' in data &&
+    'type' in data &&
+    'title' in data &&
+    'message' in data
+  );
 }
 
 // ユーティリティ型

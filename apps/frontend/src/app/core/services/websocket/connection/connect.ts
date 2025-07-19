@@ -31,10 +31,10 @@ export function connect(
   });
 
   socket.on('connect_error', (error: Error) => {
-    connectionState.set({ 
-      connected: false, 
-      connecting: false, 
-      error: error.message || 'Connection failed' 
+    connectionState.set({
+      connected: false,
+      connecting: false,
+      error: error.message || 'Connection failed',
     });
   });
 

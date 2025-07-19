@@ -9,6 +9,8 @@ import { convertDisplayMessageToChatMessage } from './display-message-converter'
  * @param displayMessages 変換元のDisplayMessage配列
  * @returns 変換されたChatMessage配列
  */
-export function convertDisplayMessagesToChatMessages(displayMessages: DisplayMessage[]): ChatMessage[] {
+export function convertDisplayMessagesToChatMessages(
+  displayMessages: DisplayMessage[]
+): ChatMessage[] {
   return displayMessages.map(convertDisplayMessageToChatMessage);
 }

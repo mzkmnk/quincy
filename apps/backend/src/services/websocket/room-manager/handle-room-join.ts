@@ -1,11 +1,11 @@
 import type { Socket } from 'socket.io';
-import type { 
-  ClientToServerEvents, 
-  ServerToClientEvents, 
-  InterServerEvents, 
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
   SocketData,
   RoomData,
-  RoomJoinedEvent
+  RoomJoinedEvent,
 } from '@quincy/shared';
 
 import { generateMessageId } from '../../../utils/id-generator';
@@ -17,13 +17,13 @@ export function handleRoomJoin(
   data: RoomData
 ): void {
   const { roomId } = data;
-  
+
   // Join the room
   socket.join(roomId);
-  
+
   // Update socket data
   socket.data.rooms.push(roomId);
-  
+
   // Update user rooms tracking
   if (!userRooms.has(socket.id)) {
     userRooms.set(socket.id, new Set());
@@ -32,18 +32,18 @@ export function handleRoomJoin(
 
   const joinEvent: RoomJoinedEvent = {
     roomId,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
 
   // Notify the user
   socket.emit('room:joined', joinEvent);
-  
+
   // Notify other users in the room
   socket.to(roomId).emit('message:broadcast', {
     id: generateMessageId(),
     content: `User joined the room`,
     senderId: 'system',
     timestamp: Date.now(),
-    type: 'system'
+    type: 'system',
   });
 }

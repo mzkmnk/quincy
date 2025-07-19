@@ -12,7 +12,7 @@ import { MessageInputComponent } from '../../../../shared/components/message-inp
     <div class="flex-1 overflow-y-auto">
       <app-message-list></app-message-list>
     </div>
-    
+
     <!-- Message Input - Sticky to bottom -->
     @if (!isSessionDisabled()) {
       <div class="sticky bottom-0 left-0 right-0 z-10">
@@ -24,7 +24,7 @@ import { MessageInputComponent } from '../../../../shared/components/message-inp
           <div class="max-w-md mx-auto">
             <p class="text-[var(--text-secondary)] text-sm mb-3">{{ disabledReason() }}</p>
             @if (hasSessionError()) {
-              <button 
+              <button
                 class="px-4 py-2 bg-[var(--accent-blue)] text-[var(--text-primary)] rounded-md hover:bg-[var(--accent-hover)] transition-colors text-sm font-medium"
                 (click)="clearError.emit()"
               >
@@ -35,13 +35,13 @@ import { MessageInputComponent } from '../../../../shared/components/message-inp
         </div>
       </div>
     }
-  `
+  `,
 })
 export class ChatMessagesComponent {
   isSessionDisabled = input.required<boolean>();
   disabledReason = input.required<string>();
   hasSessionError = input.required<boolean>();
-  
+
   messageSent = output<{ content: string }>();
   clearError = output<void>();
 }

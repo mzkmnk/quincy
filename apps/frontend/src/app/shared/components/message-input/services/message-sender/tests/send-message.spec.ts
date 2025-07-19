@@ -67,38 +67,38 @@ describe('message-sender', () => {
       mockAppStore = {
         currentQSession: vi.fn().mockReturnValue({
           sessionId: 'test-session-123',
-          projectPath: '/test/project'
-        })
+          projectPath: '/test/project',
+        }),
       };
 
       mockWebSocket = {
-        sendQMessage: vi.fn().mockResolvedValue(undefined)
+        sendQMessage: vi.fn().mockResolvedValue(undefined),
       };
 
       mockMessageService = {
-        add: vi.fn()
+        add: vi.fn(),
       };
 
       mockTextareaElement = {
         style: {
-          height: '60px'
-        }
+          height: '60px',
+        },
       };
 
       mockMessageTextarea = {
-        nativeElement: mockTextareaElement
+        nativeElement: mockTextareaElement,
       } as ElementRef<HTMLTextAreaElement>;
 
       mockSendingSignal = {
-        set: vi.fn()
+        set: vi.fn(),
       };
 
       mockMessageTextSignal = {
-        set: vi.fn()
+        set: vi.fn(),
       };
 
       mockMessageSentEmitter = {
-        emit: vi.fn()
+        emit: vi.fn(),
       };
 
       // console.logとconsole.errorをモック
@@ -149,7 +149,7 @@ describe('message-sender', () => {
 
       it('特殊文字を含むメッセージを正常に送信する', async () => {
         const specialMessage = '🚀 Hello! @#$% こんにちは 123';
-        
+
         await sendMessage(
           specialMessage,
           mockAppStore,
@@ -226,7 +226,7 @@ describe('message-sender', () => {
           severity: 'error',
           summary: 'エラー',
           detail: 'メッセージの送信に失敗しました',
-          life: 5000
+          life: 5000,
         });
         expect(mockSendingSignal.set).toHaveBeenCalledWith(false);
       });
@@ -338,10 +338,10 @@ describe('message-sender', () => {
     describe('非同期処理', () => {
       it('WebSocket送信の完了を待つ', async () => {
         let resolveWebSocket: () => void;
-        const webSocketPromise = new Promise<void>((resolve) => {
+        const webSocketPromise = new Promise<void>(resolve => {
           resolveWebSocket = resolve;
         });
-        
+
         mockWebSocket.sendQMessage.mockReturnValue(webSocketPromise);
 
         const sendPromise = sendMessage(

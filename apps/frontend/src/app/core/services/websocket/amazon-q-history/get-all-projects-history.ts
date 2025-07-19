@@ -25,7 +25,7 @@ export function getAllProjectsHistory(socket: Socket | null): Promise<void> {
       resolve();
     };
 
-    const onError = (error: any) => {
+    const onError = (error: { message?: string }) => {
       clearTimeout(timeout);
       reject(new Error(error.message || '履歴取得エラー'));
     };

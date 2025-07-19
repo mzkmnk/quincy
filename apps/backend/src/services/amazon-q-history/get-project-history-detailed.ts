@@ -14,23 +14,25 @@ import { isDatabaseAvailable } from './is-database-available';
 export async function getProjectHistoryDetailed(projectPath: string): Promise<DisplayMessage[]> {
   try {
     if (!isDatabaseAvailable()) {
-      throw new Error('データベースにアクセスできません。Amazon Q CLIがインストールされているか確認してください。');
+      throw new Error(
+        'データベースにアクセスできません。Amazon Q CLIがインストールされているか確認してください。'
+      );
     }
 
     const db = new Database(DB_PATH, { readonly: true });
     const historyTransformer = new HistoryTransformer();
     const messageFormatter = new MessageFormatter();
-    
+
     try {
       const stmt = db.prepare(SQL_QUERIES.GET_CONVERSATION_BY_KEY);
       const result = stmt.get(projectPath) as { value: string } | undefined;
-      
+
       if (!result) {
         return [];
       }
 
       const conversationData: AmazonQConversationWithHistory = JSON.parse(result.value);
-      
+
       // historyデータが存在するかチェック
       if (!conversationData.history) {
         return [];
@@ -44,13 +46,14 @@ export async function getProjectHistoryDetailed(projectPath: string): Promise<Di
       const normalizedHistory = historyTransformer.normalizeHistoryData(conversationData.history);
       const turns = historyTransformer.groupConversationTurns(normalizedHistory);
       const displayMessages = messageFormatter.convertToDisplayMessages(turns);
-      
+
       return displayMessages;
-      
     } finally {
       db.close();
     }
   } catch (error) {
-    throw new Error(`プロジェクト履歴の詳細取得に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `プロジェクト履歴の詳細取得に失敗しました: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }

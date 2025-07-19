@@ -1,4 +1,12 @@
-import { Component, signal, ViewChild, ElementRef, inject, ChangeDetectionStrategy, output } from '@angular/core';
+import {
+  Component,
+  signal,
+  ViewChild,
+  ElementRef,
+  inject,
+  ChangeDetectionStrategy,
+  output,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -12,8 +20,6 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 
 import { validatePath, isValidPath, canStartProject } from './services/path-validator';
 import { startProject } from './services/session-starter';
-
-// 分離されたユーティリティのインポート
 import { adjustTextareaHeight, handleKeyDown, toggleResumeOption, selectFolder } from './utils';
 
 export interface PathSelection {
@@ -26,13 +32,15 @@ export interface PathSelection {
   imports: [CommonModule, FormsModule, ButtonModule, TextareaModule, CheckboxModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: "min-w-full"
+    class: 'min-w-full',
   },
   template: `
     <div class="flex items-center justify-center">
-      <div class="flex w-8/12"> 
+      <div class="flex w-8/12">
         <!-- Path Input Area -->
-        <div class="flex gap-4 flex-col w-full bg-[var(--secondary-bg)] border-1 border-[var(--border-color)] rounded-3xl p-4 mb-4">
+        <div
+          class="flex gap-4 flex-col w-full bg-[var(--secondary-bg)] border-1 border-[var(--border-color)] rounded-3xl p-4 mb-4"
+        >
           <!-- Path Input -->
           <div>
             <textarea
@@ -59,7 +67,7 @@ export interface PathSelection {
               [style]="{
                 'background-color': 'transparent',
                 'border-color': 'transparent',
-                'color': resumeSession() ? 'var(--accent-blue)' : 'var(--text-muted)'
+                color: resumeSession() ? 'var(--accent-blue)' : 'var(--text-muted)',
               }"
               [text]="true"
               size="small"
@@ -83,7 +91,7 @@ export interface PathSelection {
         </div>
       </div>
     </div>
-  `
+  `,
 })
 export class PathSelectorComponent {
   @ViewChild('pathTextarea') pathTextarea!: ElementRef<HTMLTextAreaElement>;
@@ -139,11 +147,7 @@ export class PathSelectorComponent {
   };
 
   onKeyDown = (event: KeyboardEvent): void => {
-    handleKeyDown(
-      event,
-      this.onStartProject,
-      () => this.adjustTextareaHeight()
-    );
+    handleKeyDown(event, this.onStartProject, () => this.adjustTextareaHeight());
   };
 
   private adjustTextareaHeight = (): void => {

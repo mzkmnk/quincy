@@ -12,7 +12,7 @@ export const projectInitialState: ProjectState = {
   projects: [],
   currentProject: null,
   loading: false,
-  error: null
+  error: null,
 };
 
 export const projectState = signal<ProjectState>(projectInitialState);

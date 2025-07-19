@@ -31,27 +31,21 @@ describe('handleCompletionResponse', () => {
 
       handleCompletionResponse(data, sessionId, mockOnHandleCompletion);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Q session completed for current session:',
-        data
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('Q session completed for current session:', data);
     });
 
     it('データオブジェクトに追加プロパティがあっても正常に処理される', () => {
-      const data = { 
+      const data = {
         sessionId: 'session-123',
         timestamp: Date.now(),
-        metadata: { source: 'test' }
+        metadata: { source: 'test' },
       } as any;
       const sessionId = 'session-123';
 
       handleCompletionResponse(data, sessionId, mockOnHandleCompletion);
 
       expect(mockOnHandleCompletion).toHaveBeenCalledTimes(1);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Q session completed for current session:',
-        data
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('Q session completed for current session:', data);
     });
   });
 
@@ -145,7 +139,7 @@ describe('handleCompletionResponse', () => {
       const data = { sessionId: 'session-123' };
       const sessionId = 'session-123';
       const error = new Error('Completion handler error');
-      
+
       mockOnHandleCompletion.mockImplementation(() => {
         throw error;
       });
@@ -158,7 +152,7 @@ describe('handleCompletionResponse', () => {
     it('onHandleCompletionが非同期処理を行っても関数は同期的に完了する', () => {
       const data = { sessionId: 'session-123' };
       const sessionId = 'session-123';
-      
+
       mockOnHandleCompletion.mockImplementation(() => {
         setTimeout(() => {
           // 非同期処理
@@ -175,7 +169,7 @@ describe('handleCompletionResponse', () => {
     it('onHandleCompletionがPromiseを返しても問題ない', () => {
       const data = { sessionId: 'session-123' };
       const sessionId = 'session-123';
-      
+
       mockOnHandleCompletion.mockReturnValue(Promise.resolve());
 
       expect(() => {
@@ -189,11 +183,7 @@ describe('handleCompletionResponse', () => {
   describe('複数の完了イベントの処理', () => {
     it('同じセッションの複数完了イベントを順次処理する', () => {
       const sessionId = 'session-123';
-      const completionEvents = [
-        { sessionId },
-        { sessionId },
-        { sessionId }
-      ];
+      const completionEvents = [{ sessionId }, { sessionId }, { sessionId }];
 
       completionEvents.forEach(data => {
         handleCompletionResponse(data, sessionId, mockOnHandleCompletion);
@@ -205,13 +195,13 @@ describe('handleCompletionResponse', () => {
     it('混在するセッションIDからの完了イベントを適切にフィルタリングする', () => {
       const currentSessionId = 'current-session';
       const otherSessionId = 'other-session';
-      
+
       const completionEvents = [
         { sessionId: currentSessionId },
         { sessionId: otherSessionId },
         { sessionId: currentSessionId },
         { sessionId: otherSessionId },
-        { sessionId: currentSessionId }
+        { sessionId: currentSessionId },
       ];
 
       completionEvents.forEach(data => {
@@ -240,18 +230,15 @@ describe('handleCompletionResponse', () => {
         status: 'success',
         metadata: {
           processedItems: 100,
-          totalItems: 100
-        }
+          totalItems: 100,
+        },
       } as any;
       const sessionId = 'session-123';
 
       handleCompletionResponse(data, sessionId, mockOnHandleCompletion);
 
       expect(mockOnHandleCompletion).toHaveBeenCalledTimes(1);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Q session completed for current session:',
-        data
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('Q session completed for current session:', data);
     });
 
     it('sessionIdプロパティが存在しない場合はエラーが発生する可能性がある', () => {
@@ -270,12 +257,12 @@ describe('handleCompletionResponse', () => {
       const sessionId = 'session-123';
 
       const start = performance.now();
-      
+
       for (let i = 0; i < 1000; i++) {
         const data = { sessionId };
         handleCompletionResponse(data, sessionId, mockOnHandleCompletion);
       }
-      
+
       const end = performance.now();
 
       expect(end - start).toBeLessThan(50); // 50ms以内
@@ -289,8 +276,8 @@ describe('handleCompletionResponse', () => {
         statistics: {
           processed: 1000,
           failed: 0,
-          duration: 5000
-        }
+          duration: 5000,
+        },
       } as any;
 
       const start = performance.now();
@@ -317,7 +304,7 @@ describe('handleCompletionResponse', () => {
     it('チャットセッションの完了処理をシミュレート', () => {
       const sessionId = 'chat-session-456';
       let sessionCompleted = false;
-      
+
       const completionHandler = () => {
         sessionCompleted = true;
       };
@@ -332,13 +319,10 @@ describe('handleCompletionResponse', () => {
       const session1Id = 'session-1';
       const session2Id = 'session-2';
       const session3Id = 'session-3';
-      
-      const session1Completed = false;
-      const session2Completed = false;
-      const session3Completed = false;
 
-      const createCompletionHandler = (sessionRef: { completed: boolean }) => 
-        () => { sessionRef.completed = true; };
+      const createCompletionHandler = (sessionRef: { completed: boolean }) => () => {
+        sessionRef.completed = true;
+      };
 
       // セッション1の完了ハンドラー
       const session1Ref = { completed: false };
@@ -357,7 +341,7 @@ describe('handleCompletionResponse', () => {
       const resources = {
         timers: [1, 2, 3],
         connections: ['conn1', 'conn2'],
-        listeners: ['listener1', 'listener2']
+        listeners: ['listener1', 'listener2'],
       };
 
       const cleanupHandler = () => {

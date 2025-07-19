@@ -30,6 +30,6 @@ export function createSession(
     lastThinkingTime: 0,
     initializationBuffer: [],
     initializationPhase: true,
-    initializationTimeout: undefined
+    initializationTimeout: undefined,
   };
 }

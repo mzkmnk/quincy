@@ -9,11 +9,11 @@ describe('addMessage', () => {
   beforeEach(() => {
     mockAppStore = {
       currentQSession: signal({ sessionId: 'test-session-123' }),
-      addChatMessage: vi.fn()
+      addChatMessage: vi.fn(),
     };
-    
+
     mockScrollToBottomRequest = {
-      set: vi.fn()
+      set: vi.fn(),
     };
   });
 
@@ -28,13 +28,18 @@ describe('addMessage', () => {
         content: 'Hello',
         sender: 'user',
         timestamp: expect.any(Date),
-        sessionId: 'test-session-123'
+        sessionId: 'test-session-123',
       });
       expect(mockScrollToBottomRequest.set).toHaveBeenCalledWith(true);
     });
 
     it('アシスタントメッセージを正しく追加する', () => {
-      const messageId = addMessage('Hi there!', 'assistant', mockAppStore, mockScrollToBottomRequest);
+      const messageId = addMessage(
+        'Hi there!',
+        'assistant',
+        mockAppStore,
+        mockScrollToBottomRequest
+      );
 
       expect(messageId).toBeTruthy();
       expect(mockAppStore.addChatMessage).toHaveBeenCalledWith({
@@ -42,7 +47,7 @@ describe('addMessage', () => {
         content: 'Hi there!',
         sender: 'assistant',
         timestamp: expect.any(Date),
-        sessionId: 'test-session-123'
+        sessionId: 'test-session-123',
       });
     });
   });
@@ -58,7 +63,7 @@ describe('addMessage', () => {
         content: 'Message',
         sender: 'user',
         timestamp: expect.any(Date),
-        sessionId: undefined
+        sessionId: undefined,
       });
     });
 
@@ -72,7 +77,7 @@ describe('addMessage', () => {
         content: 'Message',
         sender: 'user',
         timestamp: expect.any(Date),
-        sessionId: undefined
+        sessionId: undefined,
       });
     });
   });
@@ -89,13 +94,13 @@ describe('addMessage', () => {
 
     it('複数回呼び出しでも一意性を保つ', () => {
       const messageIds = new Set();
-      
+
       for (let i = 0; i < 100; i++) {
         const id = addMessage(`Message ${i}`, 'user', mockAppStore, mockScrollToBottomRequest);
         expect(messageIds.has(id)).toBe(false);
         messageIds.add(id);
       }
-      
+
       expect(messageIds.size).toBe(100);
     });
   });
@@ -131,7 +136,7 @@ describe('addMessage', () => {
         content: '',
         sender: 'user',
         timestamp: expect.any(Date),
-        sessionId: 'test-session-123'
+        sessionId: 'test-session-123',
       });
     });
 
@@ -144,20 +149,25 @@ describe('addMessage', () => {
         content: longContent,
         sender: 'user',
         timestamp: expect.any(Date),
-        sessionId: 'test-session-123'
+        sessionId: 'test-session-123',
       });
     });
 
     it('特殊文字を含むコンテンツでもメッセージを追加する', () => {
       const specialContent = '🚀 こんにちは！ <script>alert("test")</script>';
-      const messageId = addMessage(specialContent, 'assistant', mockAppStore, mockScrollToBottomRequest);
+      const messageId = addMessage(
+        specialContent,
+        'assistant',
+        mockAppStore,
+        mockScrollToBottomRequest
+      );
 
       expect(mockAppStore.addChatMessage).toHaveBeenCalledWith({
         id: messageId,
         content: specialContent,
         sender: 'assistant',
         timestamp: expect.any(Date),
-        sessionId: 'test-session-123'
+        sessionId: 'test-session-123',
       });
     });
   });
@@ -165,11 +175,11 @@ describe('addMessage', () => {
   describe('パフォーマンス', () => {
     it('大量のメッセージ追加でも効率的に動作する', () => {
       const start = performance.now();
-      
+
       for (let i = 0; i < 1000; i++) {
         addMessage(`Message ${i}`, 'user', mockAppStore, mockScrollToBottomRequest);
       }
-      
+
       const end = performance.now();
       expect(end - start).toBeLessThan(100); // 100ms以内
       expect(mockAppStore.addChatMessage).toHaveBeenCalledTimes(1000);

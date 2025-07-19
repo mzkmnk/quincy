@@ -31,7 +31,7 @@ describe('shouldShowTyping', () => {
   describe('型安全性', () => {
     it('boolean値で正常に動作する', () => {
       const typingStates: boolean[] = [true, false];
-      
+
       typingStates.forEach(state => {
         const result = shouldShowTyping(state);
         expect(typeof result).toBe('boolean');
@@ -43,11 +43,11 @@ describe('shouldShowTyping', () => {
   describe('パフォーマンス', () => {
     it('大量呼び出しでも効率的に動作する', () => {
       const start = performance.now();
-      
+
       for (let i = 0; i < 100000; i++) {
         shouldShowTyping(i % 2 === 0);
       }
-      
+
       const end = performance.now();
       expect(end - start).toBeLessThan(50); // 50ms以内
     });
@@ -57,7 +57,7 @@ describe('shouldShowTyping', () => {
     it('タイピングインディケーター表示の判定', () => {
       // メッセージ入力中
       expect(shouldShowTyping(true)).toBe(true);
-      
+
       // メッセージ表示中
       expect(shouldShowTyping(false)).toBe(false);
     });
@@ -65,10 +65,10 @@ describe('shouldShowTyping', () => {
     it('動的な状態変更をシミュレート', () => {
       let isTyping = false;
       expect(shouldShowTyping(isTyping)).toBe(false);
-      
+
       isTyping = true;
       expect(shouldShowTyping(isTyping)).toBe(true);
-      
+
       isTyping = false;
       expect(shouldShowTyping(isTyping)).toBe(false);
     });

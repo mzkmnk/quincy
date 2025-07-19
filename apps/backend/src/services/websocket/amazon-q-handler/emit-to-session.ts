@@ -1,9 +1,9 @@
 import type { Server as SocketIOServer } from 'socket.io';
-import type { 
-  ClientToServerEvents, 
-  ServerToClientEvents, 
-  InterServerEvents, 
-  SocketData
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData,
 } from '@quincy/shared';
 
 import { sessionToSockets } from './session-socket-map';
@@ -19,7 +19,10 @@ export function emitToSession<K extends keyof ServerToClientEvents>(
     socketIds.forEach(socketId => {
       const socket = io.sockets.sockets.get(socketId);
       if (socket) {
-        (socket as { emit: (event: K, data: Parameters<ServerToClientEvents[K]>[0]) => void }).emit(event, data);
+        (socket as { emit: (event: K, data: Parameters<ServerToClientEvents[K]>[0]) => void }).emit(
+          event,
+          data
+        );
       }
     });
   }

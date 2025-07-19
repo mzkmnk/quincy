@@ -1,6 +1,6 @@
-import { Router, Request, Response } from 'express'
+import { Router, Request, Response } from 'express';
 
-const websocket = Router()
+const websocket = Router();
 
 // WebSocket server status endpoint
 websocket.get('/status', (_req: Request, res: Response) => {
@@ -20,7 +20,7 @@ websocket.get('/status', (_req: Request, res: Response) => {
           'message:send',
           'room:join',
           'room:leave',
-          'ping'
+          'ping',
         ],
         server_to_client: [
           'q:response',
@@ -34,12 +34,12 @@ websocket.get('/status', (_req: Request, res: Response) => {
           'room:joined',
           'room:left',
           'error',
-          'pong'
-        ]
-      }
-    }
-  })
-})
+          'pong',
+        ],
+      },
+    },
+  });
+});
 
 // WebSocket connection info endpoint
 websocket.get('/info', (_req: Request, res: Response) => {
@@ -47,12 +47,12 @@ websocket.get('/info', (_req: Request, res: Response) => {
     cors: {
       origin: ['http://localhost:4200'],
       methods: ['GET', 'POST'],
-      credentials: true
+      credentials: true,
     },
     configuration: {
       pingTimeout: 60000,
       pingInterval: 25000,
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
     },
     features: [
       'Amazon Q CLI Integration',
@@ -61,9 +61,9 @@ websocket.get('/info', (_req: Request, res: Response) => {
       'Room Management',
       'Error Handling',
       'Heartbeat/Ping-Pong',
-      'Reconnection Support'
-    ]
-  })
-})
+      'Reconnection Support',
+    ],
+  });
+});
 
-export { websocket }
+export { websocket };

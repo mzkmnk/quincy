@@ -10,24 +10,25 @@ const mockSocket = {
   off: vi.fn(),
   emit: vi.fn(),
   disconnect: vi.fn(),
-  connected: true
+  connected: true,
 };
 
 const mockIo = vi.fn().mockReturnValue(mockSocket);
 
 vi.mock('socket.io-client', () => ({
-  io: mockIo
+  io: mockIo,
 }));
 
 describe('WebSocket Connection Functions', () => {
   let connectionState: any;
 
   // テストヘルパー関数
-  const createConnectionState = () => signal<ConnectionState>({
-    connected: false,
-    connecting: false,
-    error: null
-  });
+  const createConnectionState = () =>
+    signal<ConnectionState>({
+      connected: false,
+      connecting: false,
+      error: null,
+    });
 
   const setupMocks = () => {
     vi.clearAllMocks();
@@ -69,7 +70,7 @@ describe('WebSocket Connection Functions', () => {
   describe('emit', () => {
     it('接続されているソケットでイベントを送信する', () => {
       const testData = { message: 'test' };
-      
+
       emit(mockSocket, 'test-event', testData);
 
       expect(mockSocket.emit).toHaveBeenCalledWith('test-event', testData);
@@ -77,7 +78,7 @@ describe('WebSocket Connection Functions', () => {
 
     it('接続されていないソケットでは何もしない', () => {
       mockSocket.connected = false;
-      
+
       emit(mockSocket, 'test-event', {});
 
       expect(mockSocket.emit).not.toHaveBeenCalled();
@@ -91,7 +92,7 @@ describe('WebSocket Connection Functions', () => {
   describe('on', () => {
     it('イベントリスナーを設定する', () => {
       const callback = vi.fn();
-      
+
       on(mockSocket, 'test-event', callback);
 
       expect(mockSocket.on).toHaveBeenCalledWith('test-event', callback);
@@ -105,7 +106,7 @@ describe('WebSocket Connection Functions', () => {
   describe('off', () => {
     it('イベントリスナーを削除する', () => {
       const callback = vi.fn();
-      
+
       off(mockSocket, 'test-event', callback);
 
       expect(mockSocket.off).toHaveBeenCalledWith('test-event', callback);

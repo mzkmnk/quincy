@@ -12,6 +12,7 @@ This is a monorepo managed with pnpm workspaces containing:
 ## Development Commands
 
 ### Root Level
+
 ```bash
 # Install dependencies for all workspaces
 pnpm install
@@ -33,6 +34,7 @@ pnpm build  # builds both backend and frontend
 ```
 
 ### Backend (`apps/backend/`)
+
 ```bash
 # Development server with hot reload
 pnpm dev
@@ -53,6 +55,7 @@ pnpm test:watch
 ```
 
 ### Frontend (`apps/frontend/`)
+
 ```bash
 # Development server (runs on http://localhost:4200)
 pnpm start
@@ -81,6 +84,7 @@ ng generate component component-name
 ## Architecture Notes
 
 ### Backend
+
 - Uses Express framework for HTTP server with Socket.io for WebSocket support
 - Runs on port 3000 by default
 - Built with TypeScript and uses tsx for development
@@ -91,6 +95,7 @@ ng generate component component-name
 - SQLite3 database for session persistence
 
 #### New Modular Architecture (After Refactoring)
+
 The backend has been refactored into a modular, 1-file-1-function architecture:
 
 - **Services** (`src/services/`):
@@ -130,6 +135,7 @@ The backend has been refactored into a modular, 1-file-1-function architecture:
   - End-to-end tests for complete workflows
 
 ### Frontend
+
 - Angular 20 with standalone components (no NgModules)
 - Uses zoneless change detection
 - PrimeNG 20.0.0-rc.3 for UI components
@@ -140,6 +146,7 @@ The backend has been refactored into a modular, 1-file-1-function architecture:
 - Standard Angular CLI project structure
 
 #### New Modular Architecture (After Refactoring)
+
 The frontend has been refactored into a modular, 1-file-1-function architecture:
 
 - **Core Services** (`src/app/core/services/`):
@@ -196,6 +203,7 @@ The frontend has been refactored into a modular, 1-file-1-function architecture:
 ## Development Guidelines
 
 ### Code Organization Principles
+
 - **1-File-1-Function**: Each module contains exactly one primary function
 - **Modular Structure**: Related functions are grouped in directories
 - **Clear Separation**: Services, utilities, and types are clearly separated
@@ -204,12 +212,14 @@ The frontend has been refactored into a modular, 1-file-1-function architecture:
 ### Adding New Features
 
 #### Backend
+
 1. **Services**: Add new services in `src/services/[service-name]/`
 2. **Utilities**: Add reusable functions in `src/utils/[util-name]/`
 3. **Types**: Add type definitions in `src/types/`
 4. **Tests**: Always add corresponding test files in `src/tests/`
 
 #### Frontend
+
 1. **Components**: Add new components in `src/app/features/[feature-name]/` or `src/app/shared/components/[component-name]/`
 2. **Services**: Add component-specific services in `src/app/features/[feature-name]/services/` or core services in `src/app/core/services/`
 3. **State Management**: Add state in `src/app/core/store/[domain]/` with actions and selectors
@@ -220,11 +230,13 @@ The frontend has been refactored into a modular, 1-file-1-function architecture:
 ### Import Conventions
 
 #### Backend
+
 - Use index files for clean imports: `import { functionName } from '../services/module-name'`
 - Avoid deep imports: `import { functionName } from '../services/module-name/sub-module/function-name'`
 - Use absolute imports when possible
 
 #### Frontend
+
 - Use index files for clean imports: `import { functionName } from './services/module-name'`
 - Prefer relative imports within the same feature: `import { helper } from './utils/helper'`
 - Use absolute imports for core services: `import { AppStore } from '../../../core/store/app.state'`
@@ -244,6 +256,7 @@ The frontend has been refactored into a modular, 1-file-1-function architecture:
 ### Testing Status
 
 #### Backend Tests
+
 - **Test Framework**: Jest with TypeScript support
 - **Test Command**: `pnpm test` or `pnpm test:watch`
 - **Comprehensive Test Coverage**: Full test suite covering all refactored modules
@@ -263,6 +276,7 @@ The frontend has been refactored into a modular, 1-file-1-function architecture:
     - `end-to-end.test.ts`: Complete workflow testing
 
 #### Frontend Tests
+
 - **Test Framework**: Karma/Jasmine (Angular default)
 - **Test Command**: `pnpm test` or `ng test`
 - **Current Status**: Comprehensive test coverage for refactored modules
@@ -272,17 +286,23 @@ The frontend has been refactored into a modular, 1-file-1-function architecture:
   - **Test Structure**: Follows 1-file-1-function testing approach
 
 You are an expert in TypeScript, Angular, and scalable web application development. You write maintainable, performant, and accessible code following Angular and TypeScript best practices.
+
 ## TypeScript Best Practices
+
 - Use strict type checking
 - Prefer type inference when the type is obvious
 - Avoid the `any` type; use `unknown` when type is uncertain
+
 ## Angular Best Practices
+
 - Always use standalone components over NgModules
 - Don't use explicit `standalone: true` (it is implied by default)
 - Use signals for state management
 - Implement lazy loading for feature routes
 - Use `NgOptimizedImage` for all static images.
+
 ## Components
+
 - Keep components small and focused on a single responsibility
 - Use `input()` and `output()` functions instead of decorators
 - Use `computed()` for derived state
@@ -291,19 +311,24 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Prefer Reactive forms instead of Template-driven ones
 - Do NOT use `ngClass`, use `class` bindings instead
 - DO NOT use `ngStyle`, use `style` bindings instead
+
 ## State Management
+
 - Use signals for local component state
 - Use `computed()` for derived state
 - Keep state transformations pure and predictable
+
 ## Templates
+
 - Keep templates simple and avoid complex logic
 - Use native control flow (`@if`, `@for`, `@switch`) instead of `*ngIf`, `*ngFor`, `*ngSwitch`
 - Use the async pipe to handle observables
+
 ## Services
+
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
-
 
 ## Language Settings / 言語設定
 
@@ -312,6 +337,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 このプロジェクトでは、Claude Codeは**必ず**日本語で返答してください。技術用語は英語のままで問題ありません。
 
 ### Examples / 例:
+
 - ✅ 「componentを作成しました」
 - ✅ 「TypeScriptの型定義を追加しました」
 - ❌ "I've created a new component"

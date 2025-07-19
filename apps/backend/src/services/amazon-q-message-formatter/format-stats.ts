@@ -13,6 +13,6 @@ export function formatStats(stats: {
     `• 総エントリー数: ${stats.totalEntries}`,
     `• 会話ターン数: ${stats.totalTurns}`,
     `• 総ツール使用回数: ${stats.totalToolUses}`,
-    `• 1ターン平均ツール使用回数: ${stats.averageToolUsesPerTurn.toFixed(1)}`
+    `• 1ターン平均ツール使用回数: ${stats.averageToolUsesPerTurn.toFixed(1)}`,
   ].join('\n');
 }

@@ -8,11 +8,7 @@ describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [
-        provideZonelessChangeDetection(),
-        MessageService,
-        ConfirmationService
-      ]
+      providers: [provideZonelessChangeDetection(), MessageService, ConfirmationService],
     }).compileComponents();
   });
 

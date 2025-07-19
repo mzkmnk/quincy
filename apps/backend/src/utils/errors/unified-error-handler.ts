@@ -25,15 +25,15 @@ export function unifiedErrorHandler(
       error: {
         code: error.code,
         message: error.message,
-        details: error.details
+        details: error.details,
       },
-      timestamp: error.timestamp
+      timestamp: error.timestamp,
     };
-    
+
     res.status(error.statusCode).json(errorResponse);
     return;
   }
-  
+
   // 一般的なErrorの場合
   const errorResponse: ApiResponse = {
     success: false,
@@ -42,12 +42,12 @@ export function unifiedErrorHandler(
       message: error.message || 'An unexpected error occurred',
       details: {
         path: req.url,
-        method: req.method
-      }
+        method: req.method,
+      },
     },
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
-  
+
   res.status(ERROR_STATUS_CODES[ERROR_CODES.INTERNAL_ERROR]).json(errorResponse);
 }
 
@@ -62,12 +62,12 @@ export function notFoundHandler(req: Request, res: Response): void {
       message: 'The requested resource was not found',
       details: {
         path: req.url,
-        method: req.method
-      }
+        method: req.method,
+      },
     },
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
-  
+
   res.status(ERROR_STATUS_CODES[ERROR_CODES.NOT_FOUND]).json(errorResponse);
 }
 
@@ -77,23 +77,26 @@ export function notFoundHandler(req: Request, res: Response): void {
 export function createWebSocketErrorHandler() {
   return function handleWebSocketError(
     error: Error | AppError,
-    emitError: (errorData: any) => void
+    emitError: (errorData: {
+      success: false;
+      error: { code: string; message: string; details?: unknown; timestamp: string };
+    }) => void
   ): void {
     if (isAppError(error)) {
       emitError(error.toClientResponse());
       return;
     }
-    
+
     // 一般的なErrorの場合
     const errorResponse: ApiResponse = {
       success: false,
       error: {
         code: ERROR_CODES.INTERNAL_ERROR,
-        message: error.message || 'An unexpected WebSocket error occurred'
+        message: error.message || 'An unexpected WebSocket error occurred',
       },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
-    
+
     emitError(errorResponse);
   };
 }
@@ -112,7 +115,7 @@ export function getErrorLevel(error: Error | AppError): 'error' | 'warn' | 'info
       return 'error';
     }
   }
-  
+
   // 一般的なエラーはエラーレベル
   return 'error';
 }
@@ -126,22 +129,22 @@ export function getErrorDetails(error: Error | AppError): {
   stack?: string;
   code?: string;
   statusCode?: number;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 } {
   const baseDetails = {
     name: error.name,
     message: error.message,
-    stack: error.stack
+    stack: error.stack,
   };
-  
+
   if (isAppError(error)) {
     return {
       ...baseDetails,
       code: error.code,
       statusCode: error.statusCode,
-      details: error.details
+      details: error.details,
     };
   }
-  
+
   return baseDetails;
 }

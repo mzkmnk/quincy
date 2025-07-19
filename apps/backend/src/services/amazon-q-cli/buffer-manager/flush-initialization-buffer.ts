@@ -11,25 +11,25 @@ export function flushInitializationBuffer(
   if (session.initializationBuffer.length === 0 || !session.initializationPhase) {
     return;
   }
-  
+
   // 初期化フェーズを終了（重複防止）
   session.initializationPhase = false;
-  
+
   // メッセージを整理・統合
   const combinedMessage = combineInitializationMessages(session.initializationBuffer);
-  
+
   // 統合メッセージを送信
   const infoEvent: QInfoEvent = {
     sessionId: session.sessionId,
     message: combinedMessage,
-    type: 'initialization'
+    type: 'initialization',
   };
-  
+
   emitCallback('q:info', infoEvent);
-  
+
   // バッファをクリア
   session.initializationBuffer = [];
-  
+
   // タイムアウトをクリア
   if (session.initializationTimeout) {
     clearTimeout(session.initializationTimeout);

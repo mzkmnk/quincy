@@ -15,18 +15,12 @@ export function createResourceNotFoundError(
   resourceType: string,
   resourceId: string
 ): NotFoundError {
-  return new NotFoundError(
-    `${resourceType} with ID '${resourceId}' was not found`,
-    {
-      resourceType,
-      resourceId
-    }
-  );
+  return new NotFoundError(`${resourceType} with ID '${resourceId}' was not found`, {
+    resourceType,
+    resourceId,
+  });
 }
 
 export function createPathNotFoundError(path: string): NotFoundError {
-  return new NotFoundError(
-    `The requested path '${path}' was not found`,
-    { path }
-  );
+  return new NotFoundError(`The requested path '${path}' was not found`, { path });
 }

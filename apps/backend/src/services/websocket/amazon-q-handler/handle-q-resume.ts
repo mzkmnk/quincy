@@ -1,10 +1,10 @@
 import type { Socket } from 'socket.io';
-import type { 
-  ClientToServerEvents, 
-  ServerToClientEvents, 
-  InterServerEvents, 
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
   SocketData,
-  QCommandEvent
+  QCommandEvent,
 } from '@quincy/shared';
 
 import type { AmazonQCLIService } from '../../amazon-q-cli';
@@ -17,7 +17,11 @@ export async function handleQResume(
   data: { projectPath: string; conversationId?: string },
   qCliService: AmazonQCLIService,
   qHistoryService: AmazonQHistoryService,
-  sendErrorCallback: (socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, code: string, message: string) => void
+  sendErrorCallback: (
+    socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>,
+    code: string,
+    message: string
+  ) => void
 ): Promise<void> {
   try {
     if (!qHistoryService.isDatabaseAvailable()) {
@@ -29,7 +33,11 @@ export async function handleQResume(
     // Check if conversation exists
     const conversation = await qHistoryService.getProjectHistory(data.projectPath);
     if (!conversation) {
-      sendErrorCallback(socket, 'Q_RESUME_NO_HISTORY', 'No conversation history found for this project');
+      sendErrorCallback(
+        socket,
+        'Q_RESUME_NO_HISTORY',
+        'No conversation history found for this project'
+      );
       socket.emit('q:session:failed', { error: 'No conversation history' });
       return;
     }
@@ -38,11 +46,10 @@ export async function handleQResume(
     const commandData: QCommandEvent = {
       command: 'chat',
       workingDir: data.projectPath,
-      resume: true
+      resume: true,
     };
 
     await handleQCommand(socket, commandData, qCliService, sendErrorCallback);
-    
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     sendErrorCallback(socket, 'Q_RESUME_ERROR', `Failed to resume session: ${errorMessage}`);

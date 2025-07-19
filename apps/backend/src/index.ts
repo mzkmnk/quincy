@@ -85,7 +85,7 @@ const webSocketService = new WebSocketService(httpServer);
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
-  console.log(`📡 CORS enabled for http://localhost:4200`);
+  console.log(`📡 CORS enabled for ${FRONTEND_URL}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🔌 WebSocket server ready for connections`);
   console.log(`📊 Connected users: ${webSocketService.getUserCount()}`);

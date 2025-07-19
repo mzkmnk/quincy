@@ -19,37 +19,37 @@ describe('ChatComponent Integration', () => {
     currentQSession: signal(null),
     sessionStarting: signal(false),
     sessionError: signal(null),
-    
-    // Conversation related  
+
+    // Conversation related
     currentQConversation: signal(null),
     amazonQHistory: signal([]),
-    
+
     // UI state
     loading: signal(false),
     error: signal(null),
-    
+
     // Actions
     clearCurrentView: vi.fn(),
     setSessionStarting: vi.fn(),
     setSessionError: vi.fn(),
-    switchToActiveSession: vi.fn()
+    switchToActiveSession: vi.fn(),
   });
 
   const createMockWebSocketService = () => ({
     // Connection state
     connected: signal(true),
     connecting: signal(false),
-    
+
     // Session management
     onSessionFailed: vi.fn().mockReturnValue(sessionFailedSubject.asObservable()),
     resumeSession: vi.fn(),
     setupProjectSessionListeners: vi.fn(),
     sendQMessage: vi.fn(),
     abortSession: vi.fn(),
-    
+
     // Chat listeners
     setupChatListeners: vi.fn(),
-    removeChatListeners: vi.fn()
+    removeChatListeners: vi.fn(),
   });
 
   beforeEach(async () => {
@@ -61,8 +61,8 @@ describe('ChatComponent Integration', () => {
       imports: [ChatComponent],
       providers: [
         { provide: AppStore, useValue: mockAppStore },
-        { provide: WebSocketService, useValue: mockWebSocketService }
-      ]
+        { provide: WebSocketService, useValue: mockWebSocketService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ChatComponent);
@@ -88,7 +88,7 @@ describe('ChatComponent Integration', () => {
       mockAppStore.currentQSession!.set({
         id: 'session-123',
         projectPath: '/Users/test/project',
-        active: true
+        active: true,
       });
 
       fixture.detectChanges();
@@ -147,9 +147,7 @@ describe('ChatComponent Integration', () => {
 
       // 会話履歴を設定
       mockAppStore.currentQConversation!.set({ conversation_id: conversationId });
-      mockAppStore.amazonQHistory!.set([
-        { conversation_id: conversationId, projectPath }
-      ]);
+      mockAppStore.amazonQHistory!.set([{ conversation_id: conversationId, projectPath }]);
 
       fixture.detectChanges();
 
@@ -248,7 +246,7 @@ describe('ChatComponent Integration', () => {
       mockAppStore.currentQSession!.set({
         id: 'session-123',
         projectPath: '/test/project',
-        active: true
+        active: true,
       });
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelector('app-chat-messages')).toBeTruthy();
@@ -282,7 +280,7 @@ describe('ChatComponent Integration', () => {
       mockAppStore.currentQSession!.set({
         id: 'session-123',
         projectPath: '/test/project',
-        active: true
+        active: true,
       });
 
       fixture.detectChanges();
@@ -292,7 +290,7 @@ describe('ChatComponent Integration', () => {
 
       // メッセージ送信イベントをシミュレート
       const messageEvent = new CustomEvent('messageSent', {
-        detail: { content: 'Test message' }
+        detail: { content: 'Test message' },
       });
       chatMessages.dispatchEvent(messageEvent);
 
@@ -321,7 +319,7 @@ describe('ChatComponent Integration', () => {
       // 大量の履歴データを設定
       const largeHistory = Array.from({ length: 1000 }, (_, i) => ({
         conversation_id: `conv-${i}`,
-        projectPath: `/project-${i}`
+        projectPath: `/project-${i}`,
       }));
 
       mockAppStore.amazonQHistory!.set(largeHistory);
@@ -411,7 +409,7 @@ describe('ChatComponent Integration', () => {
         mockAppStore.currentQSession!.set({
           id: `session-${i}`,
           projectPath: `/project-${i}`,
-          active: true
+          active: true,
         });
         fixture.detectChanges();
       }

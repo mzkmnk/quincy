@@ -1,6 +1,10 @@
 import { vi } from 'vitest';
 
-import { getProjectHistory, getAllProjectsHistory, getProjectHistoryDetailed } from '../amazon-q-history';
+import {
+  getProjectHistory,
+  getAllProjectsHistory,
+  getProjectHistoryDetailed,
+} from '../amazon-q-history';
 
 describe('Amazon Q History Functions', () => {
   let mockSocket: any;
@@ -9,14 +13,14 @@ describe('Amazon Q History Functions', () => {
     mockSocket = {
       emit: vi.fn(),
       once: vi.fn(),
-      connected: true
+      connected: true,
     };
   });
 
   describe('getProjectHistory', () => {
     it('プロジェクト履歴取得イベントを送信する', () => {
       const projectPath = '/test/project';
-      
+
       getProjectHistory(mockSocket, projectPath);
 
       expect(mockSocket.emit).toHaveBeenCalledWith('q:history', { projectPath });
@@ -30,7 +34,7 @@ describe('Amazon Q History Functions', () => {
   describe('getProjectHistoryDetailed', () => {
     it('プロジェクト履歴詳細取得イベントを送信する', () => {
       const projectPath = '/test/project';
-      
+
       getProjectHistoryDetailed(mockSocket, projectPath);
 
       expect(mockSocket.emit).toHaveBeenCalledWith('q:history:detailed', { projectPath });
@@ -42,7 +46,9 @@ describe('Amazon Q History Functions', () => {
       const promise = getAllProjectsHistory(mockSocket);
 
       // 成功レスポンスをシミュレート
-      const successCallback = mockSocket.once.mock.calls.find((call: any) => call[0] === 'q:history:list')[1];
+      const successCallback = mockSocket.once.mock.calls.find(
+        (call: any) => call[0] === 'q:history:list'
+      )[1];
       successCallback();
 
       await expect(promise).resolves.toBeUndefined();
@@ -51,7 +57,7 @@ describe('Amazon Q History Functions', () => {
 
     it('未接続のソケットでエラーを返す', async () => {
       mockSocket.connected = false;
-      
+
       await expect(getAllProjectsHistory(mockSocket)).rejects.toThrow('WebSocket not connected');
     });
 
@@ -61,14 +67,14 @@ describe('Amazon Q History Functions', () => {
 
     it('タイムアウトでエラーを返す', async () => {
       vi.useFakeTimers();
-      
+
       const promise = getAllProjectsHistory(mockSocket);
-      
+
       // タイムアウトを発生させる
       vi.advanceTimersByTime(10000);
-      
+
       await expect(promise).rejects.toThrow('履歴取得がタイムアウトしました');
-      
+
       vi.useRealTimers();
     });
   });

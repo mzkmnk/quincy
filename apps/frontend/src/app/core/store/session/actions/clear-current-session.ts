@@ -9,6 +9,6 @@ export function clearCurrentSession(): void {
     currentSession: null,
     currentQSession: null,
     sessionStarting: false,
-    sessionError: null
+    sessionError: null,
   }));
 }

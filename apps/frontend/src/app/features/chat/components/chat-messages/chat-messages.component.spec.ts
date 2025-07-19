@@ -1,22 +1,23 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, output, ChangeDetectionStrategy } from '@angular/core';
 
-import { ChatMessagesComponent } from './chat-messages.component';
 import { MessageListComponent } from '../../../../shared/components/message-list/message-list.component';
 import { MessageInputComponent } from '../../../../shared/components/message-input/message-input.component';
+
+import { ChatMessagesComponent } from './chat-messages.component';
 
 // MessageListComponentとMessageInputComponentのモック
 @Component({
   selector: 'app-message-list',
   template: '<div>Message List Mock</div>',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class MockMessageListComponent {}
 
 @Component({
   selector: 'app-message-input',
   template: '<div>Message Input Mock</div>',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class MockMessageInputComponent {
   messageSent = output<{ content: string }>();
@@ -42,20 +43,17 @@ describe('ChatMessagesComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ChatMessagesComponent],
-      declarations: [MockMessageListComponent, MockMessageInputComponent]
+      declarations: [MockMessageListComponent, MockMessageInputComponent],
     })
-    .overrideComponent(ChatMessagesComponent, {
-      remove: {
-        imports: [
-          MessageListComponent,
-          MessageInputComponent
-        ]
-      },
-      add: {
-        declarations: [MockMessageListComponent, MockMessageInputComponent]
-      }
-    })
-    .compileComponents();
+      .overrideComponent(ChatMessagesComponent, {
+        remove: {
+          imports: [MessageListComponent, MessageInputComponent],
+        },
+        add: {
+          declarations: [MockMessageListComponent, MockMessageInputComponent],
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ChatMessagesComponent);
     component = fixture.componentInstance;
@@ -96,19 +94,21 @@ describe('ChatMessagesComponent', () => {
     });
 
     it('無効化メッセージが表示されない', () => {
-      const disabledMessage = fixture.nativeElement.querySelector('.bg-\\[var\\(--secondary-bg\\)\\]');
+      const disabledMessage = fixture.nativeElement.querySelector(
+        '.bg-\\[var\\(--secondary-bg\\)\\]'
+      );
       expect(disabledMessage).toBeFalsy();
     });
 
     it('MessageInputからのmessageSentイベントを正しく転送する', () => {
       let emittedMessage: { content: string } | null = null;
-      component.messageSent.subscribe((message) => {
+      component.messageSent.subscribe(message => {
         emittedMessage = message;
       });
 
       const messageInput = fixture.nativeElement.querySelector('app-message-input');
       const testMessage = { content: 'Test message' };
-      
+
       // MessageInputのmessageSentイベントをシミュレート
       const event = new CustomEvent('messageSent', { detail: testMessage });
       messageInput.dispatchEvent(event);
@@ -127,7 +127,9 @@ describe('ChatMessagesComponent', () => {
       const messageInput = fixture.nativeElement.querySelector('app-message-input');
       expect(messageInput).toBeFalsy();
 
-      const disabledMessage = fixture.nativeElement.querySelector('.bg-\\[var\\(--secondary-bg\\)\\]');
+      const disabledMessage = fixture.nativeElement.querySelector(
+        '.bg-\\[var\\(--secondary-bg\\)\\]'
+      );
       expect(disabledMessage).toBeTruthy();
 
       const reasonText = fixture.nativeElement.querySelector('p');
@@ -144,7 +146,9 @@ describe('ChatMessagesComponent', () => {
       const messageInput = fixture.nativeElement.querySelector('app-message-input');
       expect(messageInput).toBeFalsy();
 
-      const disabledMessage = fixture.nativeElement.querySelector('.bg-\\[var\\(--secondary-bg\\)\\]');
+      const disabledMessage = fixture.nativeElement.querySelector(
+        '.bg-\\[var\\(--secondary-bg\\)\\]'
+      );
       expect(disabledMessage).toBeTruthy();
 
       const reasonText = fixture.nativeElement.querySelector('p');
@@ -198,7 +202,8 @@ describe('ChatMessagesComponent', () => {
     });
 
     it('長い無効化理由を表示する', () => {
-      const longReason = 'This is a very long disabled reason that explains in detail why the session is currently unavailable.';
+      const longReason =
+        'This is a very long disabled reason that explains in detail why the session is currently unavailable.';
       setDisabledInputs(longReason, false);
       fixture.detectChanges();
 
@@ -254,7 +259,9 @@ describe('ChatMessagesComponent', () => {
       setDisabledInputs('Test reason', true);
       fixture.detectChanges();
 
-      const disabledContainer = fixture.nativeElement.querySelector('.bg-\\[var\\(--secondary-bg\\)\\]');
+      const disabledContainer = fixture.nativeElement.querySelector(
+        '.bg-\\[var\\(--secondary-bg\\)\\]'
+      );
       expect(disabledContainer).toBeTruthy();
       expect(disabledContainer.classList.contains('border-t')).toBe(true);
       expect(disabledContainer.classList.contains('p-4')).toBe(true);
@@ -279,7 +286,9 @@ describe('ChatMessagesComponent', () => {
       expect(messageInput).toBeTruthy();
 
       // 無効化メッセージは表示されない
-      const disabledMessage = fixture.nativeElement.querySelector('.bg-\\[var\\(--secondary-bg\\)\\]');
+      const disabledMessage = fixture.nativeElement.querySelector(
+        '.bg-\\[var\\(--secondary-bg\\)\\]'
+      );
       expect(disabledMessage).toBeFalsy();
     });
 
@@ -290,7 +299,9 @@ describe('ChatMessagesComponent', () => {
       const messageInput = fixture.nativeElement.querySelector('app-message-input');
       expect(messageInput).toBeFalsy();
 
-      const disabledMessage = fixture.nativeElement.querySelector('.bg-\\[var\\(--secondary-bg\\)\\]');
+      const disabledMessage = fixture.nativeElement.querySelector(
+        '.bg-\\[var\\(--secondary-bg\\)\\]'
+      );
       expect(disabledMessage).toBeTruthy();
 
       const startButton = fixture.nativeElement.querySelector('button');

@@ -12,15 +12,13 @@ export function createAuthenticationError(
 }
 
 export function createTokenValidationError(): AuthenticationError {
-  return new AuthenticationError(
-    'Invalid or expired authentication token',
-    { reason: 'token_invalid' }
-  );
+  return new AuthenticationError('Invalid or expired authentication token', {
+    reason: 'token_invalid',
+  });
 }
 
 export function createMissingCredentialsError(): AuthenticationError {
-  return new AuthenticationError(
-    'Authentication credentials are required',
-    { reason: 'credentials_missing' }
-  );
+  return new AuthenticationError('Authentication credentials are required', {
+    reason: 'credentials_missing',
+  });
 }

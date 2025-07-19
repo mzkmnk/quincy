@@ -129,29 +129,35 @@ export interface AmazonQError {
 
 // 型ガード関数
 export function isAmazonQMessage(data: unknown): data is AmazonQMessage {
-  return typeof data === 'object' && 
-         data !== null && 
-         'id' in data && 
-         'sessionId' in data && 
-         'content' in data && 
-         'sender' in data && 
-         'timestamp' in data;
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'id' in data &&
+    'sessionId' in data &&
+    'content' in data &&
+    'sender' in data &&
+    'timestamp' in data
+  );
 }
 
 export function isAmazonQSession(data: unknown): data is AmazonQSession {
-  return typeof data === 'object' && 
-         data !== null && 
-         'sessionId' in data && 
-         'projectPath' in data && 
-         'status' in data;
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'sessionId' in data &&
+    'projectPath' in data &&
+    'status' in data
+  );
 }
 
 export function isAmazonQConversation(data: unknown): data is AmazonQConversation {
-  return typeof data === 'object' && 
-         data !== null && 
-         'conversation_id' in data && 
-         'title' in data && 
-         'created_at' in data;
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'conversation_id' in data &&
+    'title' in data &&
+    'created_at' in data
+  );
 }
 
 export function isUserMessage(message: AmazonQMessage): boolean {

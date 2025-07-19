@@ -41,7 +41,7 @@ export const amazonQHistoryInitialState: AmazonQHistoryState = {
   currentQConversation: null,
   detailedHistoryMessages: [],
   historyStats: null,
-  qHistoryLoading: false
+  qHistoryLoading: false,
 };
 
 export const amazonQHistoryState = signal<AmazonQHistoryState>(amazonQHistoryInitialState);
@@ -49,7 +49,9 @@ export const amazonQHistoryState = signal<AmazonQHistoryState>(amazonQHistoryIni
 // Computed selectors
 export const amazonQHistory = computed(() => amazonQHistoryState().amazonQHistory);
 export const currentQConversation = computed(() => amazonQHistoryState().currentQConversation);
-export const detailedHistoryMessages = computed(() => amazonQHistoryState().detailedHistoryMessages);
+export const detailedHistoryMessages = computed(
+  () => amazonQHistoryState().detailedHistoryMessages
+);
 export const historyStats = computed(() => amazonQHistoryState().historyStats);
 export const qHistoryLoading = computed(() => amazonQHistoryState().qHistoryLoading);
 

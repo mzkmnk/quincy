@@ -7,6 +7,6 @@ import { sessionState } from '../session.state';
 export function setSessionStarting(starting: boolean): void {
   sessionState.update(state => ({
     ...state,
-    sessionStarting: starting
+    sessionStarting: starting,
   }));
 }

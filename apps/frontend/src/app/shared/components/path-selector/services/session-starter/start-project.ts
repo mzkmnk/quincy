@@ -40,7 +40,7 @@ export async function startProject(
     websocket.startProjectSession(trimmedPath, resumeSession);
 
     // セッション開始の通知を受け取るリスナーを設定
-    websocket.setupProjectSessionListeners((data) => {
+    websocket.setupProjectSessionListeners(data => {
       console.log('Amazon Q session started:', data);
 
       // アクティブセッションモードに切り替え
@@ -51,13 +51,14 @@ export async function startProject(
     });
 
     // エラーハンドリングのリスナーを設定
-    websocket.on('error', (error: { code?: string; message?: string;[key: string]: unknown }) => {
+    websocket.on('error', (error: { code?: string; message?: string; [key: string]: unknown }) => {
       console.error('WebSocket error:', error);
 
       let userMessage = 'セッションの開始中にエラーが発生しました。';
 
       if (error.code === 'Q_CLI_NOT_AVAILABLE' || error.code === 'Q_CLI_NOT_FOUND') {
-        userMessage = 'Amazon Q CLIが見つかりません。Amazon Q CLIをインストールしてから再度お試しください。';
+        userMessage =
+          'Amazon Q CLIが見つかりません。Amazon Q CLIをインストールしてから再度お試しください。';
       } else if (error.code === 'Q_CLI_PERMISSION_ERROR') {
         userMessage = 'Amazon Q CLIの実行権限がありません。ファイルの権限を確認してください。';
       } else if (error.code === 'Q_CLI_SPAWN_ERROR') {
@@ -68,7 +69,6 @@ export async function startProject(
       appStore.setSessionError(userMessage);
       startingSignal.set(false);
     });
-
   } catch (error) {
     console.error('Error starting project session:', error);
     appStore.setSessionError('プロジェクトセッションの開始中にエラーが発生しました。');
@@ -76,7 +76,7 @@ export async function startProject(
       severity: 'error',
       summary: 'エラー',
       detail: 'プロジェクトの開始に失敗しました',
-      life: 5000
+      life: 5000,
     });
     startingSignal.set(false);
   }

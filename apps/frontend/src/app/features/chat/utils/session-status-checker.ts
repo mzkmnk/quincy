@@ -1,3 +1,5 @@
+import type { AmazonQSession } from '../../../core/types/amazon-q.types';
+
 /**
  * セッションが無効かどうかを判定する
  * @param sessionError セッションエラー
@@ -6,7 +8,7 @@
  */
 export function isSessionDisabled(
   sessionError: string | null,
-  currentQSession: any
+  currentQSession: AmazonQSession | null
 ): boolean {
   return !!sessionError || !currentQSession;
 }
@@ -21,7 +23,7 @@ export function isSessionDisabled(
 export function canChat(
   isActiveChat: boolean,
   sessionError: string | null,
-  currentQSession: any
+  currentQSession: AmazonQSession | null
 ): boolean {
   return isActiveChat && !isSessionDisabled(sessionError, currentQSession);
 }
@@ -34,7 +36,7 @@ export function canChat(
  */
 export function getDisabledReason(
   sessionError: string | null,
-  currentQSession: any
+  currentQSession: AmazonQSession | null
 ): string {
   if (sessionError) {
     return sessionError;

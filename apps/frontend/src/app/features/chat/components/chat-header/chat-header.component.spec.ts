@@ -18,29 +18,29 @@ describe('ChatHeaderComponent', () => {
     currentQConversation: signal(null),
     sessionStarting: signal(false),
     sessionError: signal(null),
-    amazonQHistory: signal([])
+    amazonQHistory: signal([]),
   });
 
   const createMockWebSocketService = () => ({
     connected: signal(false),
-    connecting: signal(false)
+    connecting: signal(false),
   });
 
   const createSessionData = (projectPath: string) => ({
     id: 'session-1',
     projectPath,
-    active: true
+    active: true,
   });
 
   const createConversationData = (conversationId: string) => ({
     conversation_id: conversationId,
-    title: 'Test Conversation'
+    title: 'Test Conversation',
   });
 
   const createHistoryItem = (conversationId: string, projectPath: string) => ({
     conversation_id: conversationId,
     projectPath,
-    title: 'Test History'
+    title: 'Test History',
   });
 
   beforeEach(async () => {
@@ -51,8 +51,8 @@ describe('ChatHeaderComponent', () => {
       imports: [ChatHeaderComponent],
       providers: [
         { provide: AppStore, useValue: mockAppStore },
-        { provide: WebSocketService, useValue: mockWebSocketService }
-      ]
+        { provide: WebSocketService, useValue: mockWebSocketService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ChatHeaderComponent);
@@ -103,17 +103,17 @@ describe('ChatHeaderComponent', () => {
       const conversation = createConversationData('conv-1');
       mockAppStore.currentQConversation.set(conversation);
       mockAppStore.amazonQHistory.set([]);
-      
+
       expect(component.getProjectPathFromConversation()).toBe('');
     });
 
     it('現在の会話に対応する履歴からプロジェクトパスを取得する', () => {
       const conversation = createConversationData('conv-1');
       const historyItem = createHistoryItem('conv-1', '/Users/user/test-project');
-      
+
       mockAppStore.currentQConversation.set(conversation);
       mockAppStore.amazonQHistory.set([historyItem]);
-      
+
       expect(component.getProjectPathFromConversation()).toBe('/Users/user/test-project');
     });
 
@@ -122,22 +122,22 @@ describe('ChatHeaderComponent', () => {
       const historyItems = [
         createHistoryItem('conv-1', '/Users/user/project-1'),
         createHistoryItem('conv-2', '/Users/user/project-2'),
-        createHistoryItem('conv-3', '/Users/user/project-3')
+        createHistoryItem('conv-3', '/Users/user/project-3'),
       ];
-      
+
       mockAppStore.currentQConversation.set(conversation);
       mockAppStore.amazonQHistory.set(historyItems);
-      
+
       expect(component.getProjectPathFromConversation()).toBe('/Users/user/project-2');
     });
 
     it('履歴アイテムにprojectPathがない場合、空文字列を返す', () => {
       const conversation = createConversationData('conv-1');
       const historyItem = { ...createHistoryItem('conv-1', ''), projectPath: undefined };
-      
+
       mockAppStore.currentQConversation.set(conversation);
       mockAppStore.amazonQHistory.set([historyItem]);
-      
+
       expect(component.getProjectPathFromConversation()).toBe('');
     });
   });
@@ -152,7 +152,7 @@ describe('ChatHeaderComponent', () => {
     it('アクティブセッションがある場合、プロジェクト名を表示する', () => {
       const session = createSessionData('/Users/user/my-project');
       mockAppStore.currentQSession.set(session);
-      
+
       fixture.detectChanges();
       const titleElement = fixture.nativeElement.querySelector('h1');
       expect(titleElement.textContent.trim()).toBe('my-project');
@@ -161,10 +161,10 @@ describe('ChatHeaderComponent', () => {
     it('現在の会話がある場合、会話のプロジェクト名を表示する', () => {
       const conversation = createConversationData('conv-1');
       const historyItem = createHistoryItem('conv-1', '/Users/user/chat-project');
-      
+
       mockAppStore.currentQConversation.set(conversation);
       mockAppStore.amazonQHistory.set([historyItem]);
-      
+
       fixture.detectChanges();
       const titleElement = fixture.nativeElement.querySelector('h1');
       expect(titleElement.textContent.trim()).toBe('chat-project');
@@ -172,22 +172,22 @@ describe('ChatHeaderComponent', () => {
 
     it('セッション開始中の場合、適切なメッセージを表示する', () => {
       mockAppStore.sessionStarting.set(true);
-      
+
       fixture.detectChanges();
       const titleElement = fixture.nativeElement.querySelector('h1');
       const descElement = fixture.nativeElement.querySelector('p');
-      
+
       expect(titleElement.textContent.trim()).toBe('Starting Amazon Q Session...');
       expect(descElement.textContent.trim()).toBe('Please wait while we start your session');
     });
 
     it('セッションエラーがある場合、エラーメッセージを表示する', () => {
       mockAppStore.sessionError.set('Connection failed');
-      
+
       fixture.detectChanges();
       const titleElement = fixture.nativeElement.querySelector('h1');
       const descElement = fixture.nativeElement.querySelector('p');
-      
+
       expect(titleElement.textContent.trim()).toBe('Session Start Failed');
       expect(descElement.textContent.trim()).toBe('Failed to start Amazon Q session');
     });
@@ -196,16 +196,18 @@ describe('ChatHeaderComponent', () => {
       // 接続済みの場合
       mockWebSocketService.connected.set(true);
       fixture.detectChanges();
-      let statusElement = fixture.nativeElement.querySelector('.text-\\[var\\(--text-secondary\\)\\]');
+      let statusElement = fixture.nativeElement.querySelector(
+        '.text-\\[var\\(--text-secondary\\)\\]'
+      );
       expect(statusElement.textContent.trim()).toBe('Connected');
-      
+
       // 接続中の場合
       mockWebSocketService.connected.set(false);
       mockWebSocketService.connecting.set(true);
       fixture.detectChanges();
       statusElement = fixture.nativeElement.querySelector('.text-\\[var\\(--text-secondary\\)\\]');
       expect(statusElement.textContent.trim()).toBe('Connecting');
-      
+
       // 切断されている場合
       mockWebSocketService.connected.set(false);
       mockWebSocketService.connecting.set(false);
@@ -219,7 +221,7 @@ describe('ChatHeaderComponent', () => {
     it('nullセッションデータを安全に処理する', () => {
       mockAppStore.currentQSession.set(null);
       mockAppStore.currentQConversation.set(null);
-      
+
       expect(() => {
         fixture.detectChanges();
       }).not.toThrow();
@@ -232,9 +234,15 @@ describe('ChatHeaderComponent', () => {
     });
 
     it('特殊文字を含むプロジェクトパスを処理する', () => {
-      expect(component.getProjectName('/Users/user/project with spaces')).toBe('project with spaces');
-      expect(component.getProjectName('/Users/user/project-with-dashes')).toBe('project-with-dashes');
-      expect(component.getProjectName('/Users/user/project_with_underscores')).toBe('project_with_underscores');
+      expect(component.getProjectName('/Users/user/project with spaces')).toBe(
+        'project with spaces'
+      );
+      expect(component.getProjectName('/Users/user/project-with-dashes')).toBe(
+        'project-with-dashes'
+      );
+      expect(component.getProjectName('/Users/user/project_with_underscores')).toBe(
+        'project_with_underscores'
+      );
     });
 
     it('非常に長いプロジェクトパスを処理する', () => {

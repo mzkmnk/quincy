@@ -1,37 +1,35 @@
 import { signal, computed, Injectable } from '@angular/core';
-import type { Project, Session, ConversationMetadata, AmazonQConversation, QSessionStartedEvent } from '@quincy/shared';
+import type {
+  Project,
+  Session,
+  ConversationMetadata,
+  AmazonQConversation,
+  QSessionStartedEvent,
+} from '@quincy/shared';
 
 import type { BaseUIState } from '../../shared/types/ui.types';
 
-import { 
-  projects, 
-  currentProject, 
-  hasProjects, 
-  isProjectSelected 
-} from './project/project.state';
-import { 
-  sessions, 
-  currentSession, 
-  currentQSession, 
-  sessionStarting, 
-  sessionError, 
-  hasSessions, 
-  isSessionSelected, 
-  isQSessionActive 
+import { projects, currentProject, hasProjects, isProjectSelected } from './project/project.state';
+import {
+  sessions,
+  currentSession,
+  currentQSession,
+  sessionStarting,
+  sessionError,
+  hasSessions,
+  isSessionSelected,
+  isQSessionActive,
 } from './session/session.state';
-import { 
-  amazonQHistory, 
-  currentQConversation, 
-  detailedHistoryMessages, 
-  historyStats, 
-  qHistoryLoading, 
-  hasAmazonQHistory, 
-  isQConversationSelected 
+import {
+  amazonQHistory,
+  currentQConversation,
+  detailedHistoryMessages,
+  historyStats,
+  qHistoryLoading,
+  hasAmazonQHistory,
+  isQConversationSelected,
 } from './amazon-q-history/amazon-q-history.state';
-import { 
-  chatMessages, 
-  hasChatMessages 
-} from './chat/chat.state';
+import { chatMessages, hasChatMessages } from './chat/chat.state';
 import * as ProjectActions from './project/actions';
 import * as SessionActions from './session/actions';
 import * as AmazonQHistoryActions from './amazon-q-history/actions';
@@ -39,17 +37,16 @@ import * as ChatActions from './chat/actions';
 import type { ChatMessage } from './chat/chat.state';
 import type { DisplayMessage } from './amazon-q-history/amazon-q-history.state';
 
-
 // UI状態
 type UIState = BaseUIState;
 
 const uiState = signal<UIState>({
   loading: false,
-  error: null
+  error: null,
 });
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AppStore {
   // === State Getters ===
@@ -190,12 +187,14 @@ export class AppStore {
     AmazonQHistoryActions.setDetailedHistoryMessages(messages);
   };
 
-  setHistoryStats = (stats: {
-    totalEntries: number;
-    totalTurns: number;
-    averageToolUsesPerTurn: number;
-    totalToolUses: number;
-  } | null) => {
+  setHistoryStats = (
+    stats: {
+      totalEntries: number;
+      totalTurns: number;
+      averageToolUsesPerTurn: number;
+      totalToolUses: number;
+    } | null
+  ) => {
     AmazonQHistoryActions.setHistoryStats(stats);
   };
 
@@ -208,12 +207,15 @@ export class AppStore {
     SessionActions.setSessionError(null);
   };
 
-  switchToDetailedHistoryView = (messages: DisplayMessage[], stats: {
-    totalEntries: number;
-    totalTurns: number;
-    averageToolUsesPerTurn: number;
-    totalToolUses: number;
-  } | null) => {
+  switchToDetailedHistoryView = (
+    messages: DisplayMessage[],
+    stats: {
+      totalEntries: number;
+      totalTurns: number;
+      averageToolUsesPerTurn: number;
+      totalToolUses: number;
+    } | null
+  ) => {
     AmazonQHistoryActions.switchToDetailedHistoryView(messages, stats);
     // アクティブセッションをクリア
     SessionActions.setCurrentQSession(null);

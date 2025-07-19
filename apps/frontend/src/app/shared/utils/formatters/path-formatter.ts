@@ -5,9 +5,9 @@
  * @returns フォーマットされたパス
  */
 export function formatPath(
-  path: string, 
-  options: { 
-    showHome?: boolean; 
+  path: string,
+  options: {
+    showHome?: boolean;
     maxLength?: number;
     ellipsisPosition?: 'start' | 'middle' | 'end';
   } = {}
@@ -31,19 +31,21 @@ export function formatPath(
   if (options.maxLength && formatted.length > options.maxLength) {
     const ellipsis = '...';
     const maxLen = options.maxLength - ellipsis.length;
-    
+
     switch (options.ellipsisPosition) {
       case 'start':
         formatted = ellipsis + formatted.substring(formatted.length - maxLen);
         break;
-      
+
       case 'middle': {
         const halfLen = Math.floor(maxLen / 2);
-        formatted = formatted.substring(0, halfLen) + ellipsis + 
-                   formatted.substring(formatted.length - halfLen);
+        formatted =
+          formatted.substring(0, halfLen) +
+          ellipsis +
+          formatted.substring(formatted.length - halfLen);
         break;
       }
-      
+
       case 'end':
       default:
         formatted = formatted.substring(0, maxLen) + ellipsis;

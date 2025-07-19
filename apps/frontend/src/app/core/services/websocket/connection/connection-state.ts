@@ -9,7 +9,7 @@ export class ConnectionStateManager {
   private connectionState: WritableSignal<ConnectionState> = signal({
     connected: false,
     connecting: false,
-    error: null
+    error: null,
   });
 
   readonly connected: Signal<boolean> = computed(() => this.connectionState().connected);
@@ -27,7 +27,7 @@ export class ConnectionStateManager {
   updateConnectionState(partialState: Partial<ConnectionState>): void {
     this.connectionState.update(currentState => ({
       ...currentState,
-      ...partialState
+      ...partialState,
     }));
   }
 }

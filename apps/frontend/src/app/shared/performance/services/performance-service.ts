@@ -10,7 +10,7 @@ export interface PerformanceMetrics {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PerformanceService {
   private metrics = signal<PerformanceMetrics[]>([]);
@@ -29,7 +29,7 @@ export class PerformanceService {
     }
 
     this.isMonitoring.set(true);
-    
+
     this.monitoringInterval = window.setInterval(async () => {
       const metrics = await this.collectMetrics();
       this.addMetrics(metrics);
@@ -63,20 +63,17 @@ export class PerformanceService {
         memoryUsage: 0,
         renderTime: 0,
         fps: 60,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
     }
 
-    const [memoryUsage, fps] = await Promise.all([
-      measureMemoryUsage(),
-      measureFPS(1000)
-    ]);
+    const [memoryUsage, fps] = await Promise.all([measureMemoryUsage(), measureFPS(1000)]);
 
     return {
       memoryUsage,
       renderTime: 0, // レンダリング時間は別途測定
       fps,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -88,13 +85,13 @@ export class PerformanceService {
     end: () => void;
   } {
     const measurement = measureRenderPerformance(name);
-    
+
     return {
       start: () => measurement.start(),
       end: () => {
         const renderTime = measurement.end();
         this.addRenderMetrics(renderTime);
-      }
+      },
     };
   }
 
@@ -109,14 +106,14 @@ export class PerformanceService {
     minFPS: number;
   } {
     const allMetrics = this.metrics();
-    
+
     if (allMetrics.length === 0) {
       return {
         avgMemoryUsage: 0,
         avgRenderTime: 0,
         avgFPS: 0,
         maxMemoryUsage: 0,
-        minFPS: 0
+        minFPS: 0,
       };
     }
 
@@ -126,10 +123,11 @@ export class PerformanceService {
 
     return {
       avgMemoryUsage: memoryUsages.reduce((a, b) => a + b, 0) / memoryUsages.length,
-      avgRenderTime: renderTimes.length > 0 ? renderTimes.reduce((a, b) => a + b, 0) / renderTimes.length : 0,
+      avgRenderTime:
+        renderTimes.length > 0 ? renderTimes.reduce((a, b) => a + b, 0) / renderTimes.length : 0,
       avgFPS: fpsList.reduce((a, b) => a + b, 0) / fpsList.length,
       maxMemoryUsage: Math.max(...memoryUsages),
-      minFPS: Math.min(...fpsList)
+      minFPS: Math.min(...fpsList),
     };
   }
 
@@ -145,7 +143,7 @@ export class PerformanceService {
     if (current.length > 0) {
       const latest = { ...current[current.length - 1] };
       latest.renderTime = renderTime;
-      
+
       const updated = [...current.slice(0, -1), latest];
       this.metrics.set(updated);
     }

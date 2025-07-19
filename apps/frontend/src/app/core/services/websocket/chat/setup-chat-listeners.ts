@@ -8,10 +8,7 @@ import { ChatListeners } from '../types';
  * @param socket Socket接続
  * @param listeners チャットリスナー
  */
-export function setupChatListeners(
-  socket: Socket | null,
-  listeners: ChatListeners
-): void {
+export function setupChatListeners(socket: Socket | null, listeners: ChatListeners): void {
   on(socket, 'q:response', listeners.onResponse);
   on(socket, 'q:error', listeners.onError);
   on(socket, 'q:info', listeners.onInfo);

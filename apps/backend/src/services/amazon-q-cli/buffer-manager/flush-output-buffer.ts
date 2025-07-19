@@ -13,14 +13,14 @@ export function flushOutputBuffer(
   const responseEvent: QResponseEvent = {
     sessionId: session.sessionId,
     data: session.outputBuffer,
-    type: 'stream'
+    type: 'stream',
   };
-  
+
   emitCallback('q:response', responseEvent);
-  
+
   // バッファをクリア
   session.outputBuffer = '';
-  
+
   // タイムアウトをクリア
   if (session.bufferTimeout) {
     clearTimeout(session.bufferTimeout);

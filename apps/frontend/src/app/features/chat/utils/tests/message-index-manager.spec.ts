@@ -29,11 +29,7 @@ describe('updateMessageIndexMap', () => {
     });
 
     it('複数のメッセージでマップを更新する', () => {
-      const messages = [
-        { id: 'msg-1' },
-        { id: 'msg-2' },
-        { id: 'msg-3' }
-      ];
+      const messages = [{ id: 'msg-1' }, { id: 'msg-2' }, { id: 'msg-3' }];
 
       updateMessageIndexMap(messageIndexMap, messages);
 
@@ -48,10 +44,7 @@ describe('updateMessageIndexMap', () => {
       messageIndexMap.set('old-msg-1', 0);
       messageIndexMap.set('old-msg-2', 1);
 
-      const messages = [
-        { id: 'new-msg-1' },
-        { id: 'new-msg-2' }
-      ];
+      const messages = [{ id: 'new-msg-1' }, { id: 'new-msg-2' }];
 
       updateMessageIndexMap(messageIndexMap, messages);
 
@@ -88,7 +81,7 @@ describe('updateMessageIndexMap', () => {
         { id: 'msg-123-$%^&*()_+-=[]{}|;:,.<>?' },
         { id: 'msg@example.com' },
         { id: 'msg#hash' },
-        { id: 'msg/with/slashes' }
+        { id: 'msg/with/slashes' },
       ];
 
       updateMessageIndexMap(messageIndexMap, messages);
@@ -104,7 +97,7 @@ describe('updateMessageIndexMap', () => {
         { id: 'msg-日本語-123' },
         { id: 'msg-中文-456' },
         { id: 'msg-русский-789' },
-        { id: 'msg-🚀-emoji' }
+        { id: 'msg-🚀-emoji' },
       ];
 
       updateMessageIndexMap(messageIndexMap, messages);
@@ -130,7 +123,7 @@ describe('updateMessageIndexMap', () => {
         { id: 'duplicate' },
         { id: 'unique-1' },
         { id: 'duplicate' },
-        { id: 'unique-2' }
+        { id: 'unique-2' },
       ];
 
       updateMessageIndexMap(messageIndexMap, messages);
@@ -142,11 +135,7 @@ describe('updateMessageIndexMap', () => {
     });
 
     it('全て同じIDの場合、最後のインデックスが保存される', () => {
-      const messages = [
-        { id: 'same' },
-        { id: 'same' },
-        { id: 'same' }
-      ];
+      const messages = [{ id: 'same' }, { id: 'same' }, { id: 'same' }];
 
       updateMessageIndexMap(messageIndexMap, messages);
 
@@ -159,7 +148,7 @@ describe('updateMessageIndexMap', () => {
     it('idプロパティ以外の追加プロパティがあっても正常に動作する', () => {
       const messages = [
         { id: 'msg-1', content: 'Hello', timestamp: Date.now() },
-        { id: 'msg-2', content: 'World', author: 'user', metadata: { type: 'text' } }
+        { id: 'msg-2', content: 'World', author: 'user', metadata: { type: 'text' } },
       ] as any[];
 
       updateMessageIndexMap(messageIndexMap, messages);
@@ -176,12 +165,12 @@ describe('updateMessageIndexMap', () => {
           data: {
             nested: {
               deeply: {
-                value: 'test'
-              }
-            }
+                value: 'test',
+              },
+            },
           },
-          array: [1, 2, 3]
-        }
+          array: [1, 2, 3],
+        },
       ] as any[];
 
       updateMessageIndexMap(messageIndexMap, messages);
@@ -237,7 +226,10 @@ describe('updateMessageIndexMap', () => {
     });
 
     it('非常に大きなインデックス値でも正常に動作する', () => {
-      const messages = Array.from({ length: Number.MAX_SAFE_INTEGER > 100000 ? 100000 : 1000 }, (_, i) => ({ id: `msg-${i}` }));
+      const messages = Array.from(
+        { length: Number.MAX_SAFE_INTEGER > 100000 ? 100000 : 1000 },
+        (_, i) => ({ id: `msg-${i}` })
+      );
 
       updateMessageIndexMap(messageIndexMap, messages);
 
@@ -284,11 +276,7 @@ describe('updateMessageIndexMap', () => {
   describe('実際の使用シナリオ', () => {
     it('チャットメッセージリストの更新をシミュレート', () => {
       // 初期メッセージ
-      const initialMessages = [
-        { id: 'msg-1' },
-        { id: 'msg-2' },
-        { id: 'msg-3' }
-      ];
+      const initialMessages = [{ id: 'msg-1' }, { id: 'msg-2' }, { id: 'msg-3' }];
 
       updateMessageIndexMap(messageIndexMap, initialMessages);
       expect(messageIndexMap.get('msg-2')).toBe(1);
@@ -299,7 +287,7 @@ describe('updateMessageIndexMap', () => {
         { id: 'msg-2' },
         { id: 'msg-3' },
         { id: 'msg-4' },
-        { id: 'msg-5' }
+        { id: 'msg-5' },
       ];
 
       updateMessageIndexMap(messageIndexMap, updatedMessages);
@@ -310,22 +298,13 @@ describe('updateMessageIndexMap', () => {
     });
 
     it('メッセージの削除をシミュレート', () => {
-      const originalMessages = [
-        { id: 'msg-1' },
-        { id: 'msg-2' },
-        { id: 'msg-3' },
-        { id: 'msg-4' }
-      ];
+      const originalMessages = [{ id: 'msg-1' }, { id: 'msg-2' }, { id: 'msg-3' }, { id: 'msg-4' }];
 
       updateMessageIndexMap(messageIndexMap, originalMessages);
       expect(messageIndexMap.get('msg-3')).toBe(2);
 
       // msg-2が削除された状態
-      const afterDeletion = [
-        { id: 'msg-1' },
-        { id: 'msg-3' },
-        { id: 'msg-4' }
-      ];
+      const afterDeletion = [{ id: 'msg-1' }, { id: 'msg-3' }, { id: 'msg-4' }];
 
       updateMessageIndexMap(messageIndexMap, afterDeletion);
       expect(messageIndexMap.size).toBe(3);

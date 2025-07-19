@@ -1,4 +1,5 @@
 import { ElementRef } from '@angular/core';
+import type { MessageService } from 'primeng/api';
 
 /**
  * テキストエリアの高さを自動調整する
@@ -48,13 +49,13 @@ export function toggleResumeOption(
  * フォルダ選択のメッセージを表示する
  * @param messageService メッセージサービス
  */
-export function selectFolder(messageService: any): void {
+export function selectFolder(messageService: MessageService): void {
   // ブラウザ環境では直接フォルダ選択はできないため、
   // ユーザーに手動入力を促すメッセージを表示
   messageService.add({
     severity: 'info',
     summary: '情報',
     detail: 'プロジェクトフォルダの絶対パスを入力してください',
-    life: 3000
+    life: 3000,
   });
 }

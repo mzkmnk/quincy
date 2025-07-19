@@ -1,4 +1,13 @@
-import { Component, inject, OnInit, OnDestroy, ChangeDetectionStrategy, viewChild, signal, effect } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  OnDestroy,
+  ChangeDetectionStrategy,
+  viewChild,
+  signal,
+  effect,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { AppStore } from '../../core/store/app.state';
@@ -7,7 +16,10 @@ import { MessageListComponent } from '../../shared/components/message-list/messa
 import { MessageInputComponent } from '../../shared/components/message-input/message-input.component';
 
 import { ChatHeaderComponent } from './components/chat-header/chat-header.component';
-import { SessionStartComponent, SessionStatus } from './components/session-start/session-start.component';
+import {
+  SessionStartComponent,
+  SessionStatus,
+} from './components/session-start/session-start.component';
 import { ChatErrorComponent } from './components/chat-error/chat-error.component';
 import { ChatMessagesComponent } from './components/chat-messages/chat-messages.component';
 import { EmptyStateComponent } from './components/empty-state/empty-state.component';
@@ -18,13 +30,13 @@ import {
   handleErrorResponse,
   handleInfoResponse,
   handleCompletionResponse,
-  ChatWebSocketHandlers
+  ChatWebSocketHandlers,
 } from './services/chat-websocket';
 import {
   handleStreamingStart,
   handleStreamingUpdate,
   formatInfoMessage,
-  shouldDisplayError
+  shouldDisplayError,
 } from './services/message-streaming';
 import { resumeSession } from './services/session-manager';
 import {
@@ -33,7 +45,7 @@ import {
   canChat,
   getDisabledReason,
   getProjectName,
-  getProjectPathFromConversation
+  getProjectPathFromConversation,
 } from './utils';
 
 @Component({
@@ -45,7 +57,7 @@ import {
     SessionStartComponent,
     ChatErrorComponent,
     ChatMessagesComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -58,8 +70,12 @@ import {
         @if (appStore.currentQSession() || isActiveChat()) {
           <!-- Active Chat Session -->
           <app-chat-messages
-            [isSessionDisabled]="isSessionDisabled(appStore.sessionError(), appStore.currentQSession())"
-            [disabledReason]="getDisabledReason(appStore.sessionError(), appStore.currentQSession())"
+            [isSessionDisabled]="
+              isSessionDisabled(appStore.sessionError(), appStore.currentQSession())
+            "
+            [disabledReason]="
+              getDisabledReason(appStore.sessionError(), appStore.currentQSession())
+            "
             [hasSessionError]="!!appStore.sessionError()"
             (messageSent)="onMessageSent($event)"
             (clearError)="clearSessionError()"
@@ -69,7 +85,7 @@ import {
           <app-session-start [sessionStatus]="sessionStatus()"></app-session-start>
         } @else if (appStore.sessionError()) {
           <!-- Session Error -->
-          <app-chat-error 
+          <app-chat-error
             [errorMessage]="appStore.sessionError()!"
             (tryAgain)="clearSessionError()"
           ></app-chat-error>
@@ -78,22 +94,26 @@ import {
           <div class="flex-1 overflow-y-auto">
             @if (appStore.qHistoryLoading()) {
               <div class="text-center py-8">
-                <div class="text-lg text-[var(--text-secondary)]">Loading conversation history...</div>
+                <div class="text-lg text-[var(--text-secondary)]">
+                  Loading conversation history...
+                </div>
               </div>
             } @else if (appStore.detailedHistoryMessages().length > 0) {
               <app-message-list></app-message-list>
             } @else {
               <div class="text-center text-[var(--text-secondary)] py-8">
                 <div class="text-lg mb-2">📭 No conversation history available</div>
-                <div class="text-sm">This project may not have any Amazon Q conversation history with detailed data.</div>
+                <div class="text-sm">
+                  This project may not have any Amazon Q conversation history with detailed data.
+                </div>
               </div>
             }
           </div>
-          
+
           <!-- Resume Session Button - Sticky to bottom -->
           <div class="sticky bottom-0 left-0 right-0 z-10">
             <div class="p-4 text-center">
-              <button 
+              <button
                 class="px-4 py-2 bg-[var(--tertiary-bg)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-md hover:bg-[var(--hover-bg)] transition-colors font-medium"
                 (click)="resumeSession()"
               >
@@ -107,7 +127,7 @@ import {
         }
       </div>
     </div>
-  `
+  `,
 })
 export class ChatComponent implements OnInit, OnDestroy {
   protected appStore = inject(AppStore);
@@ -126,7 +146,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   sessionStatus = signal<SessionStatus>({
     cliLaunched: false,
     connectionEstablished: false,
-    workspaceReady: false
+    workspaceReady: false,
   });
 
   // 分離されたユーティリティ関数をコンポーネントメソッドとして公開
@@ -202,14 +222,16 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.websocket,
           this.appStore,
           this.sessionStatus(),
-          (status) => this.sessionStatus.set(status)
+          status => this.sessionStatus.set(status)
         );
       }
     }
   }
 
   onMessageSent(event: { content: string }): void {
-    if (!canChat(this.isActiveChat(), this.appStore.sessionError(), this.appStore.currentQSession())) {
+    if (
+      !canChat(this.isActiveChat(), this.appStore.sessionError(), this.appStore.currentQSession())
+    ) {
       console.warn('Cannot send message: chat is disabled');
       return;
     }
@@ -228,35 +250,26 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
 
     const handlers: ChatWebSocketHandlers = {
-      onQResponse: (data) => {
-        handleStreamingResponse(
-          data,
-          currentSession.sessionId,
-          (content) => this.handleStreamingResponse(content)
+      onQResponse: data => {
+        handleStreamingResponse(data, currentSession.sessionId, content =>
+          this.handleStreamingResponse(content)
         );
       },
-      onQError: (data) => {
-        handleErrorResponse(
-          data,
-          currentSession.sessionId,
-          shouldDisplayError,
-          (error) => this.handleErrorMessage(error)
+      onQError: data => {
+        handleErrorResponse(data, currentSession.sessionId, shouldDisplayError, error =>
+          this.handleErrorMessage(error)
         );
       },
-      onQInfo: (data) => {
-        handleInfoResponse(
-          data,
-          currentSession.sessionId,
-          (infoData) => this.handleInfoMessage(infoData)
+      onQInfo: data => {
+        handleInfoResponse(data, currentSession.sessionId, infoData =>
+          this.handleInfoMessage(infoData)
         );
       },
-      onQCompletion: (data) => {
-        handleCompletionResponse(
-          data,
-          currentSession.sessionId,
-          () => this.handleCompletionMessage()
+      onQCompletion: data => {
+        handleCompletionResponse(data, currentSession.sessionId, () =>
+          this.handleCompletionMessage()
         );
-      }
+      },
     };
 
     setupChatWebSocketListeners(this.websocket, handlers);

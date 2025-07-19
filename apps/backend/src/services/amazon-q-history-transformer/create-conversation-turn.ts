@@ -10,19 +10,19 @@ import { extractAiResponse } from './extract-ai-response';
 import { extractMetadata } from './extract-metadata';
 
 export function createConversationTurn(
-  entries: HistoryEntry[], 
-  startIndex: number, 
+  entries: HistoryEntry[],
+  startIndex: number,
   endIndex: number
 ): ConversationTurn {
   const userMessage = extractUserMessage(entries);
   const aiThinking = extractAiThinking(entries);
   const aiResponse = extractAiResponse(entries);
   const metadata = extractMetadata(entries, startIndex, endIndex);
-  
+
   return {
     userMessage,
     aiThinking,
     aiResponse,
-    metadata
+    metadata,
   };
 }

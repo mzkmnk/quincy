@@ -14,7 +14,7 @@ export const sessionInitialState: SessionState = {
   currentSession: null,
   currentQSession: null,
   sessionStarting: false,
-  sessionError: null
+  sessionError: null,
 };
 
 export const sessionState = signal<SessionState>(sessionInitialState);

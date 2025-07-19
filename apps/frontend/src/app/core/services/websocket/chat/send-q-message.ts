@@ -23,7 +23,7 @@ export function sendQMessage(
     // Send message to Amazon Q CLI session
     emit(socket, 'q:message', {
       sessionId,
-      message
+      message,
     });
 
     // Resolve immediately since this is fire-and-forget

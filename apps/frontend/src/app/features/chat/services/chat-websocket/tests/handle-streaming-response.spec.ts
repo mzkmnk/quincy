@@ -31,10 +31,7 @@ describe('handleStreamingResponse', () => {
 
       handleStreamingResponse(data, sessionId, mockOnHandleStreaming);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Received Q response for current session:',
-        data
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('Received Q response for current session:', data);
     });
 
     it('空のデータでもコールバックが呼び出される', () => {
@@ -149,7 +146,7 @@ describe('handleStreamingResponse', () => {
       const data = { sessionId: 'session-123', data: 'test data' };
       const sessionId = 'session-123';
       const error = new Error('Callback error');
-      
+
       mockOnHandleStreaming.mockImplementation(() => {
         throw error;
       });
@@ -162,7 +159,7 @@ describe('handleStreamingResponse', () => {
     it('コールバック関数が非同期エラーを投げた場合でも関数自体は同期的に完了する', () => {
       const data = { sessionId: 'session-123', data: 'test data' };
       const sessionId = 'session-123';
-      
+
       mockOnHandleStreaming.mockImplementation(() => {
         setTimeout(() => {
           throw new Error('Async error');
@@ -196,11 +193,11 @@ describe('handleStreamingResponse', () => {
       const sessionId = 'session-123';
 
       const start = performance.now();
-      
+
       for (let i = 0; i < 1000; i++) {
         handleStreamingResponse(data, sessionId, mockOnHandleStreaming);
       }
-      
+
       const end = performance.now();
 
       expect(end - start).toBeLessThan(100); // 100ms以内
@@ -221,17 +218,9 @@ describe('handleStreamingResponse', () => {
 
   describe('実際の使用シナリオ', () => {
     it('リアルタイムチャットでのストリーミングメッセージ処理をシミュレート', () => {
-      const messages = [
-        'Hello',
-        ' world',
-        '!',
-        ' How',
-        ' are',
-        ' you',
-        ' today?'
-      ];
+      const messages = ['Hello', ' world', '!', ' How', ' are', ' you', ' today?'];
       let accumulatedMessage = '';
-      
+
       const streamingHandler = (content: string) => {
         accumulatedMessage += content;
       };
@@ -249,10 +238,10 @@ describe('handleStreamingResponse', () => {
     it('異なるセッションからのメッセージがフィルタリングされることを確認', () => {
       const currentSessionId = 'current-session';
       const otherSessionId = 'other-session';
-      
+
       const currentSessionData = { sessionId: currentSessionId, data: 'current message' };
       const otherSessionData = { sessionId: otherSessionId, data: 'other message' };
-      
+
       handleStreamingResponse(currentSessionData, currentSessionId, mockOnHandleStreaming);
       handleStreamingResponse(otherSessionData, currentSessionId, mockOnHandleStreaming);
 

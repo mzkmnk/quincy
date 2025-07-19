@@ -138,7 +138,7 @@ export interface SessionCreatedResponse {
 }
 
 // メッセージ分類型
-export type MessageClassification = 
+export type MessageClassification =
   | 'error'
   | 'info'
   | 'warning'
@@ -149,12 +149,7 @@ export type MessageClassification =
   | 'ignore';
 
 // 情報メッセージタイプ型
-export type InfoMessageType = 
-  | 'thinking'
-  | 'initialization'
-  | 'system'
-  | 'general'
-  | 'other';
+export type InfoMessageType = 'thinking' | 'initialization' | 'system' | 'general' | 'other';
 
 // 型ガード関数
 export function isQProcessSession(obj: unknown): obj is QProcessSession {

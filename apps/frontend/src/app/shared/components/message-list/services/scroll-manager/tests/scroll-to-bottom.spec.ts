@@ -9,11 +9,11 @@ describe('scrollToBottom', () => {
   beforeEach(() => {
     mockElement = {
       scrollTop: 0,
-      scrollHeight: 1000
+      scrollHeight: 1000,
     };
-    
+
     mockElementRef = {
-      nativeElement: mockElement
+      nativeElement: mockElement,
     } as ElementRef<HTMLDivElement>;
   });
 
@@ -26,7 +26,7 @@ describe('scrollToBottom', () => {
 
     it('scrollHeightが変更されても正しく最下部にスクロールする', () => {
       mockElement.scrollHeight = 2000;
-      
+
       scrollToBottom(mockElementRef);
 
       expect(mockElement.scrollTop).toBe(2000);
@@ -44,7 +44,7 @@ describe('scrollToBottom', () => {
 
     it('nativeElementがnullの場合でもエラーを発生させない', () => {
       const nullElementRef = { nativeElement: null } as any;
-      
+
       expect(() => scrollToBottom(nullElementRef)).not.toThrow();
     });
 
@@ -52,7 +52,7 @@ describe('scrollToBottom', () => {
       Object.defineProperty(mockElement, 'scrollTop', {
         set: () => {
           throw new Error('Scroll error');
-        }
+        },
       });
 
       expect(() => scrollToBottom(mockElementRef)).not.toThrow();
@@ -62,7 +62,7 @@ describe('scrollToBottom', () => {
       Object.defineProperty(mockElement, 'scrollHeight', {
         get: () => {
           throw new Error('ScrollHeight error');
-        }
+        },
       });
 
       expect(() => scrollToBottom(mockElementRef)).not.toThrow();
@@ -72,7 +72,7 @@ describe('scrollToBottom', () => {
   describe('異なるスクロール状態', () => {
     it('すでに最下部にある場合でも正常に動作する', () => {
       mockElement.scrollTop = mockElement.scrollHeight;
-      
+
       scrollToBottom(mockElementRef);
 
       expect(mockElement.scrollTop).toBe(mockElement.scrollHeight);
@@ -81,7 +81,7 @@ describe('scrollToBottom', () => {
     it('スクロール位置が途中の場合、最下部に移動する', () => {
       mockElement.scrollTop = 500;
       mockElement.scrollHeight = 1000;
-      
+
       scrollToBottom(mockElementRef);
 
       expect(mockElement.scrollTop).toBe(1000);
@@ -89,7 +89,7 @@ describe('scrollToBottom', () => {
 
     it('scrollHeightが0の場合でも正常に動作する', () => {
       mockElement.scrollHeight = 0;
-      
+
       scrollToBottom(mockElementRef);
 
       expect(mockElement.scrollTop).toBe(0);
@@ -119,11 +119,11 @@ describe('scrollToBottom', () => {
   describe('パフォーマンス', () => {
     it('大量の連続呼び出しでも効率的に動作する', () => {
       const start = performance.now();
-      
+
       for (let i = 0; i < 1000; i++) {
         scrollToBottom(mockElementRef);
       }
-      
+
       const end = performance.now();
       expect(end - start).toBeLessThan(50); // 50ms以内
     });
@@ -139,9 +139,9 @@ describe('scrollToBottom', () => {
       document.body.appendChild(div);
 
       const realElementRef = { nativeElement: div } as ElementRef<HTMLDivElement>;
-      
+
       scrollToBottom(realElementRef);
-      
+
       // スクロールが最下部に移動したことを確認
       expect(div.scrollTop).toBeGreaterThan(0);
       expect(div.scrollTop).toBe(div.scrollHeight - div.clientHeight);

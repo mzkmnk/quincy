@@ -17,7 +17,7 @@ export interface ChatState {
 }
 
 export const chatInitialState: ChatState = {
-  chatMessages: []
+  chatMessages: [],
 };
 
 export const chatState = signal<ChatState>(chatInitialState);
@@ -29,5 +29,5 @@ export const chatMessages = computed(() => chatState().chatMessages);
 export const hasChatMessages = computed(() => chatMessages().length > 0);
 
 // Session-specific selectors
-export const getCurrentSessionMessages = (sessionId: string) => 
+export const getCurrentSessionMessages = (sessionId: string) =>
   computed(() => chatMessages().filter(m => m.sessionId === sessionId));

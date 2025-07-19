@@ -8,7 +8,7 @@ describe('convertDisplayMessageToChatMessage', () => {
       id: 'msg123',
       type: 'user',
       content: 'Hello',
-      timestamp: new Date(1234567890000)
+      timestamp: new Date(1234567890000),
     };
 
     const result = convertDisplayMessageToChatMessage(displayMessage);
@@ -18,7 +18,7 @@ describe('convertDisplayMessageToChatMessage', () => {
       content: 'Hello',
       sender: 'user',
       timestamp: new Date(1234567890000),
-      isTyping: false
+      isTyping: false,
     });
   });
 
@@ -27,7 +27,7 @@ describe('convertDisplayMessageToChatMessage', () => {
       id: 'msg456',
       type: 'assistant',
       content: 'Hi there!',
-      timestamp: new Date(1234567890000)
+      timestamp: new Date(1234567890000),
     };
 
     const result = convertDisplayMessageToChatMessage(displayMessage);
@@ -37,7 +37,7 @@ describe('convertDisplayMessageToChatMessage', () => {
       content: 'Hi there!',
       sender: 'assistant',
       timestamp: new Date(1234567890000),
-      isTyping: false
+      isTyping: false,
     });
   });
 
@@ -46,7 +46,7 @@ describe('convertDisplayMessageToChatMessage', () => {
       id: 'msg789',
       type: 'thinking',
       content: 'Processing...',
-      timestamp: new Date(1234567890000)
+      timestamp: new Date(1234567890000),
     };
 
     const result = convertDisplayMessageToChatMessage(displayMessage);
@@ -56,7 +56,7 @@ describe('convertDisplayMessageToChatMessage', () => {
       content: 'Processing...',
       sender: 'assistant',
       timestamp: new Date(1234567890000),
-      isTyping: true
+      isTyping: true,
     });
   });
 
@@ -65,7 +65,7 @@ describe('convertDisplayMessageToChatMessage', () => {
     const displayMessage: DisplayMessage = {
       id: 'msg000',
       type: 'user',
-      content: 'No timestamp'
+      content: 'No timestamp',
     };
 
     const result = convertDisplayMessageToChatMessage(displayMessage);

@@ -6,7 +6,7 @@ import { amazonQHistoryState, DisplayMessage } from '../amazon-q-history.state';
  * @param stats 表示する統計情報
  */
 export function switchToDetailedHistoryView(
-  messages: DisplayMessage[], 
+  messages: DisplayMessage[],
   stats: {
     totalEntries: number;
     totalTurns: number;
@@ -17,6 +17,6 @@ export function switchToDetailedHistoryView(
   amazonQHistoryState.update(state => ({
     ...state,
     detailedHistoryMessages: messages,
-    historyStats: stats
+    historyStats: stats,
   }));
 }

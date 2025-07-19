@@ -13,13 +13,13 @@ export function shouldDisplayError(error: string): boolean {
 
   // 初期化メッセージや情報メッセージは表示しない
   const skipPatterns = [
-    /^\s*\p{Cc}\s*$/u,                                 // 制御文字のみ
+    /^\s*\p{Cc}\s*$/u, // 制御文字のみ
     /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]\s*$/, // スピナー文字のみ
-    /mcp servers? initialized/i,                       // MCPサーバー初期化メッセージ
-    /ctrl-c to start chatting/i,                       // チャット開始指示
-    /press.*enter.*continue/i,                         // Enterキー指示
-    /loading|initializing/i,                           // ローディングメッセージ
-    /^\s*m\s*$/,                                       // 単一の'm'文字
+    /mcp servers? initialized/i, // MCPサーバー初期化メッセージ
+    /ctrl-c to start chatting/i, // チャット開始指示
+    /press.*enter.*continue/i, // Enterキー指示
+    /loading|initializing/i, // ローディングメッセージ
+    /^\s*m\s*$/, // 単一の'm'文字
   ];
 
   return !skipPatterns.some(pattern => pattern.test(trimmed));

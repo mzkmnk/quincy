@@ -67,7 +67,7 @@ describe('session-status-checker', () => {
           id: 'session-123',
           projectPath: '/path/to/project',
           active: true,
-          metadata: { created: Date.now() }
+          metadata: { created: Date.now() },
         };
 
         expect(isSessionDisabled(sessionError, currentQSession)).toBe(false);
@@ -147,10 +147,10 @@ describe('session-status-checker', () => {
       it('isSessionDisabledの結果を正しく使用する', () => {
         // セッション有効ケース
         expect(canChat(true, null, { id: 'session' })).toBe(true);
-        
+
         // セッション無効ケース（エラーあり）
         expect(canChat(true, 'error', { id: 'session' })).toBe(false);
-        
+
         // セッション無効ケース（セッションなし）
         expect(canChat(true, null, null)).toBe(false);
       });
@@ -204,7 +204,9 @@ describe('session-status-checker', () => {
         const sessionError = 'Error: 接続に失敗しました 🚨';
         const currentQSession = { id: 'session-123' };
 
-        expect(getDisabledReason(sessionError, currentQSession)).toBe('Error: 接続に失敗しました 🚨');
+        expect(getDisabledReason(sessionError, currentQSession)).toBe(
+          'Error: 接続に失敗しました 🚨'
+        );
       });
 
       it('非常に長いsessionErrorもそのまま返す', () => {
@@ -220,16 +222,18 @@ describe('session-status-checker', () => {
         const sessionError = null;
         const currentQSession = null;
 
-        expect(getDisabledReason(sessionError, currentQSession))
-          .toBe('No active Amazon Q session. Please start a new project session.');
+        expect(getDisabledReason(sessionError, currentQSession)).toBe(
+          'No active Amazon Q session. Please start a new project session.'
+        );
       });
 
       it('currentQSessionがundefinedの場合、標準メッセージを返す', () => {
         const sessionError = null;
         const currentQSession = undefined;
 
-        expect(getDisabledReason(sessionError, currentQSession))
-          .toBe('No active Amazon Q session. Please start a new project session.');
+        expect(getDisabledReason(sessionError, currentQSession)).toBe(
+          'No active Amazon Q session. Please start a new project session.'
+        );
       });
 
       it('currentQSessionがfalsyな値の場合、標準メッセージを返す', () => {
@@ -237,8 +241,9 @@ describe('session-status-checker', () => {
         const falsyValues = [false, 0, '', NaN];
 
         falsyValues.forEach(falsyValue => {
-          expect(getDisabledReason(sessionError, falsyValue))
-            .toBe('No active Amazon Q session. Please start a new project session.');
+          expect(getDisabledReason(sessionError, falsyValue)).toBe(
+            'No active Amazon Q session. Please start a new project session.'
+          );
         });
       });
     });
@@ -248,16 +253,18 @@ describe('session-status-checker', () => {
         const sessionError = null;
         const currentQSession = { id: 'session-123' };
 
-        expect(getDisabledReason(sessionError, currentQSession))
-          .toBe('Chat is temporarily unavailable.');
+        expect(getDisabledReason(sessionError, currentQSession)).toBe(
+          'Chat is temporarily unavailable.'
+        );
       });
 
       it('空オブジェクトのcurrentQSessionでもデフォルトメッセージを返す', () => {
         const sessionError = null;
         const currentQSession = {};
 
-        expect(getDisabledReason(sessionError, currentQSession))
-          .toBe('Chat is temporarily unavailable.');
+        expect(getDisabledReason(sessionError, currentQSession)).toBe(
+          'Chat is temporarily unavailable.'
+        );
       });
 
       it('複雑なcurrentQSessionでもデフォルトメッセージを返す', () => {
@@ -266,11 +273,12 @@ describe('session-status-checker', () => {
           id: 'session-123',
           projectPath: '/path/to/project',
           active: true,
-          metadata: { created: Date.now() }
+          metadata: { created: Date.now() },
         };
 
-        expect(getDisabledReason(sessionError, currentQSession))
-          .toBe('Chat is temporarily unavailable.');
+        expect(getDisabledReason(sessionError, currentQSession)).toBe(
+          'Chat is temporarily unavailable.'
+        );
       });
     });
 
@@ -280,7 +288,7 @@ describe('session-status-checker', () => {
 
         // currentQSessionがnullでも
         expect(getDisabledReason(sessionError, null)).toBe(sessionError);
-        
+
         // currentQSessionがあっても
         expect(getDisabledReason(sessionError, { id: 'session' })).toBe(sessionError);
       });
@@ -288,11 +296,13 @@ describe('session-status-checker', () => {
       it('sessionErrorがnullの場合のみcurrentQSessionの状態が評価される', () => {
         const sessionError = null;
 
-        expect(getDisabledReason(sessionError, null))
-          .toBe('No active Amazon Q session. Please start a new project session.');
-        
-        expect(getDisabledReason(sessionError, { id: 'session' }))
-          .toBe('Chat is temporarily unavailable.');
+        expect(getDisabledReason(sessionError, null)).toBe(
+          'No active Amazon Q session. Please start a new project session.'
+        );
+
+        expect(getDisabledReason(sessionError, { id: 'session' })).toBe(
+          'Chat is temporarily unavailable.'
+        );
       });
     });
 
@@ -320,7 +330,7 @@ describe('session-status-checker', () => {
         { sessionError: 'Error', currentQSession: { id: 'session' } },
         { sessionError: null, currentQSession: null },
         { sessionError: null, currentQSession: { id: 'session' } },
-        { sessionError: '', currentQSession: { id: 'session' } }
+        { sessionError: '', currentQSession: { id: 'session' } },
       ];
 
       testCases.forEach(({ sessionError, currentQSession }) => {
@@ -340,7 +350,7 @@ describe('session-status-checker', () => {
         { isActiveChat: true, sessionError: 'Error', currentQSession: { id: 'session' } },
         { isActiveChat: true, sessionError: null, currentQSession: null },
         { isActiveChat: true, sessionError: null, currentQSession: { id: 'session' } },
-        { isActiveChat: false, sessionError: null, currentQSession: { id: 'session' } }
+        { isActiveChat: false, sessionError: null, currentQSession: { id: 'session' } },
       ];
 
       testCases.forEach(({ isActiveChat, sessionError, currentQSession }) => {
@@ -364,7 +374,9 @@ describe('session-status-checker', () => {
 
       expect(isSessionDisabled(sessionError, currentQSession)).toBe(false);
       expect(canChat(isActiveChat, sessionError, currentQSession)).toBe(true);
-      expect(getDisabledReason(sessionError, currentQSession)).toBe('Chat is temporarily unavailable.');
+      expect(getDisabledReason(sessionError, currentQSession)).toBe(
+        'Chat is temporarily unavailable.'
+      );
     });
 
     it('接続エラーが発生したセッション', () => {
@@ -384,8 +396,9 @@ describe('session-status-checker', () => {
 
       expect(isSessionDisabled(sessionError, currentQSession)).toBe(true);
       expect(canChat(isActiveChat, sessionError, currentQSession)).toBe(false);
-      expect(getDisabledReason(sessionError, currentQSession))
-        .toBe('No active Amazon Q session. Please start a new project session.');
+      expect(getDisabledReason(sessionError, currentQSession)).toBe(
+        'No active Amazon Q session. Please start a new project session.'
+      );
     });
 
     it('履歴表示モードでのチャット', () => {
@@ -395,7 +408,9 @@ describe('session-status-checker', () => {
 
       expect(isSessionDisabled(sessionError, currentQSession)).toBe(false);
       expect(canChat(isActiveChat, sessionError, currentQSession)).toBe(false);
-      expect(getDisabledReason(sessionError, currentQSession)).toBe('Chat is temporarily unavailable.');
+      expect(getDisabledReason(sessionError, currentQSession)).toBe(
+        'Chat is temporarily unavailable.'
+      );
     });
   });
 });

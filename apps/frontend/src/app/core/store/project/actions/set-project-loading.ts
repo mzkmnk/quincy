@@ -7,6 +7,6 @@ import { projectState } from '../project.state';
 export function setProjectLoading(loading: boolean): void {
   projectState.update(state => ({
     ...state,
-    loading
+    loading,
   }));
 }

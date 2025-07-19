@@ -7,6 +7,6 @@ import { amazonQHistoryState, DisplayMessage } from '../amazon-q-history.state';
 export function setDetailedHistoryMessages(messages: DisplayMessage[]): void {
   amazonQHistoryState.update(state => ({
     ...state,
-    detailedHistoryMessages: messages
+    detailedHistoryMessages: messages,
   }));
 }

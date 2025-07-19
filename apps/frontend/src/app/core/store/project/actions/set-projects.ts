@@ -11,6 +11,6 @@ export function setProjects(projects: Project[]): void {
     ...state,
     projects,
     loading: false,
-    error: null
+    error: null,
   }));
 }

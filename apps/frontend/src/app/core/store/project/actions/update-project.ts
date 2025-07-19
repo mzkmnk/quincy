@@ -9,12 +9,9 @@ import { projectState } from '../project.state';
 export function updateProject(updatedProject: Project): void {
   projectState.update(state => ({
     ...state,
-    projects: state.projects.map(p => 
-      p.id === updatedProject.id ? updatedProject : p
-    ),
-    currentProject: state.currentProject?.id === updatedProject.id 
-      ? updatedProject 
-      : state.currentProject,
-    error: null
+    projects: state.projects.map(p => (p.id === updatedProject.id ? updatedProject : p)),
+    currentProject:
+      state.currentProject?.id === updatedProject.id ? updatedProject : state.currentProject,
+    error: null,
   }));
 }

@@ -12,8 +12,12 @@ describe('validatePath', () => {
   });
 
   it('相対パスの場合、エラーメッセージを返す', () => {
-    expect(validatePath('relative/path')).toBe('絶対パスを入力してください（例: /Users/username/project）');
-    expect(validatePath('./relative')).toBe('絶対パスを入力してください（例: /Users/username/project）');
+    expect(validatePath('relative/path')).toBe(
+      '絶対パスを入力してください（例: /Users/username/project）'
+    );
+    expect(validatePath('./relative')).toBe(
+      '絶対パスを入力してください（例: /Users/username/project）'
+    );
   });
 
   it('危険な文字列を含む場合、エラーメッセージを返す', () => {
@@ -88,10 +92,18 @@ describe('validatePath', () => {
     });
 
     it('相対パスの様々なパターンを検出する', () => {
-      expect(validatePath('../parent')).toBe('絶対パスを入力してください（例: /Users/username/project）');
-      expect(validatePath('~/home')).toBe('絶対パスを入力してください（例: /Users/username/project）');
-      expect(validatePath('./current')).toBe('絶対パスを入力してください（例: /Users/username/project）');
-      expect(validatePath('just-a-name')).toBe('絶対パスを入力してください（例: /Users/username/project）');
+      expect(validatePath('../parent')).toBe(
+        '絶対パスを入力してください（例: /Users/username/project）'
+      );
+      expect(validatePath('~/home')).toBe(
+        '絶対パスを入力してください（例: /Users/username/project）'
+      );
+      expect(validatePath('./current')).toBe(
+        '絶対パスを入力してください（例: /Users/username/project）'
+      );
+      expect(validatePath('just-a-name')).toBe(
+        '絶対パスを入力してください（例: /Users/username/project）'
+      );
     });
   });
 });

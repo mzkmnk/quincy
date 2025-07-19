@@ -1,10 +1,10 @@
 /* You can add global styles to this file, and also import other style files */
 
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "tailwindcss-primeui";
 
 /* PrimeNG styles */
-@import "primeicons/primeicons.css";
+@import 'primeicons/primeicons.css';
 
 /* X (Twitter) Black Theme */
 :root {
@@ -13,27 +13,27 @@
   --secondary-bg: #0d0d0d;
   --tertiary-bg: #1a1a1a;
   --hover-bg: #1f1f1f;
-  
+
   /* Text colors */
   --text-primary: #ffffff;
   --text-secondary: #d9d9d9;
   --text-muted: #8a8a8a;
-  
+
   /* Border colors */
   --border-color: #2f2f2f;
   --border-light: #3f3f3f;
-  
+
   /* Accent colors */
   --accent-blue: #1d9bf0;
   --accent-hover: #1a8cd8;
-  
+
   /* Status colors */
   --success: #00ba7c;
   --warning: #ffd400;
   --error: #f91880;
   --error-bg: #2d1b24;
   --error-border: #4d2a36;
-  
+
   /* Scrollbar colors */
   --scrollbar-thumb-hover: #495a69;
 }
@@ -43,7 +43,6 @@ body {
   background-color: var(--primary-bg);
   color: var(--text-primary);
 }
-
 
 /* Scrollbar styling for dark theme */
 ::-webkit-scrollbar {

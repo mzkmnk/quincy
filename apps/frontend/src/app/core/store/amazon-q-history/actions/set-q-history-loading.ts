@@ -7,6 +7,6 @@ import { amazonQHistoryState } from '../amazon-q-history.state';
 export function setQHistoryLoading(loading: boolean): void {
   amazonQHistoryState.update(state => ({
     ...state,
-    qHistoryLoading: loading
+    qHistoryLoading: loading,
   }));
 }

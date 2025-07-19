@@ -1,9 +1,9 @@
 import type { Socket } from 'socket.io';
-import type { 
-  ClientToServerEvents, 
-  ServerToClientEvents, 
-  InterServerEvents, 
-  SocketData
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData,
 } from '@quincy/shared';
 
 import { generateMessageId } from '../../../utils/id-generator';
@@ -17,10 +17,10 @@ export function handleDisconnection(
 ): void {
   // Remove from connected users
   connectedUsers.delete(socket.id);
-  
+
   // Clean up session mapping
   cleanupSocketFromSessionsCallback(socket.id);
-  
+
   // Clean up room tracking
   if (userRooms.has(socket.id)) {
     const socketUserRooms = userRooms.get(socket.id)!;
@@ -30,7 +30,7 @@ export function handleDisconnection(
         content: `User disconnected`,
         senderId: 'system',
         timestamp: Date.now(),
-        type: 'system'
+        type: 'system',
       });
     });
     userRooms.delete(socket.id);

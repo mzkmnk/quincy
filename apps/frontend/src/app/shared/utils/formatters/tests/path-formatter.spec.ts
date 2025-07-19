@@ -19,8 +19,9 @@ describe('formatPath', () => {
 
   it('最大文字数で切り詰める（start）', () => {
     const longPath = '/Users/test/very/long/path/to/project';
-    expect(formatPath(longPath, { maxLength: 20, ellipsisPosition: 'start' }))
-      .toBe('...g/path/to/project');
+    expect(formatPath(longPath, { maxLength: 20, ellipsisPosition: 'start' })).toBe(
+      '...g/path/to/project'
+    );
   });
 
   it('最大文字数で切り詰める（middle）', () => {

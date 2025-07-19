@@ -9,6 +9,6 @@ import { amazonQHistoryState } from '../amazon-q-history.state';
 export function addQHistoryItem(item: ConversationMetadata): void {
   amazonQHistoryState.update(state => ({
     ...state,
-    amazonQHistory: [...state.amazonQHistory, item]
+    amazonQHistory: [...state.amazonQHistory, item],
   }));
 }

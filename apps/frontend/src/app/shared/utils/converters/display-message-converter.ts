@@ -11,8 +11,8 @@ export function convertDisplayMessageToChatMessage(displayMessage: DisplayMessag
   return {
     id: displayMessage.id,
     content: displayMessage.content,
-    sender: displayMessage.type === 'user' ? 'user' as const : 'assistant' as const,
+    sender: displayMessage.type === 'user' ? ('user' as const) : ('assistant' as const),
     timestamp: displayMessage.timestamp ? new Date(displayMessage.timestamp) : new Date(),
-    isTyping: displayMessage.type === 'thinking' ? true : false
+    isTyping: displayMessage.type === 'thinking' ? true : false,
   };
 }

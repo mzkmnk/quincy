@@ -70,18 +70,18 @@ import { CommonModule } from '@angular/common';
       <h2>{{ title() }}</h2>
       <button (click)="handleClick()">Click me</button>
     </div>
-  `
+  `,
 })
 export class ExampleComponent {
   // Input properties
   title = input.required<string>();
-  
+
   // Output events
   clicked = output<void>();
-  
+
   // Internal state
   private count = signal(0);
-  
+
   handleClick(): void {
     this.count.update(c => c + 1);
     this.clicked.emit();
@@ -99,9 +99,15 @@ export class ExampleComponent {
   // 大きなコンポーネント
 })
 export class LargeComponent {
-  validateData() { /* ... */ }
-  formatData() { /* ... */ }
-  sendData() { /* ... */ }
+  validateData() {
+    /* ... */
+  }
+  formatData() {
+    /* ... */
+  }
+  sendData() {
+    /* ... */
+  }
 }
 
 // 分離後
@@ -141,7 +147,7 @@ export interface ExampleState {
 export const exampleState = signal<ExampleState>({
   items: [],
   loading: false,
-  error: null
+  error: null,
 });
 
 // Computed values
@@ -158,7 +164,7 @@ import { exampleState } from '../example.state';
 export function addItem(item: Item): void {
   exampleState.update(state => ({
     ...state,
-    items: [...state.items, item]
+    items: [...state.items, item],
   }));
 }
 ```
@@ -189,7 +195,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ExampleService {
   constructor(private http: HttpClient) {}
@@ -215,7 +221,7 @@ export function getData(http: HttpClient): Observable<Data[]> {
 export function processData(data: Data[]): ProcessedData[] {
   return data.map(item => ({
     ...item,
-    processed: true
+    processed: true,
   }));
 }
 ```
@@ -235,7 +241,7 @@ describe('ExampleComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ExampleComponent]
+      imports: [ExampleComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ExampleComponent);
@@ -287,7 +293,7 @@ describe('ExampleService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule]
+      imports: [HttpClientTestingModule],
     });
     service = TestBed.inject(ExampleService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -384,11 +390,11 @@ export function validateInput(input: string): string | null {
   if (!input.trim()) {
     return 'Input is required';
   }
-  
+
   if (input.length < 3) {
     return 'Input must be at least 3 characters';
   }
-  
+
   return null;
 }
 
@@ -421,8 +427,8 @@ export function calc(items: any[]): number {
 export const routes: Routes = [
   {
     path: 'chat',
-    loadComponent: () => import('./features/chat/chat.component').then(c => c.ChatComponent)
-  }
+    loadComponent: () => import('./features/chat/chat.component').then(c => c.ChatComponent),
+  },
 ];
 ```
 
@@ -435,7 +441,7 @@ export const routes: Routes = [
     @for (item of items; track item.id) {
       <div>{{ item.name }}</div>
     }
-  `
+  `,
 })
 export class ListComponent {
   items = signal<Item[]>([]);
@@ -448,7 +454,7 @@ export class ListComponent {
 // Good: 計算値のキャッシュ
 export class DataComponent {
   private data = signal<Data[]>([]);
-  
+
   // 計算値は自動的にキャッシュされる
   processedData = computed(() => {
     return this.data().map(item => processItem(item));
@@ -484,11 +490,11 @@ export function debugLog(message: string, data?: any): void {
     } @else {
       <ng-content></ng-content>
     }
-  `
+  `,
 })
 export class ErrorBoundaryComponent {
   error = signal<string | null>(null);
-  
+
   retry(): void {
     this.error.set(null);
     // リトライロジック

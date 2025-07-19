@@ -26,6 +26,10 @@ export function isValidPath(path: string, pathError: string | null): boolean {
  * @param starting 開始中かどうか
  * @returns 開始可能かどうか
  */
-export function canStartProject(path: string, pathError: string | null, starting: boolean): boolean {
+export function canStartProject(
+  path: string,
+  pathError: string | null,
+  starting: boolean
+): boolean {
   return isValidPath(path, pathError) && !starting;
 }

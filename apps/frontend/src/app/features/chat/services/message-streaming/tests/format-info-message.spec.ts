@@ -111,7 +111,11 @@ describe('formatInfoMessage', () => {
     });
 
     it('メッセージ内の空白は保持される', () => {
-      const data = { sessionId: 'session-1', message: 'Test   message   with   spaces', type: 'general' };
+      const data = {
+        sessionId: 'session-1',
+        message: 'Test   message   with   spaces',
+        type: 'general',
+      };
       const result = formatInfoMessage(data);
       expect(result).toBe('💬 Test   message   with   spaces');
     });
@@ -137,7 +141,11 @@ describe('formatInfoMessage', () => {
     });
 
     it('特殊文字を含むメッセージを正常に処理する', () => {
-      const data = { sessionId: 'session-1', message: 'Special chars: @#$%^&*()', type: 'initialization' };
+      const data = {
+        sessionId: 'session-1',
+        message: 'Special chars: @#$%^&*()',
+        type: 'initialization',
+      };
       const result = formatInfoMessage(data);
       expect(result).toBe('ℹ️ Special chars: @#$%^&*()');
     });
@@ -170,7 +178,7 @@ describe('formatInfoMessage', () => {
         message: 'Extra properties',
         type: 'status',
         timestamp: Date.now(),
-        extra: 'value'
+        extra: 'value',
       } as any;
       const result = formatInfoMessage(data);
       expect(result).toBe('✅ Extra properties');
@@ -179,7 +187,7 @@ describe('formatInfoMessage', () => {
     it('sessionIdが使用されることはない（フォーマットのみ）', () => {
       const data1 = { sessionId: 'session-1', message: 'Test' };
       const data2 = { sessionId: 'session-999', message: 'Test' };
-      
+
       expect(formatInfoMessage(data1)).toBe(formatInfoMessage(data2));
     });
   });
@@ -192,13 +200,7 @@ describe('formatInfoMessage', () => {
     });
 
     it('thinking に類似したメッセージは変換されない', () => {
-      const similarMessages = [
-        'thinkings',
-        'thinking-mode',
-        'rethinking',
-        'think',
-        'thought'
-      ];
+      const similarMessages = ['thinkings', 'thinking-mode', 'rethinking', 'think', 'thought'];
 
       similarMessages.forEach(message => {
         const data = { sessionId: 'session-1', message };
@@ -213,7 +215,7 @@ describe('formatInfoMessage', () => {
         '\tthinking\t',
         '\nthinking\n',
         '\r\nthinking\r\n',
-        '\u00A0thinking\u00A0' // Non-breaking space
+        '\u00A0thinking\u00A0', // Non-breaking space
       ];
 
       whitespaceVariations.forEach(message => {
@@ -239,12 +241,12 @@ describe('formatInfoMessage', () => {
   describe('パフォーマンス', () => {
     it('大量のメッセージフォーマットを効率的に処理する', () => {
       const start = performance.now();
-      
+
       for (let i = 0; i < 1000; i++) {
         const data = { sessionId: `session-${i}`, message: `Message ${i}`, type: 'general' };
         formatInfoMessage(data);
       }
-      
+
       const end = performance.now();
       expect(end - start).toBeLessThan(100); // 100ms以内
     });
@@ -254,11 +256,11 @@ describe('formatInfoMessage', () => {
         { message: 'thinking', expected: '🤔 Thinking...' },
         { message: 'normal message', type: 'status', expected: '✅ normal message' },
         { message: '   ', expected: null },
-        { message: 'progress update', type: 'progress', expected: '⏳ progress update' }
+        { message: 'progress update', type: 'progress', expected: '⏳ progress update' },
       ];
 
       const start = performance.now();
-      
+
       for (let i = 0; i < 250; i++) {
         testCases.forEach(testCase => {
           const data = { sessionId: 'perf-test', message: testCase.message, type: testCase.type };
@@ -266,7 +268,7 @@ describe('formatInfoMessage', () => {
           expect(result).toBe(testCase.expected);
         });
       }
-      
+
       const end = performance.now();
       expect(end - start).toBeLessThan(50); // 50ms以内
     });

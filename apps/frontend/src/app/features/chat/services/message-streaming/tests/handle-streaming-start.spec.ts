@@ -52,7 +52,12 @@ describe('handleStreamingStart', () => {
       const expectedMessageId = 'msg-return-test';
       mockAddMessage.mockReturnValue(expectedMessageId);
 
-      const result = handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        content,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
 
       expect(result).toBe(expectedMessageId);
     });
@@ -85,7 +90,12 @@ describe('handleStreamingStart', () => {
       const messageId = 'msg-empty';
       mockAddMessage.mockReturnValue(messageId);
 
-      const result = handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        content,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
 
       expect(mockAddMessage).toHaveBeenCalledWith('', 'assistant');
       expect(streamingMessageId()).toBe(messageId);
@@ -97,7 +107,12 @@ describe('handleStreamingStart', () => {
       const messageId = 'msg-long';
       mockAddMessage.mockReturnValue(messageId);
 
-      const result = handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        content,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
 
       expect(mockAddMessage).toHaveBeenCalledWith(content, 'assistant');
       expect(result).toBe(messageId);
@@ -108,7 +123,12 @@ describe('handleStreamingStart', () => {
       const messageId = 'msg-special';
       mockAddMessage.mockReturnValue(messageId);
 
-      const result = handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        content,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
 
       expect(mockAddMessage).toHaveBeenCalledWith(content, 'assistant');
       expect(result).toBe(messageId);
@@ -119,7 +139,12 @@ describe('handleStreamingStart', () => {
       const messageId = 'msg-multiline';
       mockAddMessage.mockReturnValue(messageId);
 
-      const result = handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        content,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
 
       expect(mockAddMessage).toHaveBeenCalledWith(content, 'assistant');
       expect(result).toBe(messageId);
@@ -130,7 +155,12 @@ describe('handleStreamingStart', () => {
       const messageId = 'msg-json';
       mockAddMessage.mockReturnValue(messageId);
 
-      const result = handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        content,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
 
       expect(mockAddMessage).toHaveBeenCalledWith(content, 'assistant');
       expect(result).toBe(messageId);
@@ -143,7 +173,12 @@ describe('handleStreamingStart', () => {
       const messageId = '1';
       mockAddMessage.mockReturnValue(messageId);
 
-      const result = handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        content,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
 
       expect(streamingMessageId()).toBe(messageId);
       expect(result).toBe(messageId);
@@ -154,7 +189,12 @@ describe('handleStreamingStart', () => {
       const messageId = 'very-long-message-id-' + 'x'.repeat(100);
       mockAddMessage.mockReturnValue(messageId);
 
-      const result = handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        content,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
 
       expect(streamingMessageId()).toBe(messageId);
       expect(result).toBe(messageId);
@@ -165,7 +205,12 @@ describe('handleStreamingStart', () => {
       const messageId = 'msg-123-$%^&*()_+-=[]{}|;:,.<>?';
       mockAddMessage.mockReturnValue(messageId);
 
-      const result = handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        content,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
 
       expect(streamingMessageId()).toBe(messageId);
       expect(result).toBe(messageId);
@@ -176,7 +221,12 @@ describe('handleStreamingStart', () => {
       const messageId = '';
       mockAddMessage.mockReturnValue(messageId);
 
-      const result = handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        content,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
 
       expect(streamingMessageId()).toBe(messageId);
       expect(result).toBe(messageId);
@@ -213,14 +263,19 @@ describe('handleStreamingStart', () => {
       const calls = [
         { content: 'First', messageId: 'msg-1' },
         { content: 'Second', messageId: 'msg-2' },
-        { content: 'Third', messageId: 'msg-3' }
+        { content: 'Third', messageId: 'msg-3' },
       ];
 
       calls.forEach(call => {
         mockAddMessage.mockReturnValue(call.messageId);
-        
-        const result = handleStreamingStart(call.content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
-        
+
+        const result = handleStreamingStart(
+          call.content,
+          mockAddMessage,
+          streamingMessageId,
+          mockUpdateMessageIndexMap
+        );
+
         expect(streamingMessageId()).toBe(call.messageId);
         expect(result).toBe(call.messageId);
       });
@@ -239,7 +294,12 @@ describe('handleStreamingStart', () => {
       });
 
       expect(() => {
-        handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+        handleStreamingStart(
+          content,
+          mockAddMessage,
+          streamingMessageId,
+          mockUpdateMessageIndexMap
+        );
       }).toThrow(error);
 
       // エラーが発生した場合、後続の処理は実行されない
@@ -251,14 +311,19 @@ describe('handleStreamingStart', () => {
       const content = 'Test';
       const messageId = 'msg-error-test';
       const error = new Error('updateMessageIndexMap failed');
-      
+
       mockAddMessage.mockReturnValue(messageId);
       mockUpdateMessageIndexMap.mockImplementation(() => {
         throw error;
       });
 
       expect(() => {
-        handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+        handleStreamingStart(
+          content,
+          mockAddMessage,
+          streamingMessageId,
+          mockUpdateMessageIndexMap
+        );
       }).toThrow(error);
 
       // addMessageとstreamingMessageId設定は完了している
@@ -278,7 +343,12 @@ describe('handleStreamingStart', () => {
       });
 
       expect(() => {
-        handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+        handleStreamingStart(
+          content,
+          mockAddMessage,
+          streamingMessageId,
+          mockUpdateMessageIndexMap
+        );
       }).toThrow('Signal set failed');
 
       // 元のsetメソッドを復元
@@ -290,14 +360,19 @@ describe('handleStreamingStart', () => {
     it('短期間での複数呼び出しでも正しく動作する', () => {
       const calls = Array.from({ length: 10 }, (_, i) => ({
         content: `Content ${i}`,
-        messageId: `msg-${i}`
+        messageId: `msg-${i}`,
       }));
 
       const results: string[] = [];
 
       calls.forEach(call => {
         mockAddMessage.mockReturnValueOnce(call.messageId);
-        const result = handleStreamingStart(call.content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+        const result = handleStreamingStart(
+          call.content,
+          mockAddMessage,
+          streamingMessageId,
+          mockUpdateMessageIndexMap
+        );
         results.push(result);
       });
 
@@ -311,14 +386,19 @@ describe('handleStreamingStart', () => {
   describe('パフォーマンス', () => {
     it('大量の呼び出しでも効率的に動作する', () => {
       const start = performance.now();
-      
+
       for (let i = 0; i < 1000; i++) {
         mockAddMessage.mockReturnValue(`msg-${i}`);
-        handleStreamingStart(`Content ${i}`, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+        handleStreamingStart(
+          `Content ${i}`,
+          mockAddMessage,
+          streamingMessageId,
+          mockUpdateMessageIndexMap
+        );
       }
-      
+
       const end = performance.now();
-      
+
       expect(end - start).toBeLessThan(100); // 100ms以内
       expect(mockAddMessage).toHaveBeenCalledTimes(1000);
       expect(mockUpdateMessageIndexMap).toHaveBeenCalledTimes(1000);
@@ -330,7 +410,12 @@ describe('handleStreamingStart', () => {
       mockAddMessage.mockReturnValue(messageId);
 
       const start = performance.now();
-      const result = handleStreamingStart(largeContent, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        largeContent,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
       const end = performance.now();
 
       expect(end - start).toBeLessThan(10); // 10ms以内
@@ -342,10 +427,15 @@ describe('handleStreamingStart', () => {
     it('チャットストリーミング開始をシミュレート', () => {
       const initialContent = 'AI is starting to respond...';
       const messageId = 'chat-msg-001';
-      
+
       mockAddMessage.mockReturnValue(messageId);
 
-      const result = handleStreamingStart(initialContent, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        initialContent,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
 
       expect(mockAddMessage).toHaveBeenCalledWith(initialContent, 'assistant');
       expect(streamingMessageId()).toBe(messageId);
@@ -358,10 +448,15 @@ describe('handleStreamingStart', () => {
     it('空のレスポンスから開始するシナリオ', () => {
       const initialContent = '';
       const messageId = 'empty-start-msg';
-      
+
       mockAddMessage.mockReturnValue(messageId);
 
-      const result = handleStreamingStart(initialContent, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
+      const result = handleStreamingStart(
+        initialContent,
+        mockAddMessage,
+        streamingMessageId,
+        mockUpdateMessageIndexMap
+      );
 
       expect(mockAddMessage).toHaveBeenCalledWith('', 'assistant');
       expect(result).toBe(messageId);

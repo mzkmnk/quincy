@@ -10,6 +10,6 @@ export function setAmazonQHistory(history: ConversationMetadata[]): void {
   amazonQHistoryState.update(state => ({
     ...state,
     amazonQHistory: history,
-    qHistoryLoading: false
+    qHistoryLoading: false,
   }));
 }

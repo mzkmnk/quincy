@@ -4,9 +4,7 @@ import { ElementRef } from '@angular/core';
  * コンポジション開始を処理する
  * @param isComposingSignal コンポジション状態のsignal
  */
-export function handleCompositionStart(
-  isComposingSignal: { set: (value: boolean) => void }
-): void {
+export function handleCompositionStart(isComposingSignal: { set: (value: boolean) => void }): void {
   isComposingSignal.set(true);
 }
 
@@ -14,9 +12,7 @@ export function handleCompositionStart(
  * コンポジション終了を処理する
  * @param isComposingSignal コンポジション状態のsignal
  */
-export function handleCompositionEnd(
-  isComposingSignal: { set: (value: boolean) => void }
-): void {
+export function handleCompositionEnd(isComposingSignal: { set: (value: boolean) => void }): void {
   isComposingSignal.set(false);
 }
 

@@ -16,11 +16,15 @@ import { shouldShowTyping, formatMessageContent } from './utils';
         @if (showTyping()) {
           <app-typing-indicator></app-typing-indicator>
         } @else {
-          <div class="text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap break-words prose prose-gray max-w-none">{{ formattedContent() }}</div>
+          <div
+            class="text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap break-words prose prose-gray max-w-none"
+          >
+            {{ formattedContent() }}
+          </div>
         }
       </div>
     </div>
-  `
+  `,
 })
 export class AmazonQMessageComponent {
   content = input.required<string>();

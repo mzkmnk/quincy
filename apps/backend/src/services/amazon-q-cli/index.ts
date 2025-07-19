@@ -2,9 +2,6 @@ import { EventEmitter } from 'events';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 
-
-
-
 import { generateSessionId } from '../../utils/id-generator';
 import { validateProjectPath } from '../../utils/path-validator';
 import { isValidCLIPath, getCLICandidates } from '../../utils/cli-validator';
@@ -16,7 +13,7 @@ import {
   startResourceMonitoring,
   updateAllSessionResources,
   setupCleanupHandlers,
-  destroy as destroyProcessManager
+  destroy as destroyProcessManager,
 } from './process-manager';
 import {
   QProcessSession,
@@ -29,22 +26,17 @@ import {
   terminateAllSessions,
   updateSessionResources,
   sendInput,
-  abortSession
+  abortSession,
 } from './session-manager';
-import {
-  setupProcessHandlers
-} from './message-handler';
+import { setupProcessHandlers } from './message-handler';
 import {
   flushIncompleteOutputLine,
   flushIncompleteErrorLine,
   flushOutputBuffer,
   addToInitializationBuffer,
-  flushInitializationBuffer
+  flushInitializationBuffer,
 } from './buffer-manager';
-import {
-  checkCLIAvailabilityService,
-  buildCommandArgs
-} from './cli-checker';
+import { checkCLIAvailabilityService, buildCommandArgs } from './cli-checker';
 
 export class AmazonQCLIService extends EventEmitter {
   private sessions: Map<string, QProcessSession> = new Map();
@@ -55,7 +47,7 @@ export class AmazonQCLIService extends EventEmitter {
   private readonly execAsync = promisify(exec);
   private cliPath: string | null = null;
   private cliChecked: boolean = false;
-  
+
   // メモリリーク対策：タイマーとリスナーの管理
   private resourceMonitorInterval?: NodeJS.Timeout;
   private cleanupInterval?: NodeJS.Timeout;
@@ -71,7 +63,10 @@ export class AmazonQCLIService extends EventEmitter {
   /**
    * セキュアなCLI実行
    */
-  private async executeSecureCLI(cliPath: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
+  private async executeSecureCLI(
+    cliPath: string,
+    args: string[]
+  ): Promise<{ stdout: string; stderr: string }> {
     if (!isValidCLIPath(cliPath)) {
       throw new Error(`Invalid CLI path for security reasons: ${cliPath}`);
     }
@@ -95,7 +90,7 @@ export class AmazonQCLIService extends EventEmitter {
     }
 
     const result = await checkCLIAvailabilityService();
-    
+
     if (result.available && result.path) {
       this.cliPath = result.path;
       this.cliChecked = true;
@@ -111,7 +106,7 @@ export class AmazonQCLIService extends EventEmitter {
    */
   async startSession(command: string, options: QProcessOptions): Promise<string> {
     const sessionId = generateSessionId();
-    
+
     try {
       // プロジェクトパスの検証
       const pathValidation = await validateProjectPath(options.workingDir);
@@ -132,16 +127,16 @@ export class AmazonQCLIService extends EventEmitter {
 
       // コマンドライン引数を構築
       const args = buildCommandArgs(command, options);
-      
+
       // プロセスを起動
       const childProcess = spawnProcess(cliCommand, args, validatedWorkingDir);
 
       // セッション情報を登録
       const session = createSession(sessionId, childProcess, validatedWorkingDir, command, options);
       this.sessions.set(sessionId, session);
-      
+
       this.setupProcessHandlers(session);
-      
+
       // タイムアウト設定
       if (options.timeout !== undefined || this.DEFAULT_TIMEOUT > 0) {
         const timeout = options.timeout || this.DEFAULT_TIMEOUT;
@@ -249,18 +244,20 @@ export class AmazonQCLIService extends EventEmitter {
     setupProcessHandlers(
       session,
       this.emit.bind(this),
-      (session) => flushIncompleteOutputLine(session, this.emit.bind(this)),
-      (session) => flushIncompleteErrorLine(session, this.emit.bind(this), (session, message) => 
-        addToInitializationBuffer(session, message, (session) => 
+      session => flushIncompleteOutputLine(session, this.emit.bind(this)),
+      session =>
+        flushIncompleteErrorLine(session, this.emit.bind(this), (session, message) =>
+          addToInitializationBuffer(session, message, session =>
+            flushInitializationBuffer(session, this.emit.bind(this))
+          )
+        ),
+      (session, message) =>
+        addToInitializationBuffer(session, message, session =>
           flushInitializationBuffer(session, this.emit.bind(this))
-        )
-      ),
-      (session, message) => addToInitializationBuffer(session, message, (session) => 
-        flushInitializationBuffer(session, this.emit.bind(this))
-      ),
-      (session) => flushInitializationBuffer(session, this.emit.bind(this)),
-      (session) => flushOutputBuffer(session, this.emit.bind(this)),
-      (sessionId) => this.sessions.delete(sessionId)
+        ),
+      session => flushInitializationBuffer(session, this.emit.bind(this)),
+      session => flushOutputBuffer(session, this.emit.bind(this)),
+      sessionId => this.sessions.delete(sessionId)
     );
   }
 

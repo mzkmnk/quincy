@@ -14,10 +14,7 @@ export default tseslint.config(
             "**/temp",
             "**/coverage",
             "**/build",
-            "**/.angular",
-            "apps/frontend/src/index.html",
-            "apps/frontend/src/app/app.html",
-            "apps/frontend/**/*.html"
+            "**/.angular"
         ],
     },
 
@@ -48,7 +45,7 @@ export default tseslint.config(
 
     // TypeScript専用設定
     {
-        files: ["**/*.{ts,tsx}"],
+        files: ["**/*.{ts}"],
         rules: {
             "@typescript-eslint/no-unused-vars": "off", // unused-importsプラグインを使用
             "@typescript-eslint/explicit-function-return-type": "warn",
@@ -59,7 +56,7 @@ export default tseslint.config(
 
     // Backend専用設定
     {
-        files: ["apps/backend/**/*.{ts,js}"],
+        files: ["apps/backend/**/*.{ts}"],
         rules: {
             "@typescript-eslint/explicit-function-return-type": "error",
             "no-console": "warn",

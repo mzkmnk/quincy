@@ -62,14 +62,13 @@ export async function sendMessage(
     if (messageTextarea) {
       messageTextarea.nativeElement.style.height = 'auto';
     }
-
   } catch (error) {
     console.error('Failed to send message:', error);
     messageService.add({
       severity: 'error',
       summary: 'エラー',
       detail: 'メッセージの送信に失敗しました',
-      life: 5000
+      life: 5000,
     });
   } finally {
     sendingSignal.set(false);

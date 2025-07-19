@@ -8,6 +8,6 @@ export function setProjectError(error: string | null): void {
   projectState.update(state => ({
     ...state,
     error,
-    loading: false
+    loading: false,
   }));
 }

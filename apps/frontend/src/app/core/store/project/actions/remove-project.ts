@@ -8,9 +8,7 @@ export function removeProject(projectId: string): void {
   projectState.update(state => ({
     ...state,
     projects: state.projects.filter(p => p.id !== projectId),
-    currentProject: state.currentProject?.id === projectId 
-      ? null 
-      : state.currentProject,
-    error: null
+    currentProject: state.currentProject?.id === projectId ? null : state.currentProject,
+    error: null,
   }));
 }

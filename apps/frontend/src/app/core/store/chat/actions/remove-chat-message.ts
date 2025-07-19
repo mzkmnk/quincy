@@ -7,6 +7,6 @@ import { chatState } from '../chat.state';
 export function removeChatMessage(messageId: string): void {
   chatState.update(state => ({
     ...state,
-    chatMessages: state.chatMessages.filter(m => m.id !== messageId)
+    chatMessages: state.chatMessages.filter(m => m.id !== messageId),
   }));
 }

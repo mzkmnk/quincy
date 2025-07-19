@@ -6,6 +6,6 @@ import { chatState } from '../chat.state';
 export function clearChatMessages(): void {
   chatState.update(state => ({
     ...state,
-    chatMessages: []
+    chatMessages: [],
   }));
 }

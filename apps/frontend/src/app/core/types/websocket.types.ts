@@ -8,7 +8,7 @@ import { SessionId, MessageId, ErrorCode } from './common.types';
 export type WebSocketConnectionState = 'connecting' | 'connected' | 'disconnected' | 'error';
 
 // WebSocketイベント型
-export type WebSocketEventType = 
+export type WebSocketEventType =
   | 'connect'
   | 'disconnect'
   | 'error'
@@ -93,7 +93,7 @@ export interface SessionFailedMessage extends BaseWebSocketMessage {
 }
 
 // WebSocketメッセージのユニオン型
-export type WebSocketMessage = 
+export type WebSocketMessage =
   | WebSocketErrorMessage
   | QResponseMessage
   | QErrorMessage
@@ -103,7 +103,9 @@ export type WebSocketMessage =
   | SessionFailedMessage;
 
 // WebSocketイベントリスナー型
-export type WebSocketEventListener<T extends WebSocketMessage = WebSocketMessage> = (message: T) => void;
+export type WebSocketEventListener<T extends WebSocketMessage = WebSocketMessage> = (
+  message: T
+) => void;
 
 // WebSocketサービスインターフェース
 export interface IWebSocketService {
@@ -111,8 +113,11 @@ export interface IWebSocketService {
   disconnect(): void;
   connected(): boolean;
   connecting(): boolean;
-  emit(event: string, data: any): void;
-  on<T extends WebSocketMessage>(event: WebSocketEventType, listener: WebSocketEventListener<T>): void;
+  emit(event: string, data: unknown): void;
+  on<T extends WebSocketMessage>(
+    event: WebSocketEventType,
+    listener: WebSocketEventListener<T>
+  ): void;
   off(event: WebSocketEventType, listener?: WebSocketEventListener): void;
   removeAllListeners(event?: WebSocketEventType): void;
 }
@@ -138,7 +143,9 @@ export function isQCompletionMessage(message: WebSocketMessage): message is QCom
   return message.type === 'q_completion';
 }
 
-export function isSessionStartedMessage(message: WebSocketMessage): message is SessionStartedMessage {
+export function isSessionStartedMessage(
+  message: WebSocketMessage
+): message is SessionStartedMessage {
   return message.type === 'session_started';
 }
 

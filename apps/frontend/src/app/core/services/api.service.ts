@@ -1,21 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import type { 
-  Session 
-} from '@quincy/shared';
+import type { Session } from '@quincy/shared';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ApiService {
   private http = inject(HttpClient);
   private readonly baseUrl = '/api';
 
-
   // Session endpoints
   getSessions(projectId?: string): Observable<Session[]> {
-    const url = projectId 
+    const url = projectId
       ? `${this.baseUrl}/sessions?projectId=${projectId}`
       : `${this.baseUrl}/sessions`;
     return this.http.get<Session[]>(url);

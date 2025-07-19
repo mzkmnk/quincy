@@ -6,11 +6,7 @@ import { Socket } from 'socket.io-client';
  * @param event イベント名
  * @param data 送信データ
  */
-export function emit<T = unknown>(
-  socket: Socket | null,
-  event: string,
-  data?: T
-): void {
+export function emit<T = unknown>(socket: Socket | null, event: string, data?: T): void {
   if (socket?.connected) {
     socket.emit(event, data);
   }

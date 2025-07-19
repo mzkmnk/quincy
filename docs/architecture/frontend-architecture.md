@@ -14,41 +14,41 @@ graph TB
             F2[Project List Component]
             F3[History Component]
         end
-        
+
         subgraph "Shared Components"
             SC1[Message List]
             SC2[Path Selector]
             SC3[Message Input]
         end
-        
+
         subgraph "Core Services"
             CS1[WebSocket Service]
             CS2[State Management]
             CS3[Type Definitions]
         end
-        
+
         subgraph "Utilities"
             U1[Validators]
             U2[Formatters]
             U3[Converters]
             U4[Generators]
         end
-        
+
         F1 --> SC1
         F1 --> SC2
         F1 --> SC3
         F1 --> CS1
         F1 --> CS2
-        
+
         SC1 --> CS2
         SC2 --> CS1
         SC3 --> CS1
-        
+
         CS1 --> U1
         CS1 --> U2
         CS2 --> U3
         CS2 --> U4
-        
+
         CS1 --> CS3
         CS2 --> CS3
     end
@@ -59,24 +59,24 @@ graph TB
 ```mermaid
 graph TD
     App[App Component]
-    
+
     App --> Layout[Layout Component]
     Layout --> Sidebar[Sidebar Component]
     Layout --> Main[Main Content]
-    
+
     Main --> Chat[Chat Component]
     Main --> ProjectList[Project List Component]
     Main --> History[History Component]
-    
+
     Chat --> ChatHeader[Chat Header]
     Chat --> ChatMessages[Chat Messages]
     Chat --> SessionStart[Session Start]
     Chat --> ChatError[Chat Error]
     Chat --> EmptyState[Empty State]
-    
+
     ChatMessages --> MessageList[Message List]
     ChatMessages --> MessageInput[Message Input]
-    
+
     Main --> PathSelector[Path Selector]
 ```
 
@@ -87,7 +87,7 @@ graph LR
     subgraph "User Interface"
         UI[Components]
     end
-    
+
     subgraph "State Management"
         Store[App Store]
         ProjectStore[Project Store]
@@ -95,28 +95,28 @@ graph LR
         ChatStore[Chat Store]
         HistoryStore[History Store]
     end
-    
+
     subgraph "Services"
         WS[WebSocket Service]
         API[API Service]
     end
-    
+
     subgraph "Backend"
         Server[Backend Server]
         CLI[Amazon Q CLI]
     end
-    
+
     UI --> Store
     Store --> ProjectStore
     Store --> SessionStore
     Store --> ChatStore
     Store --> HistoryStore
-    
+
     Store --> WS
     WS --> API
     API --> Server
     Server --> CLI
-    
+
     CLI --> Server
     Server --> API
     API --> WS
@@ -133,30 +133,30 @@ graph TD
         Reducer[Reducer Function]
         State[State Update]
         Component[Component Update]
-        
+
         Action --> Reducer
         Reducer --> State
         State --> Component
         Component --> Action
     end
-    
+
     subgraph "Store Structure"
         AppStore[App Store]
-        
+
         AppStore --> ProjectState[Project State]
         AppStore --> SessionState[Session State]
         AppStore --> ChatState[Chat State]
         AppStore --> HistoryState[History State]
-        
+
         ProjectState --> ProjectActions[Project Actions]
         ProjectState --> ProjectSelectors[Project Selectors]
-        
+
         SessionState --> SessionActions[Session Actions]
         SessionState --> SessionSelectors[Session Selectors]
-        
+
         ChatState --> ChatActions[Chat Actions]
         ChatState --> ChatSelectors[Chat Selectors]
-        
+
         HistoryState --> HistoryActions[History Actions]
         HistoryState --> HistorySelectors[History Selectors]
     end
@@ -196,20 +196,32 @@ graph TD
 ```typescript
 // Bad: 複数の責任を持つファイル
 export class UserService {
-  validateUser(user: User): boolean { /* ... */ }
-  formatUserName(user: User): string { /* ... */ }
-  saveUser(user: User): void { /* ... */ }
+  validateUser(user: User): boolean {
+    /* ... */
+  }
+  formatUserName(user: User): string {
+    /* ... */
+  }
+  saveUser(user: User): void {
+    /* ... */
+  }
 }
 
 // Good: 単一の責任を持つファイル
 // validate-user.ts
-export function validateUser(user: User): boolean { /* ... */ }
+export function validateUser(user: User): boolean {
+  /* ... */
+}
 
 // format-user-name.ts
-export function formatUserName(user: User): string { /* ... */ }
+export function formatUserName(user: User): string {
+  /* ... */
+}
 
 // save-user.ts
-export function saveUser(user: User): void { /* ... */ }
+export function saveUser(user: User): void {
+  /* ... */
+}
 ```
 
 ## 型安全性
@@ -226,10 +238,7 @@ export function saveUser(user: User): void { /* ... */ }
 ```typescript
 // 型ガード関数の例
 export function isValidMessage(data: unknown): data is Message {
-  return typeof data === 'object' && 
-         data !== null && 
-         'id' in data && 
-         'content' in data;
+  return typeof data === 'object' && data !== null && 'id' in data && 'content' in data;
 }
 ```
 
@@ -253,7 +262,7 @@ export function isValidMessage(data: unknown): data is Message {
 export class ChatComponent {
   // Signals for reactive state
   messages = signal<Message[]>([]);
-  
+
   // Computed values
   messageCount = computed(() => this.messages().length);
 }
@@ -321,7 +330,7 @@ src/
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:3000',
-  websocketUrl: 'ws://localhost:3000'
+  websocketUrl: 'ws://localhost:3000',
 };
 ```
 

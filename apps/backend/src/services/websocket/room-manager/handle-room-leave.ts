@@ -1,11 +1,11 @@
 import type { Socket } from 'socket.io';
-import type { 
-  ClientToServerEvents, 
-  ServerToClientEvents, 
-  InterServerEvents, 
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
   SocketData,
   RoomData,
-  RoomLeftEvent
+  RoomLeftEvent,
 } from '@quincy/shared';
 
 import { generateMessageId } from '../../../utils/id-generator';
@@ -17,13 +17,13 @@ export function handleRoomLeave(
   data: RoomData
 ): void {
   const { roomId } = data;
-  
+
   // Leave the room
   socket.leave(roomId);
-  
+
   // Update socket data
   socket.data.rooms = socket.data.rooms.filter((r: string) => r !== roomId);
-  
+
   // Update user rooms tracking
   if (userRooms.has(socket.id)) {
     userRooms.get(socket.id)!.delete(roomId);
@@ -31,18 +31,18 @@ export function handleRoomLeave(
 
   const leaveEvent: RoomLeftEvent = {
     roomId,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
 
   // Notify the user
   socket.emit('room:left', leaveEvent);
-  
+
   // Notify other users in the room
   socket.to(roomId).emit('message:broadcast', {
     id: generateMessageId(),
     content: `User left the room`,
     senderId: 'system',
     timestamp: Date.now(),
-    type: 'system'
+    type: 'system',
   });
 }

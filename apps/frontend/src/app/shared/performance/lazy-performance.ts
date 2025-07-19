@@ -9,12 +9,16 @@ export async function loadPerformanceFeatures() {
   }
 
   const { PerformanceService } = await import('./services/performance-service');
-  const { PerformanceDashboardComponent } = await import('./components/performance-dashboard.component');
-  const { PerformanceMonitorDirective } = await import('./directives/performance-monitor.directive');
+  const { PerformanceDashboardComponent } = await import(
+    './components/performance-dashboard.component'
+  );
+  const { PerformanceMonitorDirective } = await import(
+    './directives/performance-monitor.directive'
+  );
 
   return {
     PerformanceService,
     PerformanceDashboardComponent,
-    PerformanceMonitorDirective
+    PerformanceMonitorDirective,
   };
 }

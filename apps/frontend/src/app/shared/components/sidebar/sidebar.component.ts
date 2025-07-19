@@ -22,7 +22,12 @@ import { handleNewProject } from './services';
           (click)="createNewProject()"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            ></path>
           </svg>
           New Project
         </button>
@@ -33,21 +38,24 @@ import { handleNewProject } from './services';
           title="New Project"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            ></path>
           </svg>
         </button>
       </div>
 
       <!-- Projects List -->
       <app-project-list [collapsed]="collapsed()"></app-project-list>
-
-
     </div>
-  `
+  `,
 })
 export class SidebarComponent {
   collapsed = input<boolean>(false);
-  
+
   private router = inject(Router);
   private appStore = inject(AppStore);
 

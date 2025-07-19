@@ -8,7 +8,7 @@ describe('ChatErrorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ChatErrorComponent]
+      imports: [ChatErrorComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ChatErrorComponent);
@@ -26,7 +26,7 @@ describe('ChatErrorComponent', () => {
       const testMessage = 'Connection failed error';
       fixture.componentRef.setInput('errorMessage', testMessage);
       fixture.detectChanges();
-      
+
       expect(component.errorMessage()).toBe(testMessage);
     });
   });
@@ -42,7 +42,8 @@ describe('ChatErrorComponent', () => {
     });
 
     it('長いエラーメッセージを正しく表示する', () => {
-      const longError = 'This is a very long error message that should be displayed correctly in the error component without any truncation issues.';
+      const longError =
+        'This is a very long error message that should be displayed correctly in the error component without any truncation issues.';
       fixture.componentRef.setInput('errorMessage', longError);
       fixture.detectChanges();
 
@@ -106,8 +107,8 @@ describe('ChatErrorComponent', () => {
       const hints = fixture.nativeElement.querySelectorAll('.text-left p');
       expect(hints.length).toBe(4);
       expect(hints[0].textContent.trim()).toBe('1. Install Amazon Q CLI if not installed');
-      expect(hints[1].textContent.trim()).toBe('2. Ensure \'q\' command is in your PATH');
-      expect(hints[2].textContent.trim()).toBe('3. Run \'q --version\' in terminal to verify');
+      expect(hints[1].textContent.trim()).toBe("2. Ensure 'q' command is in your PATH");
+      expect(hints[2].textContent.trim()).toBe("3. Run 'q --version' in terminal to verify");
       expect(hints[3].textContent.trim()).toBe('4. Restart the application after installation');
     });
 
@@ -202,7 +203,7 @@ describe('ChatErrorComponent', () => {
     it('非常に長いエラーメッセージでもレイアウトが崩れない', () => {
       const veryLongError = 'Error: '.repeat(100) + 'This is the end of a very long error message.';
       fixture.componentRef.setInput('errorMessage', veryLongError);
-      
+
       expect(() => {
         fixture.detectChanges();
       }).not.toThrow();
