@@ -20,13 +20,13 @@ export function setupGlobalErrorHandling(
   }
 
   // グローバルエラーハンドリング
-  io.engine.on('connection_error', (error: SocketIOError) => {
+  io.engine.on('connection_error', (_error: SocketIOError) => {
     // エラーログ記録など
   });
 
   // サーバーレベルのエラーハンドリング
   // Socket.IOの型定義に'connect_error'が含まれていないため、型アサーションが必要
-  io.on('connect_error' as any, (error: SocketIOError) => {
+  (io as unknown as { on: (event: string, handler: (error: SocketIOError) => void) => void }).on('connect_error', (_error: SocketIOError) => {
     // エラーログ記録など
   });
 }

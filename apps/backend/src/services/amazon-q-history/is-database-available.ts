@@ -27,15 +27,15 @@ export function isDatabaseAvailable(): boolean {
       
       // テーブルに実際にアクセスできるかテスト
       try {
-        const result = db.prepare(SQL_QUERIES.COUNT_CONVERSATIONS).get() as { count: number };
+        db.prepare(SQL_QUERIES.COUNT_CONVERSATIONS).get() as { count: number };
         return true;
-      } catch (accessError) {
+      } catch {
         return false;
       }
     } finally {
       db.close();
     }
-  } catch (error) {
+  } catch {
     return false;
   }
 }

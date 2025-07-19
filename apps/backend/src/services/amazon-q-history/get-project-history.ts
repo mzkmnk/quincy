@@ -32,6 +32,6 @@ export async function getProjectHistory(projectPath: string): Promise<AmazonQCon
     }
   } catch (error) {
     // エラーを再スローして上位コンポーネントでキャッチできるようにする
-    throw error;
+    throw new Error(`プロジェクト履歴の取得に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

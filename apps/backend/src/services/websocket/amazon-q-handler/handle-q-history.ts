@@ -34,14 +34,15 @@ export async function handleQHistory(
 
     // Promptエントリ数を正確に計算（実際のユーザーメッセージ数）
     // 新しいサービス構造では、この計算はサービス内で行われるため、
-    // ここでは基本的な計算のみ実行
-    let messageCount = 0;
-    if (conversation.history) {
-      messageCount = Array.isArray(conversation.history) ? conversation.history.length : 0;
-    }
+    // ここでは基本的な計算のみ実行  
+    // messageCountは現在使用されていないため、コメントアウト
+    // let messageCount = 0;
+    // if (conversation.history) {
+    //   messageCount = Array.isArray(conversation.history) ? conversation.history.length : 0;
+    // }
     
     // AmazonQConversation型に合わせて変換（historyフィールドを除外）
-    const { history, ...conversationForClient } = conversation;
+    const { history: _history, ...conversationForClient } = conversation;
     socket.emit('q:history:data', {
       projectPath: data.projectPath,
       conversation: conversationForClient as AmazonQConversation

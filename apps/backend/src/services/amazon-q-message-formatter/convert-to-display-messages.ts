@@ -4,10 +4,9 @@
 
 import type { ConversationTurn, DisplayMessage } from '../amazon-q-history-types';
 import { generateMessageId } from '../../utils/id-generator';
-
-import { formatUserMessage } from './format-user-message';
-import { formatThinkingMessages } from './format-thinking-messages';
 import { formatAiResponse } from './format-ai-response';
+import { formatThinkingMessages } from './format-thinking-messages';
+import { formatUserMessage } from './format-user-message';
 
 export function convertToDisplayMessages(turns: ConversationTurn[]): DisplayMessage[] {
   const displayMessages: DisplayMessage[] = [];
@@ -26,7 +25,7 @@ export function convertToDisplayMessages(turns: ConversationTurn[]): DisplayMess
       const aiResponse = formatAiResponse(turn);
       displayMessages.push(aiResponse);
       
-    } catch (error) {
+    } catch {
       // エラーが発生した場合もエラーメッセージを表示
       displayMessages.push({
         id: generateMessageId(),

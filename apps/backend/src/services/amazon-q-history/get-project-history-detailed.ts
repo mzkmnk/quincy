@@ -51,6 +51,6 @@ export async function getProjectHistoryDetailed(projectPath: string): Promise<Di
       db.close();
     }
   } catch (error) {
-    throw error;
+    throw new Error(`プロジェクト履歴の詳細取得に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
