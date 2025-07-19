@@ -48,7 +48,8 @@ describe('Amazon Q History Functions', () => {
 
       // 成功レスポンスをシミュレート
       // モック関数の呼び出しをシミュレート
-      const onceCalls = (mockSocket.once as unknown as { mock: { calls: [string, () => void][] } }).mock.calls;
+      const onceCalls = (mockSocket.once as unknown as { mock: { calls: [string, () => void][] } })
+        .mock.calls;
       const successCallback = onceCalls.find(call => call[0] === 'q:history:list')![1];
       successCallback();
 
@@ -59,7 +60,9 @@ describe('Amazon Q History Functions', () => {
     it('未接続のソケットでエラーを返す', async () => {
       mockSocket.connected = false;
 
-      await expect(getAllProjectsHistory(mockSocket as Socket)).rejects.toThrow('WebSocket not connected');
+      await expect(getAllProjectsHistory(mockSocket as Socket)).rejects.toThrow(
+        'WebSocket not connected'
+      );
     });
 
     it('nullソケットでエラーを返す', async () => {

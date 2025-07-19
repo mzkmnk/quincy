@@ -58,7 +58,7 @@ jest.mock('fs', () => ({
 // util.promisify のモック
 jest.mock('util', () => ({
   promisify: jest.fn(() => jest.fn().mockResolvedValue({ stdout: 'q version 1.0.0', stderr: '' })),
-  deprecate: jest.fn((fn, ) => fn),
+  deprecate: jest.fn(fn => fn),
 }));
 
 describe('Amazon Q CLI Service Integration Test', () => {

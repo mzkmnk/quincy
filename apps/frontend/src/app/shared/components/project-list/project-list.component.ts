@@ -229,8 +229,8 @@ export class ProjectListComponent implements OnInit, OnDestroy {
 
       if (data.displayMessages && data.displayMessages.length > 0) {
         // SharedDisplayMessageをDisplayMessageに変換
-        const convertedMessages = (data.displayMessages as SharedDisplayMessage[]).map((msg: SharedDisplayMessage) => 
-          this.convertSharedDisplayMessage(msg)
+        const convertedMessages = (data.displayMessages as SharedDisplayMessage[]).map(
+          (msg: SharedDisplayMessage) => this.convertSharedDisplayMessage(msg)
         );
         // 詳細履歴データをストアに設定
         this.appStore.switchToDetailedHistoryView(convertedMessages, data.stats);

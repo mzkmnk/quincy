@@ -12,7 +12,7 @@ function convertQSessionEventToAmazonQSession(event: QSessionStartedEvent): Amaz
   const now = new Date();
   // プロジェクト名をパスから抽出
   const projectName = event.projectPath.split('/').pop() || 'Unknown Project';
-  
+
   return {
     sessionId: event.sessionId,
     projectId: projectName, // プロジェクト名をprojectIdとして使用

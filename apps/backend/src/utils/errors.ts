@@ -36,11 +36,7 @@ export const createErrorResponse = (
 });
 
 // 旧形式のエラーハンドラー（非推奨 - 新しいunifiedErrorHandlerを使用してください）
-export const legacyErrorHandler = (
-  error: Error,
-  req: Request,
-  res: Response
-): void => {
+export const legacyErrorHandler = (error: Error, req: Request, res: Response): void => {
   const response = createErrorResponse(
     'INTERNAL_SERVER_ERROR',
     error.message || 'An unexpected error occurred',

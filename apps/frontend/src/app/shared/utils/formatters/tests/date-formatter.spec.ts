@@ -45,7 +45,6 @@ describe('formatDate', () => {
 
   // エッジケースのテスト
   describe('エッジケース', () => {
-
     it('極端に古い日付を処理する', () => {
       const veryOldDate = new Date('0001-01-01');
       const result = formatDate(veryOldDate, 'short');
@@ -97,7 +96,6 @@ describe('formatDate', () => {
       const result2 = formatDate(utcDate.getTime(), 'short');
       expect(result1).toBe(result2);
     });
-
 
     it('ISO文字列の様々な形式を処理する', () => {
       expect(formatDate('2024-01-15')).toMatch(/2024/);

@@ -28,21 +28,23 @@ describe('project-path-utils', () => {
       ];
 
       const result = getProjectPathFromConversation(
-        currentConversation as AmazonQConversation, 
+        currentConversation as AmazonQConversation,
         amazonQHistory as ConversationMetadata[]
       );
       expect(result).toBe('/Users/test/project-1');
     });
 
     it('一致する会話IDが履歴にない場合、空文字列を返す', () => {
-      const currentConversation: Partial<AmazonQConversation> = { conversation_id: 'conv-nonexistent' };
+      const currentConversation: Partial<AmazonQConversation> = {
+        conversation_id: 'conv-nonexistent',
+      };
       const amazonQHistory: Partial<ConversationMetadata>[] = [
         { conversation_id: 'conv-123', projectPath: '/project-1' },
         { conversation_id: 'conv-456', projectPath: '/project-2' },
       ];
 
       const result = getProjectPathFromConversation(
-        currentConversation as AmazonQConversation, 
+        currentConversation as AmazonQConversation,
         amazonQHistory as ConversationMetadata[]
       );
       expect(result).toBe('');

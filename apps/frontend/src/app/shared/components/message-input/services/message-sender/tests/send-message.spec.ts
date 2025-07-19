@@ -193,7 +193,9 @@ describe('message-sender', () => {
       });
 
       it('セッションがundefinedの場合、送信をスキップする', async () => {
-        (mockAppStore.currentQSession as unknown as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
+        (mockAppStore.currentQSession as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+          undefined
+        );
 
         await sendMessage(
           'Hello World',

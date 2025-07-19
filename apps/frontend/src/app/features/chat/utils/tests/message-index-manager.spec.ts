@@ -13,11 +13,7 @@ describe('message-index-manager', () => {
 
     it('メッセージ配列のインデックスマップを正しく更新する', () => {
       const messageIndexMap = new Map<string, number>();
-      const messages = [
-        { id: 'msg-1' },
-        { id: 'msg-2' },
-        { id: 'msg-3' },
-      ];
+      const messages = [{ id: 'msg-1' }, { id: 'msg-2' }, { id: 'msg-3' }];
 
       updateMessageIndexMap(messageIndexMap, messages);
 

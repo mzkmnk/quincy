@@ -7,7 +7,13 @@ import type { AppStore } from '../../../../../../core/store/app.state';
 describe('addMessage', () => {
   let mockAppStore: Partial<AppStore> & {
     currentQSession: { set: (value: { sessionId?: string } | null) => void };
-    addChatMessage: (message: { id: string; content: string; sender: string; timestamp: Date; sessionId?: string }) => void;
+    addChatMessage: (message: {
+      id: string;
+      content: string;
+      sender: string;
+      timestamp: Date;
+      sessionId?: string;
+    }) => void;
   };
   let mockScrollToBottomRequest: { set: (value: boolean) => void };
 
@@ -17,7 +23,13 @@ describe('addMessage', () => {
       addChatMessage: vi.fn(),
     } as unknown as Partial<AppStore> & {
       currentQSession: { set: (value: { sessionId?: string } | null) => void };
-      addChatMessage: (message: { id: string; content: string; sender: string; timestamp: Date; sessionId?: string }) => void;
+      addChatMessage: (message: {
+        id: string;
+        content: string;
+        sender: string;
+        timestamp: Date;
+        sessionId?: string;
+      }) => void;
     };
 
     mockScrollToBottomRequest = {
@@ -27,7 +39,12 @@ describe('addMessage', () => {
 
   describe('基本機能', () => {
     it('ユーザーメッセージを正しく追加する', () => {
-      const messageId = addMessage('Hello', 'user', mockAppStore as unknown as AppStore, mockScrollToBottomRequest);
+      const messageId = addMessage(
+        'Hello',
+        'user',
+        mockAppStore as unknown as AppStore,
+        mockScrollToBottomRequest
+      );
 
       expect(messageId).toBeTruthy();
       expect(typeof messageId).toBe('string');
@@ -64,7 +81,12 @@ describe('addMessage', () => {
     it('セッションがnullの場合でもメッセージを追加する', () => {
       mockAppStore.currentQSession.set(null);
 
-      const messageId = addMessage('Message', 'user', mockAppStore as unknown as AppStore, mockScrollToBottomRequest);
+      const messageId = addMessage(
+        'Message',
+        'user',
+        mockAppStore as unknown as AppStore,
+        mockScrollToBottomRequest
+      );
 
       expect(mockAppStore.addChatMessage).toHaveBeenCalledWith({
         id: messageId,
@@ -78,7 +100,12 @@ describe('addMessage', () => {
     it('セッションIDがない場合でもメッセージを追加する', () => {
       mockAppStore.currentQSession.set({});
 
-      const messageId = addMessage('Message', 'user', mockAppStore as unknown as AppStore, mockScrollToBottomRequest);
+      const messageId = addMessage(
+        'Message',
+        'user',
+        mockAppStore as unknown as AppStore,
+        mockScrollToBottomRequest
+      );
 
       expect(mockAppStore.addChatMessage).toHaveBeenCalledWith({
         id: messageId,
@@ -92,8 +119,18 @@ describe('addMessage', () => {
 
   describe('メッセージIDの生成', () => {
     it('一意のメッセージIDを生成する', () => {
-      const messageId1 = addMessage('Message 1', 'user', mockAppStore as unknown as AppStore, mockScrollToBottomRequest);
-      const messageId2 = addMessage('Message 2', 'user', mockAppStore as unknown as AppStore, mockScrollToBottomRequest);
+      const messageId1 = addMessage(
+        'Message 1',
+        'user',
+        mockAppStore as unknown as AppStore,
+        mockScrollToBottomRequest
+      );
+      const messageId2 = addMessage(
+        'Message 2',
+        'user',
+        mockAppStore as unknown as AppStore,
+        mockScrollToBottomRequest
+      );
 
       expect(messageId1).not.toBe(messageId2);
       expect(messageId1).toMatch(/^\d+-[a-z0-9]{7}$/);
@@ -104,7 +141,12 @@ describe('addMessage', () => {
       const messageIds = new Set();
 
       for (let i = 0; i < 100; i++) {
-        const id = addMessage(`Message ${i}`, 'user', mockAppStore as unknown as AppStore, mockScrollToBottomRequest);
+        const id = addMessage(
+          `Message ${i}`,
+          'user',
+          mockAppStore as unknown as AppStore,
+          mockScrollToBottomRequest
+        );
         expect(messageIds.has(id)).toBe(false);
         messageIds.add(id);
       }
@@ -119,7 +161,17 @@ describe('addMessage', () => {
       addMessage('Message', 'user', mockAppStore as unknown as AppStore, mockScrollToBottomRequest);
       const afterTime = new Date();
 
-      const callArgs = (mockAppStore.addChatMessage as MockedFunction<(message: { id: string; content: string; sender: string; timestamp: Date; sessionId?: string }) => void>).mock.calls[0][0];
+      const callArgs = (
+        mockAppStore.addChatMessage as MockedFunction<
+          (message: {
+            id: string;
+            content: string;
+            sender: string;
+            timestamp: Date;
+            sessionId?: string;
+          }) => void
+        >
+      ).mock.calls[0][0];
       expect(callArgs.timestamp).toBeInstanceOf(Date);
       expect(callArgs.timestamp.getTime()).toBeGreaterThanOrEqual(beforeTime.getTime());
       expect(callArgs.timestamp.getTime()).toBeLessThanOrEqual(afterTime.getTime());
@@ -137,7 +189,12 @@ describe('addMessage', () => {
 
   describe('エッジケース', () => {
     it('空のコンテンツでもメッセージを追加する', () => {
-      const messageId = addMessage('', 'user', mockAppStore as unknown as AppStore, mockScrollToBottomRequest);
+      const messageId = addMessage(
+        '',
+        'user',
+        mockAppStore as unknown as AppStore,
+        mockScrollToBottomRequest
+      );
 
       expect(mockAppStore.addChatMessage).toHaveBeenCalledWith({
         id: messageId,
@@ -150,7 +207,12 @@ describe('addMessage', () => {
 
     it('非常に長いコンテンツでもメッセージを追加する', () => {
       const longContent = 'A'.repeat(10000);
-      const messageId = addMessage(longContent, 'user', mockAppStore as unknown as AppStore, mockScrollToBottomRequest);
+      const messageId = addMessage(
+        longContent,
+        'user',
+        mockAppStore as unknown as AppStore,
+        mockScrollToBottomRequest
+      );
 
       expect(mockAppStore.addChatMessage).toHaveBeenCalledWith({
         id: messageId,
@@ -185,7 +247,12 @@ describe('addMessage', () => {
       const start = performance.now();
 
       for (let i = 0; i < 1000; i++) {
-        addMessage(`Message ${i}`, 'user', mockAppStore as unknown as AppStore, mockScrollToBottomRequest);
+        addMessage(
+          `Message ${i}`,
+          'user',
+          mockAppStore as unknown as AppStore,
+          mockScrollToBottomRequest
+        );
       }
 
       const end = performance.now();

@@ -35,7 +35,6 @@ describe('isValidMessage', () => {
       expect(isValidMessage('通貨: €£¥$')).toBe(true);
     });
 
-
     it('特殊な空白文字のみの場合、falseを返す', () => {
       expect(isValidMessage('\u00A0')).toBe(false); // Non-breaking space
       expect(isValidMessage('\u2000')).toBe(false); // En quad
@@ -53,6 +52,5 @@ describe('isValidMessage', () => {
       expect(isValidMessage(' Hello\tWorld \n')).toBe(true);
       expect(isValidMessage('\n\nActual content\n\n')).toBe(true);
     });
-
   });
 });

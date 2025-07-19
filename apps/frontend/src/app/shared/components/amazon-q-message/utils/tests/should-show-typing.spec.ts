@@ -11,7 +11,6 @@ describe('shouldShowTyping', () => {
     });
   });
 
-
   describe('型安全性', () => {
     it('boolean値で正常に動作する', () => {
       const typingStates: boolean[] = [true, false];
@@ -23,7 +22,6 @@ describe('shouldShowTyping', () => {
       });
     });
   });
-
 
   describe('実際の使用シナリオ', () => {
     it('タイピングインディケーター表示の判定', () => {

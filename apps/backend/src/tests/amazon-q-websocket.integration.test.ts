@@ -56,7 +56,7 @@ jest.mock('fs', () => ({
 // util.promisify のモック
 jest.mock('util', () => ({
   promisify: jest.fn(() => jest.fn().mockResolvedValue({ stdout: 'q version 1.0.0', stderr: '' })),
-  deprecate: jest.fn((fn,) => fn),
+  deprecate: jest.fn(fn => fn),
 }));
 
 // SQLite3のモック
@@ -127,18 +127,24 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       };
 
       // セッション開始の確認
-      clientSocket.on('q:session:started', (data: { sessionId: string; success: boolean }): void => {
-        expect(data.sessionId).toMatch(/^q_session_/);
-        expect(data.success).toBe(true);
-      });
+      clientSocket.on(
+        'q:session:started',
+        (data: { sessionId: string; success: boolean }): void => {
+          expect(data.sessionId).toMatch(/^q_session_/);
+          expect(data.success).toBe(true);
+        }
+      );
 
       // レスポンスの確認
-      clientSocket.on('q:response', (data: { message: string; type: string; sessionId: string }): void => {
-        expect(data.message).toBe('Amazon Q CLI Help Content');
-        expect(data.type).toBe('stream');
-        expect(data.sessionId).toMatch(/^q_session_/);
-        done();
-      });
+      clientSocket.on(
+        'q:response',
+        (data: { message: string; type: string; sessionId: string }): void => {
+          expect(data.message).toBe('Amazon Q CLI Help Content');
+          expect(data.type).toBe('stream');
+          expect(data.sessionId).toMatch(/^q_session_/);
+          done();
+        }
+      );
 
       // Q commandの実行
       clientSocket.emit('q:command', qCommandEvent);
@@ -202,12 +208,15 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       });
 
       // セッション中止の確認
-      clientSocket.on('q:session:aborted', (data: { sessionId: string; success: boolean }): void => {
-        expect(data.sessionId).toBe(sessionId);
-        expect(data.success).toBe(true);
-        expect(mockChildProcess.kill).toHaveBeenCalledWith('SIGTERM');
-        done();
-      });
+      clientSocket.on(
+        'q:session:aborted',
+        (data: { sessionId: string; success: boolean }): void => {
+          expect(data.sessionId).toBe(sessionId);
+          expect(data.success).toBe(true);
+          expect(mockChildProcess.kill).toHaveBeenCalledWith('SIGTERM');
+          done();
+        }
+      );
 
       // Q commandの実行
       clientSocket.emit('q:command', qCommandEvent);
@@ -278,12 +287,17 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       mockDatabase.all.mockResolvedValue(mockHistoryData);
 
       // 履歴取得の確認
-      clientSocket.on('q:history', (data: { history: { id: number; conversation_id: string; project_path: string }[] }): void => {
-        expect(Array.isArray(data.history)).toBe(true);
-        expect(data.history.length).toBe(2);
-        expect(data.history[0].project_path).toBe('/Users/test/project');
-        done();
-      });
+      clientSocket.on(
+        'q:history',
+        (data: {
+          history: { id: number; conversation_id: string; project_path: string }[];
+        }): void => {
+          expect(Array.isArray(data.history)).toBe(true);
+          expect(data.history.length).toBe(2);
+          expect(data.history[0].project_path).toBe('/Users/test/project');
+          done();
+        }
+      );
 
       // 履歴取得の実行
       clientSocket.emit('q:history', {
@@ -307,12 +321,20 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       mockDatabase.all.mockResolvedValue(mockDetailedData);
 
       // 履歴詳細取得の確認
-      clientSocket.on('q:history:detailed', (data: { id: number; conversation_id: string; project_path: string; history: { role: string; content: string }[] }): void => {
-        expect(data.id).toBeDefined();
-        expect(data.conversation_id).toBeDefined();
-        expect(data.project_path).toBe('/Users/test/project');
-        done();
-      });
+      clientSocket.on(
+        'q:history:detailed',
+        (data: {
+          id: number;
+          conversation_id: string;
+          project_path: string;
+          history: { role: string; content: string }[];
+        }): void => {
+          expect(data.id).toBeDefined();
+          expect(data.conversation_id).toBeDefined();
+          expect(data.project_path).toBe('/Users/test/project');
+          done();
+        }
+      );
 
       // 履歴詳細取得の実行
       clientSocket.emit('q:history:detailed', {
@@ -344,11 +366,14 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
 
     it('WebSocket経由でプロジェクト開始ができること', (done): void => {
       // プロジェクト開始の確認
-      clientSocket.on('q:project:started', (data: { success: boolean; projectPath: string }): void => {
-        expect(data.success).toBe(true);
-        expect(data.projectPath).toBe('/Users/test/project');
-        done();
-      });
+      clientSocket.on(
+        'q:project:started',
+        (data: { success: boolean; projectPath: string }): void => {
+          expect(data.success).toBe(true);
+          expect(data.projectPath).toBe('/Users/test/project');
+          done();
+        }
+      );
 
       // プロジェクト開始の実行
       const projectStartEvent: QProjectStartEvent = {
@@ -361,11 +386,14 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
   describe('セッション再開の結合テスト', () => {
     it('WebSocket経由でセッション再開ができること', (done): void => {
       // セッション再開の確認
-      clientSocket.on('q:session:resumed', (data: { success: boolean; sessionId: string }): void => {
-        expect(data.success).toBe(true);
-        expect(data.sessionId).toMatch(/^q_session_/);
-        done();
-      });
+      clientSocket.on(
+        'q:session:resumed',
+        (data: { success: boolean; sessionId: string }): void => {
+          expect(data.success).toBe(true);
+          expect(data.sessionId).toMatch(/^q_session_/);
+          done();
+        }
+      );
 
       // セッション再開の実行
       clientSocket.emit('q:resume', {
@@ -382,12 +410,15 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       };
 
       // エラーの確認
-      clientSocket.on('q:error', (data: { error: string; type: string; sessionId: string }): void => {
-        expect(data.error).toBe('CLI Error: Unknown command');
-        expect(data.type).toBe('STDERR');
-        expect(data.sessionId).toMatch(/^q_session_/);
-        done();
-      });
+      clientSocket.on(
+        'q:error',
+        (data: { error: string; type: string; sessionId: string }): void => {
+          expect(data.error).toBe('CLI Error: Unknown command');
+          expect(data.type).toBe('STDERR');
+          expect(data.sessionId).toMatch(/^q_session_/);
+          done();
+        }
+      );
 
       // Q commandの実行
       clientSocket.emit('q:command', qCommandEvent);

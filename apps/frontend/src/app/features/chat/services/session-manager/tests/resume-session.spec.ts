@@ -275,7 +275,10 @@ describe('resumeSession', () => {
       };
       const sessionData = { sessionId: 'session-123', projectPath };
 
-      let sessionSuccessCallback: (data: { sessionId: string; projectPath: string }) => void = () => {};
+      let sessionSuccessCallback: (data: {
+        sessionId: string;
+        projectPath: string;
+      }) => void = () => {};
       mockWebSocketService.setupProjectSessionListeners = vi.fn().mockImplementation(callback => {
         sessionSuccessCallback = callback;
       });
@@ -379,7 +382,10 @@ describe('resumeSession', () => {
       };
       const sessionData = { sessionId: 'session-123', projectPath };
 
-      let sessionSuccessCallback: (data: { sessionId: string; projectPath: string }) => void = () => {};
+      let sessionSuccessCallback: (data: {
+        sessionId: string;
+        projectPath: string;
+      }) => void = () => {};
       mockWebSocketService.setupProjectSessionListeners = vi.fn().mockImplementation(callback => {
         sessionSuccessCallback = callback;
       });
@@ -613,5 +619,4 @@ describe('resumeSession', () => {
       );
     });
   });
-
 });

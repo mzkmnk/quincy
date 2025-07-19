@@ -61,7 +61,6 @@ describe('validatePath', () => {
       expect(validatePath('/Users/user/project.with.dots')).toBeNull();
     });
 
-
     it('タブや改行文字を含む入力を処理する', () => {
       expect(validatePath('\t/Users/username/project\n')).toBeNull();
       expect(validatePath('/Users/username/project\r\n')).toBeNull();

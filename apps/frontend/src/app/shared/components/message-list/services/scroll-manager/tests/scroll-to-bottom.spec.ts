@@ -98,5 +98,4 @@ describe('scrollToBottom', () => {
       expect(end - start).toBeLessThan(50); // 50ms以内
     });
   });
-
 });

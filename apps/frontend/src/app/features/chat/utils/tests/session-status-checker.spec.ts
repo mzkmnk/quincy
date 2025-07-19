@@ -52,7 +52,9 @@ describe('session-status-checker', () => {
     });
 
     it('セッションがない場合は専用メッセージを返す', () => {
-      expect(getDisabledReason(null, null)).toBe('No active Amazon Q session. Please start a new project session.');
+      expect(getDisabledReason(null, null)).toBe(
+        'No active Amazon Q session. Please start a new project session.'
+      );
     });
   });
 });

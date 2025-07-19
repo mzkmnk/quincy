@@ -66,7 +66,7 @@ jest.mock('fs', () => ({
 // util.promisify のモック
 jest.mock('util', () => ({
   promisify: jest.fn(() => jest.fn().mockResolvedValue({ stdout: 'q version 1.0.0', stderr: '' })),
-  deprecate: jest.fn((fn,) => fn),
+  deprecate: jest.fn(fn => fn),
 }));
 
 // SQLite3のモック
@@ -132,18 +132,21 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       };
 
       // Step 1: プロジェクト開始
-      userSocket.on('q:project:started', (data: { success: boolean; projectPath: string }): void => {
-        expect(data.success).toBe(true);
-        expect(data.projectPath).toBe(testProject);
-        scenario.projectStarted = true;
+      userSocket.on(
+        'q:project:started',
+        (data: { success: boolean; projectPath: string }): void => {
+          expect(data.success).toBe(true);
+          expect(data.projectPath).toBe(testProject);
+          scenario.projectStarted = true;
 
-        // Step 2: Q対話開始
-        const qCommandEvent: QCommandEvent = {
-          command: 'chat "プロジェクトの構造を説明してください"',
-          workingDir: testProject,
-        };
-        userSocket.emit('q:command', qCommandEvent);
-      });
+          // Step 2: Q対話開始
+          const qCommandEvent: QCommandEvent = {
+            command: 'chat "プロジェクトの構造を説明してください"',
+            workingDir: testProject,
+          };
+          userSocket.emit('q:command', qCommandEvent);
+        }
+      );
 
       // Step 3: セッション開始の確認
       userSocket.on('q:session:started', (data: { sessionId: string }): void => {
@@ -359,18 +362,21 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       };
 
       // Step 1: 履歴取得
-      userSocket.on('q:history', (data: { history: { id: number; project_path: string }[] }): void => {
-        expect(data.history.length).toBe(1);
-        expect(data.history[0].project_path).toBe(testProject);
-        scenario.historyRetrieved = true;
+      userSocket.on(
+        'q:history',
+        (data: { history: { id: number; project_path: string }[] }): void => {
+          expect(data.history.length).toBe(1);
+          expect(data.history[0].project_path).toBe(testProject);
+          scenario.historyRetrieved = true;
 
-        // Step 2: 新しい対話を開始
-        const qCommandEvent: QCommandEvent = {
-          command: 'chat "新しい質問です"',
-          workingDir: testProject,
-        };
-        userSocket.emit('q:command', qCommandEvent);
-      });
+          // Step 2: 新しい対話を開始
+          const qCommandEvent: QCommandEvent = {
+            command: 'chat "新しい質問です"',
+            workingDir: testProject,
+          };
+          userSocket.emit('q:command', qCommandEvent);
+        }
+      );
 
       // Step 3: 新しい対話の開始確認
       userSocket.on('q:session:started', (data: { sessionId: string }): void => {

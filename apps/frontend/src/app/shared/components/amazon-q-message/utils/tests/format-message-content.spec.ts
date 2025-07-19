@@ -30,7 +30,6 @@ describe('formatMessageContent', () => {
       expect(formatMessageContent('\n\n')).toBe('');
       expect(formatMessageContent(' \t\n\r ')).toBe('');
     });
-
   });
 
   describe('マークダウンコンテンツ', () => {
@@ -115,6 +114,4 @@ describe('formatMessageContent', () => {
       );
     });
   });
-
-
 });

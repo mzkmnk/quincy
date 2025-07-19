@@ -125,7 +125,11 @@ describe('startProject', () => {
       );
 
       // setupProjectSessionListenersのコールバックを実行
-      const setupCalls = (mockWebSocket.setupProjectSessionListeners as unknown as { mock: { calls: [(data: { sessionId: string; projectPath: string }) => void][] } }).mock.calls;
+      const setupCalls = (
+        mockWebSocket.setupProjectSessionListeners as unknown as {
+          mock: { calls: [(data: { sessionId: string; projectPath: string }) => void][] };
+        }
+      ).mock.calls;
       const callback = setupCalls[0][0];
       const sessionData = { sessionId: 'test-session', projectPath: '/test/path' };
 
@@ -149,7 +153,11 @@ describe('startProject', () => {
       );
 
       // エラーリスナーのコールバックを実行
-      const onCalls = (mockWebSocket.on as unknown as { mock: { calls: [string, (error: { code: string; message: string }) => void][] } }).mock.calls;
+      const onCalls = (
+        mockWebSocket.on as unknown as {
+          mock: { calls: [string, (error: { code: string; message: string }) => void][] };
+        }
+      ).mock.calls;
       const errorCallback = onCalls.find(call => call[0] === 'error')![1];
       const error = { code: 'GENERIC_ERROR', message: 'Test error' };
 
@@ -172,7 +180,11 @@ describe('startProject', () => {
         mockStartingSignal
       );
 
-      const onCalls = (mockWebSocket.on as unknown as { mock: { calls: [string, (error: { code: string; message: string }) => void][] } }).mock.calls;
+      const onCalls = (
+        mockWebSocket.on as unknown as {
+          mock: { calls: [string, (error: { code: string; message: string }) => void][] };
+        }
+      ).mock.calls;
       const errorCallback = onCalls.find(call => call[0] === 'error')![1];
       const error = { code: 'Q_CLI_NOT_AVAILABLE', message: 'Q CLI not available' };
 
@@ -194,7 +206,11 @@ describe('startProject', () => {
         mockStartingSignal
       );
 
-      const onCalls = (mockWebSocket.on as unknown as { mock: { calls: [string, (error: { code: string; message: string }) => void][] } }).mock.calls;
+      const onCalls = (
+        mockWebSocket.on as unknown as {
+          mock: { calls: [string, (error: { code: string; message: string }) => void][] };
+        }
+      ).mock.calls;
       const errorCallback = onCalls.find(call => call[0] === 'error')![1];
       const error = { code: 'Q_CLI_NOT_FOUND', message: 'Q CLI not found' };
 
@@ -216,7 +232,11 @@ describe('startProject', () => {
         mockStartingSignal
       );
 
-      const onCalls = (mockWebSocket.on as unknown as { mock: { calls: [string, (error: { code: string; message: string }) => void][] } }).mock.calls;
+      const onCalls = (
+        mockWebSocket.on as unknown as {
+          mock: { calls: [string, (error: { code: string; message: string }) => void][] };
+        }
+      ).mock.calls;
       const errorCallback = onCalls.find(call => call[0] === 'error')![1];
       const error = { code: 'Q_CLI_PERMISSION_ERROR', message: 'Q CLI permission error' };
 
@@ -238,7 +258,11 @@ describe('startProject', () => {
         mockStartingSignal
       );
 
-      const onCalls = (mockWebSocket.on as unknown as { mock: { calls: [string, (error: { code: string; message: string }) => void][] } }).mock.calls;
+      const onCalls = (
+        mockWebSocket.on as unknown as {
+          mock: { calls: [string, (error: { code: string; message: string }) => void][] };
+        }
+      ).mock.calls;
       const errorCallback = onCalls.find(call => call[0] === 'error')![1];
       const error = { code: 'Q_CLI_SPAWN_ERROR', message: 'Q CLI spawn error' };
 
@@ -349,7 +373,11 @@ describe('startProject', () => {
         mockStartingSignal
       );
 
-      const setupCalls = (mockWebSocket.setupProjectSessionListeners as unknown as { mock: { calls: [(data: { sessionId: string; projectPath: string }) => void][] } }).mock.calls;
+      const setupCalls = (
+        mockWebSocket.setupProjectSessionListeners as unknown as {
+          mock: { calls: [(data: { sessionId: string; projectPath: string }) => void][] };
+        }
+      ).mock.calls;
       const callback = setupCalls[0][0];
       const sessionData = { sessionId: 'test-session', projectPath: '/test/project' };
 
@@ -369,7 +397,11 @@ describe('startProject', () => {
         mockStartingSignal
       );
 
-      const onCalls = (mockWebSocket.on as unknown as { mock: { calls: [string, (error: { code: string; message: string }) => void][] } }).mock.calls;
+      const onCalls = (
+        mockWebSocket.on as unknown as {
+          mock: { calls: [string, (error: { code: string; message: string }) => void][] };
+        }
+      ).mock.calls;
       const errorCallback = onCalls.find(call => call[0] === 'error')![1];
       const error = { code: 'TEST_ERROR', message: 'Test error message' };
 

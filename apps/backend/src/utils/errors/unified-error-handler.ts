@@ -12,11 +12,7 @@ import { ERROR_CODES, ERROR_STATUS_CODES } from './error-codes';
 /**
  * Express用の統一エラーハンドリングミドルウェア
  */
-export function unifiedErrorHandler(
-  error: Error | AppError,
-  req: Request,
-  res: Response
-): void {
+export function unifiedErrorHandler(error: Error | AppError, req: Request, res: Response): void {
   // AppErrorの場合
   if (isAppError(error)) {
     const errorResponse: ApiResponse = {
