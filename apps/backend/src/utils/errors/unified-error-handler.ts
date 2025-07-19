@@ -25,6 +25,7 @@ export function unifiedErrorHandler(
         code: error.code,
         message: error.message,
         details: error.details,
+        timestamp: new Date(error.timestamp).toISOString(),
       },
       timestamp: error.timestamp,
     };
@@ -43,6 +44,7 @@ export function unifiedErrorHandler(
         path: req.url,
         method: req.method,
       },
+      timestamp: new Date().toISOString(),
     },
     timestamp: Date.now(),
   };
@@ -63,6 +65,7 @@ export function notFoundHandler(req: Request, res: Response): void {
         path: req.url,
         method: req.method,
       },
+      timestamp: new Date().toISOString(),
     },
     timestamp: Date.now(),
   };
@@ -92,6 +95,7 @@ export function createWebSocketErrorHandler() {
       error: {
         code: ERROR_CODES.INTERNAL_ERROR,
         message: error.message || 'An unexpected WebSocket error occurred',
+        timestamp: new Date().toISOString(),
       },
       timestamp: Date.now(),
     };

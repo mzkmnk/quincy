@@ -57,8 +57,8 @@ export abstract class AppError extends Error {
         code: this.code,
         message: this.message,
         details: this.details,
+        timestamp: new Date(this.timestamp).toISOString(),
       },
-      timestamp: this.timestamp,
     };
   }
 }

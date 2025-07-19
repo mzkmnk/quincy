@@ -46,6 +46,7 @@ export interface ErrorResponse extends BaseResponse {
     code: ErrorCode;
     message: string;
     details?: Record<string, string | number | boolean | null>;
+    timestamp: string;
   };
 }
 
