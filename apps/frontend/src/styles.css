@@ -6,6 +6,7 @@
 /* PrimeNG styles */
 @import 'primeicons/primeicons.css';
 
+
 /* X (Twitter) Black Theme */
 :root {
   /* Background colors */
@@ -42,6 +43,7 @@
 body {
   background-color: var(--primary-bg);
   color: var(--text-primary);
+  font-family: "Space Mono";
 }
 
 /* Scrollbar styling for dark theme */
