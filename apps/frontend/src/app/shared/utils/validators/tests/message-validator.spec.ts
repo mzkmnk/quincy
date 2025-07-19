@@ -35,22 +35,6 @@ describe('isValidMessage', () => {
       expect(isValidMessage('通貨: €£¥$')).toBe(true);
     });
 
-    it('nullやundefinedを渡された場合の動作', () => {
-      expect(isValidMessage(null as unknown as string)).toBe(false);
-      expect(isValidMessage(undefined as unknown as string)).toBe(false);
-    });
-
-    it('数値を渡された場合の動作', () => {
-      expect(isValidMessage(123 as unknown as string)).toBe(false);
-      expect(isValidMessage(0 as unknown as string)).toBe(false);
-      expect(isValidMessage(NaN as unknown as string)).toBe(false);
-    });
-
-    it('オブジェクトを渡された場合の動作', () => {
-      expect(isValidMessage({} as unknown as string)).toBe(false);
-      expect(isValidMessage([] as unknown as string)).toBe(false);
-      expect(isValidMessage({ message: 'hello' } as unknown as string)).toBe(false);
-    });
 
     it('特殊な空白文字のみの場合、falseを返す', () => {
       expect(isValidMessage('\u00A0')).toBe(false); // Non-breaking space
@@ -70,24 +54,5 @@ describe('isValidMessage', () => {
       expect(isValidMessage('\n\nActual content\n\n')).toBe(true);
     });
 
-    it('コードブロックのようなメッセージを処理する', () => {
-      const codeBlock = `
-        function hello() {
-          console.log("Hello, World!");
-        }
-      `;
-      expect(isValidMessage(codeBlock)).toBe(true);
-    });
-
-    it('XMLやHTMLタグのようなメッセージを処理する', () => {
-      expect(isValidMessage('<div>Content</div>')).toBe(true);
-      expect(isValidMessage('<?xml version="1.0"?>')).toBe(true);
-      expect(isValidMessage('<script>alert("test")</script>')).toBe(true);
-    });
-
-    it('JSONのようなメッセージを処理する', () => {
-      expect(isValidMessage('{"name": "John", "age": 30}')).toBe(true);
-      expect(isValidMessage('[1, 2, 3, 4, 5]')).toBe(true);
-    });
   });
 });

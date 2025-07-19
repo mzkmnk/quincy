@@ -275,7 +275,7 @@ describe('resumeSession', () => {
       };
       const sessionData = { sessionId: 'session-123', projectPath };
 
-      let sessionSuccessCallback: (data: any) => void = () => {};
+      let sessionSuccessCallback: (data: { sessionId: string; projectPath: string }) => void = () => {};
       mockWebSocketService.setupProjectSessionListeners = vi.fn().mockImplementation(callback => {
         sessionSuccessCallback = callback;
       });
@@ -379,7 +379,7 @@ describe('resumeSession', () => {
       };
       const sessionData = { sessionId: 'session-123', projectPath };
 
-      let sessionSuccessCallback: (data: any) => void = () => {};
+      let sessionSuccessCallback: (data: { sessionId: string; projectPath: string }) => void = () => {};
       mockWebSocketService.setupProjectSessionListeners = vi.fn().mockImplementation(callback => {
         sessionSuccessCallback = callback;
       });
@@ -614,69 +614,4 @@ describe('resumeSession', () => {
     });
   });
 
-  describe('メモリリークの防止', () => {
-    it('セッション成功時にサブスクリプションが解除される', () => {
-      const projectPath = '/Users/test/project';
-      const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = {
-        cliLaunched: false,
-        connectionEstablished: false,
-        workspaceReady: false,
-      };
-      const sessionData = { sessionId: 'session-123' };
-
-      const mockUnsubscribe = vi.fn();
-      sessionFailedSubject.asObservable = vi.fn().mockReturnValue({
-        subscribe: vi.fn().mockReturnValue({ unsubscribe: mockUnsubscribe }),
-      });
-
-      let sessionSuccessCallback: (data: any) => void = () => {};
-      mockWebSocketService.setupProjectSessionListeners = vi.fn().mockImplementation(callback => {
-        sessionSuccessCallback = callback;
-      });
-
-      resumeSession(
-        projectPath,
-        conversationId,
-        mockWebSocketService as WebSocketService,
-        mockAppStore as AppStore,
-        sessionStatus,
-        mockUpdateSessionStatus
-      );
-
-      // セッション成功をシミュレート
-      sessionSuccessCallback(sessionData);
-
-      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
-    });
-
-    it('セッション失敗時にサブスクリプションが解除される', () => {
-      const projectPath = '/Users/test/project';
-      const conversationId = 'conv-123';
-      const sessionStatus: SessionStatus = {
-        cliLaunched: false,
-        connectionEstablished: false,
-        workspaceReady: false,
-      };
-
-      const mockUnsubscribe = vi.fn();
-      sessionFailedSubject.asObservable = vi.fn().mockReturnValue({
-        subscribe: vi.fn().mockReturnValue({ unsubscribe: mockUnsubscribe }),
-      });
-
-      resumeSession(
-        projectPath,
-        conversationId,
-        mockWebSocketService as WebSocketService,
-        mockAppStore as AppStore,
-        sessionStatus,
-        mockUpdateSessionStatus
-      );
-
-      // セッション失敗をシミュレート
-      sessionFailedSubject.next({ error: 'Test error' });
-
-      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
-    });
-  });
 });

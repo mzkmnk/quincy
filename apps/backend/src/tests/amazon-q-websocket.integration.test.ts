@@ -198,7 +198,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
 
       // セッション開始の確認
       clientSocket.on('q:session:started', (): void => {
-        sessionId = 
+        sessionId = 'test-session-123';
 
         // セッション中止の実行
         const abortEvent: QAbortEvent = { sessionId };
@@ -229,7 +229,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
 
       // セッション開始後にメッセージ送信
       clientSocket.on('q:session:started', (): void => {
-        sessionId = 
+        sessionId = 'test-session-123';
 
         // メッセージ送信
         const messageEvent: QMessageEvent = {
@@ -301,10 +301,10 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
           id: 1,
           conversation_id: 'conv_1',
           project_path: '/Users/test/project',
-          history
+          history: [
             { role: 'user', content: 'Hello' },
             { role: 'assistant', content: 'Hi there!' },
-          ]),
+          ],
         },
       ];
 

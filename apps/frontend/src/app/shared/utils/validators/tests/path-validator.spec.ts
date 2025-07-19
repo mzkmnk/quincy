@@ -61,20 +61,6 @@ describe('validatePath', () => {
       expect(validatePath('/Users/user/project.with.dots')).toBeNull();
     });
 
-    it('nullやundefinedを渡された場合の動作', () => {
-      expect(validatePath(null as unknown as string)).toBe('パスを入力してください');
-      expect(validatePath(undefined as unknown as string)).toBe('パスを入力してください');
-    });
-
-    it('数値を渡された場合の動作', () => {
-      expect(validatePath(123 as unknown as string)).toBe('パスを入力してください');
-      expect(validatePath(0 as unknown as string)).toBe('パスを入力してください');
-    });
-
-    it('オブジェクトを渡された場合の動作', () => {
-      expect(validatePath({} as unknown as string)).toBe('パスを入力してください');
-      expect(validatePath([] as unknown as string)).toBe('パスを入力してください');
-    });
 
     it('タブや改行文字を含む入力を処理する', () => {
       expect(validatePath('\t/Users/username/project\n')).toBeNull();

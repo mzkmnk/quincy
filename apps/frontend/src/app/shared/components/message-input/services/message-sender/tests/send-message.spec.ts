@@ -1,6 +1,9 @@
 import { ElementRef } from '@angular/core';
+import type { MessageService } from 'primeng/api';
 
 import { canSendMessage, sendMessage } from '../send-message';
+import type { AppStore } from '../../../../../../core/store/app.state';
+import type { WebSocketService } from '../../../../../../core/services/websocket.service';
 
 describe('message-sender', () => {
   describe('canSendMessage', () => {
@@ -54,30 +57,32 @@ describe('message-sender', () => {
   });
 
   describe('sendMessage', () => {
-    let mockAppStore: any;
-    let mockWebSocket: any;
-    let mockMessageService: any;
+    let mockAppStore: Partial<AppStore>;
+    let mockWebSocket: Partial<WebSocketService>;
+    let mockMessageService: Partial<MessageService>;
     let mockMessageTextarea: ElementRef<HTMLTextAreaElement>;
-    let mockSendingSignal: any;
-    let mockMessageTextSignal: any;
-    let mockMessageSentEmitter: any;
-    let mockTextareaElement: any;
+    let mockSendingSignal: { set: (value: boolean) => void };
+    let mockMessageTextSignal: { set: (value: string) => void };
+    let mockMessageSentEmitter: { emit: (data: { content: string }) => void };
+    let mockTextareaElement: { style: { height: string } };
 
     beforeEach(() => {
+      const mockCurrentQSession = vi.fn().mockReturnValue({
+        sessionId: 'test-session-123',
+        projectPath: '/test/project',
+      });
       mockAppStore = {
-        currentQSession: vi.fn().mockReturnValue({
-          sessionId: 'test-session-123',
-          projectPath: '/test/project',
-        }),
-      };
+        currentQSession: mockCurrentQSession,
+      } as unknown as Partial<AppStore>;
 
+      const mockSendQMessage = vi.fn().mockResolvedValue(undefined);
       mockWebSocket = {
-        sendQMessage: vi.fn().mockResolvedValue(undefined),
-      };
+        sendQMessage: mockSendQMessage,
+      } as Partial<WebSocketService>;
 
       mockMessageService = {
         add: vi.fn(),
-      };
+      } as Partial<MessageService>;
 
       mockTextareaElement = {
         style: {
@@ -97,8 +102,9 @@ describe('message-sender', () => {
         set: vi.fn(),
       };
 
+      const mockEmit = vi.fn();
       mockMessageSentEmitter = {
-        emit: vi.fn(),
+        emit: mockEmit,
       };
 
       // console.logとconsole.errorをモック
@@ -114,9 +120,9 @@ describe('message-sender', () => {
       it('正常にメッセージを送信する', async () => {
         await sendMessage(
           'Hello World',
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
           mockMessageTextarea,
           mockSendingSignal,
           mockMessageTextSignal,
@@ -134,9 +140,9 @@ describe('message-sender', () => {
       it('前後の空白を削除してメッセージを送信する', async () => {
         await sendMessage(
           '  Hello World  ',
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
           mockMessageTextarea,
           mockSendingSignal,
           mockMessageTextSignal,
@@ -152,9 +158,9 @@ describe('message-sender', () => {
 
         await sendMessage(
           specialMessage,
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
           mockMessageTextarea,
           mockSendingSignal,
           mockMessageTextSignal,
@@ -168,13 +174,13 @@ describe('message-sender', () => {
 
     describe('セッション状態の処理', () => {
       it('アクティブセッションがない場合、送信をスキップする', async () => {
-        mockAppStore.currentQSession.mockReturnValue(null);
+        (mockAppStore.currentQSession as unknown as ReturnType<typeof vi.fn>).mockReturnValue(null);
 
         await sendMessage(
           'Hello World',
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
           mockMessageTextarea,
           mockSendingSignal,
           mockMessageTextSignal,
@@ -187,13 +193,13 @@ describe('message-sender', () => {
       });
 
       it('セッションがundefinedの場合、送信をスキップする', async () => {
-        mockAppStore.currentQSession.mockReturnValue(undefined);
+        (mockAppStore.currentQSession as unknown as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
 
         await sendMessage(
           'Hello World',
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
           mockMessageTextarea,
           mockSendingSignal,
           mockMessageTextSignal,
@@ -208,13 +214,13 @@ describe('message-sender', () => {
     describe('エラーハンドリング', () => {
       it('WebSocket送信エラー時に適切なエラー処理を行う', async () => {
         const error = new Error('WebSocket error');
-        mockWebSocket.sendQMessage.mockRejectedValue(error);
+        (mockWebSocket.sendQMessage as ReturnType<typeof vi.fn>).mockRejectedValue(error);
 
         await sendMessage(
           'Hello World',
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
           mockMessageTextarea,
           mockSendingSignal,
           mockMessageTextSignal,
@@ -232,15 +238,15 @@ describe('message-sender', () => {
       });
 
       it('例外発生時でも適切にクリーンアップする', async () => {
-        mockMessageSentEmitter.emit.mockImplementation(() => {
+        (mockMessageSentEmitter.emit as ReturnType<typeof vi.fn>).mockImplementation(() => {
           throw new Error('Emit error');
         });
 
         await sendMessage(
           'Hello World',
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
           mockMessageTextarea,
           mockSendingSignal,
           mockMessageTextSignal,
@@ -256,9 +262,9 @@ describe('message-sender', () => {
       it('送信状態を正しく管理する', async () => {
         await sendMessage(
           'Hello World',
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
           mockMessageTextarea,
           mockSendingSignal,
           mockMessageTextSignal,
@@ -274,9 +280,9 @@ describe('message-sender', () => {
       it('メッセージテキストをクリアする', async () => {
         await sendMessage(
           'Hello World',
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
           mockMessageTextarea,
           mockSendingSignal,
           mockMessageTextSignal,
@@ -289,9 +295,9 @@ describe('message-sender', () => {
       it('テキストエリアの高さをリセットする', async () => {
         await sendMessage(
           'Hello World',
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
           mockMessageTextarea,
           mockSendingSignal,
           mockMessageTextSignal,
@@ -304,10 +310,10 @@ describe('message-sender', () => {
       it('テキストエリアがnullの場合でもエラーにならない', async () => {
         await sendMessage(
           'Hello World',
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
-          null as unknown as string,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
+          null,
           mockSendingSignal,
           mockMessageTextSignal,
           mockMessageSentEmitter
@@ -322,9 +328,9 @@ describe('message-sender', () => {
       it('メッセージ送信時にログを出力する', async () => {
         await sendMessage(
           'Hello World',
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
           mockMessageTextarea,
           mockSendingSignal,
           mockMessageTextSignal,
@@ -342,13 +348,13 @@ describe('message-sender', () => {
           resolveWebSocket = resolve;
         });
 
-        mockWebSocket.sendQMessage.mockReturnValue(webSocketPromise);
+        (mockWebSocket.sendQMessage as ReturnType<typeof vi.fn>).mockReturnValue(webSocketPromise);
 
         const sendPromise = sendMessage(
           'Hello World',
-          mockAppStore,
-          mockWebSocket,
-          mockMessageService,
+          mockAppStore as AppStore,
+          mockWebSocket as WebSocketService,
+          mockMessageService as MessageService,
           mockMessageTextarea,
           mockSendingSignal,
           mockMessageTextSignal,

@@ -7,7 +7,11 @@ import type { AmazonQConversation, ConversationMetadata } from '@quincy/shared';
  */
 export function getProjectName(projectPath: string): string {
   if (!projectPath) return 'Unknown Project';
-  const parts = projectPath.split('/');
+  
+  // WindowsとUnix/Linuxの両方のパス区切り文字に対応
+  const normalizedPath = projectPath.replace(/\\/g, '/');
+  const parts = normalizedPath.split('/').filter(part => part.length > 0);
+  
   return parts[parts.length - 1] || projectPath;
 }
 

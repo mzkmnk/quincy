@@ -268,7 +268,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
 
   describe('イベント統合テスト', () => {
     it('複数のイベントが順序立てて発行されること', async () => {
-      const _result = startAmazonQCli('test message', {
+      startAmazonQCli('test message', {
         workingDir: testWorkingDir,
       });
 

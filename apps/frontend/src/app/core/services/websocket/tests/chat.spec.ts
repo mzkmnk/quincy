@@ -1,15 +1,16 @@
 import { vi } from 'vitest';
+import type { Socket } from 'socket.io-client';
 
 import { sendQMessage, abortQSession } from '../chat';
 
 describe('Chat Functions', () => {
-  let mockSocket: any;
+  let mockSocket: Partial<Socket>;
 
   beforeEach(() => {
     mockSocket = {
       emit: vi.fn(),
       connected: true,
-    };
+    } as Partial<Socket>;
   });
 
   describe('sendQMessage', () => {
@@ -17,7 +18,7 @@ describe('Chat Functions', () => {
       const sessionId = 'test-session-123';
       const message = 'Hello, Amazon Q!';
 
-      await sendQMessage(mockSocket, sessionId, message);
+      await sendQMessage(mockSocket as Socket, sessionId, message);
 
       expect(mockSocket.emit).toHaveBeenCalledWith('q:message', {
         sessionId,
@@ -28,7 +29,7 @@ describe('Chat Functions', () => {
     it('未接続のソケットでエラーを返す', async () => {
       mockSocket.connected = false;
 
-      await expect(sendQMessage(mockSocket, 'session', 'message')).rejects.toThrow(
+      await expect(sendQMessage(mockSocket as Socket, 'session', 'message')).rejects.toThrow(
         'WebSocket not connected'
       );
     });
@@ -44,7 +45,7 @@ describe('Chat Functions', () => {
     it('セッション中止イベントを送信する', () => {
       const sessionId = 'test-session-123';
 
-      abortQSession(mockSocket, sessionId);
+      abortQSession(mockSocket as Socket, sessionId);
 
       expect(mockSocket.emit).toHaveBeenCalledWith('q:abort', { sessionId });
     });

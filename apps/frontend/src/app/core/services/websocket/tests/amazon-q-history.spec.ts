@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import type { Socket } from 'socket.io-client';
 
 import {
   getProjectHistory,
@@ -7,21 +8,21 @@ import {
 } from '../amazon-q-history';
 
 describe('Amazon Q History Functions', () => {
-  let mockSocket: any;
+  let mockSocket: Partial<Socket>;
 
   beforeEach(() => {
     mockSocket = {
       emit: vi.fn(),
       once: vi.fn(),
       connected: true,
-    };
+    } as Partial<Socket>;
   });
 
   describe('getProjectHistory', () => {
     it('プロジェクト履歴取得イベントを送信する', () => {
       const projectPath = '/test/project';
 
-      getProjectHistory(mockSocket, projectPath);
+      getProjectHistory(mockSocket as Socket, projectPath);
 
       expect(mockSocket.emit).toHaveBeenCalledWith('q:history', { projectPath });
     });
@@ -35,7 +36,7 @@ describe('Amazon Q History Functions', () => {
     it('プロジェクト履歴詳細取得イベントを送信する', () => {
       const projectPath = '/test/project';
 
-      getProjectHistoryDetailed(mockSocket, projectPath);
+      getProjectHistoryDetailed(mockSocket as Socket, projectPath);
 
       expect(mockSocket.emit).toHaveBeenCalledWith('q:history:detailed', { projectPath });
     });
@@ -43,12 +44,12 @@ describe('Amazon Q History Functions', () => {
 
   describe('getAllProjectsHistory', () => {
     it('接続されたソケットで全プロジェクト履歴を取得する', async () => {
-      const promise = getAllProjectsHistory(mockSocket);
+      const promise = getAllProjectsHistory(mockSocket as Socket);
 
       // 成功レスポンスをシミュレート
-      const successCallback = mockSocket.once.mock.calls.find(
-        (call: any) => call[0] === 'q:history:list'
-      )[1];
+      // モック関数の呼び出しをシミュレート
+      const onceCalls = (mockSocket.once as unknown as { mock: { calls: [string, () => void][] } }).mock.calls;
+      const successCallback = onceCalls.find(call => call[0] === 'q:history:list')![1];
       successCallback();
 
       await expect(promise).resolves.toBeUndefined();
@@ -58,7 +59,7 @@ describe('Amazon Q History Functions', () => {
     it('未接続のソケットでエラーを返す', async () => {
       mockSocket.connected = false;
 
-      await expect(getAllProjectsHistory(mockSocket)).rejects.toThrow('WebSocket not connected');
+      await expect(getAllProjectsHistory(mockSocket as Socket)).rejects.toThrow('WebSocket not connected');
     });
 
     it('nullソケットでエラーを返す', async () => {
@@ -68,7 +69,7 @@ describe('Amazon Q History Functions', () => {
     it('タイムアウトでエラーを返す', async () => {
       vi.useFakeTimers();
 
-      const promise = getAllProjectsHistory(mockSocket);
+      const promise = getAllProjectsHistory(mockSocket as Socket);
 
       // タイムアウトを発生させる
       vi.advanceTimersByTime(10000);

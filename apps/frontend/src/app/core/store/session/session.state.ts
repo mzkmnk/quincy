@@ -1,5 +1,6 @@
 import { signal, computed } from '@angular/core';
 import type { Session } from '@quincy/shared';
+
 import type { AmazonQSession } from '../../types/amazon-q.types';
 
 export interface SessionState {

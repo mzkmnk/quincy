@@ -31,7 +31,7 @@ export async function sendMessage(
   appStore: AppStore,
   websocket: WebSocketService,
   messageService: MessageService,
-  messageTextarea: ElementRef<HTMLTextAreaElement>,
+  messageTextarea: ElementRef<HTMLTextAreaElement> | null,
   sendingSignal: { set: (value: boolean) => void },
   messageTextSignal: { set: (value: string) => void },
   messageSentEmitter: { emit: (data: { content: string }) => void }

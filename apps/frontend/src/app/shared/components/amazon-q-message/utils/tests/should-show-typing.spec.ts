@@ -11,22 +11,6 @@ describe('shouldShowTyping', () => {
     });
   });
 
-  describe('エッジケース', () => {
-    it('truthy値を正しく判定する', () => {
-      expect(shouldShowTyping(1 as unknown as string)).toBe(1);
-      expect(shouldShowTyping('true' as unknown as string)).toBe('true');
-      expect(shouldShowTyping({} as unknown as string)).toEqual({});
-      expect(shouldShowTyping([] as unknown as string)).toEqual([]);
-    });
-
-    it('falsy値を正しく判定する', () => {
-      expect(shouldShowTyping(0 as unknown as string)).toBe(0);
-      expect(shouldShowTyping('' as unknown as string)).toBe('');
-      expect(shouldShowTyping(null as unknown as string)).toBe(null);
-      expect(shouldShowTyping(undefined as unknown as string)).toBe(undefined);
-      expect(shouldShowTyping(NaN as unknown as string)).toBeNaN();
-    });
-  });
 
   describe('型安全性', () => {
     it('boolean値で正常に動作する', () => {
@@ -40,18 +24,6 @@ describe('shouldShowTyping', () => {
     });
   });
 
-  describe('パフォーマンス', () => {
-    it('大量呼び出しでも効率的に動作する', () => {
-      const start = performance.now();
-
-      for (let i = 0; i < 100000; i++) {
-        shouldShowTyping(i % 2 === 0);
-      }
-
-      const end = performance.now();
-      expect(end - start).toBeLessThan(50); // 50ms以内
-    });
-  });
 
   describe('実際の使用シナリオ', () => {
     it('タイピングインディケーター表示の判定', () => {

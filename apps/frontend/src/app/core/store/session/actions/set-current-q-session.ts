@@ -1,6 +1,6 @@
 import type { QSessionStartedEvent } from '@quincy/shared';
-import type { AmazonQSession } from '../../../types/amazon-q.types';
 
+import type { AmazonQSession } from '../../../types/amazon-q.types';
 import { sessionState } from '../session.state';
 
 /**

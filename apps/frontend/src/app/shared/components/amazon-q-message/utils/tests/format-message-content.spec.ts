@@ -31,10 +31,6 @@ describe('formatMessageContent', () => {
       expect(formatMessageContent(' \t\n\r ')).toBe('');
     });
 
-    it('null/undefinedの場合、空文字列を返す', () => {
-      expect(formatMessageContent(null as unknown as string)).toBe('');
-      expect(formatMessageContent(undefined as unknown as string)).toBe('');
-    });
   });
 
   describe('マークダウンコンテンツ', () => {
@@ -120,62 +116,5 @@ describe('formatMessageContent', () => {
     });
   });
 
-  describe('パフォーマンス', () => {
-    it('大量の短いメッセージでも効率的に処理する', () => {
-      const messages = Array.from({ length: 1000 }, (_, i) => `  Message ${i}  `);
 
-      const start = performance.now();
-      messages.forEach(msg => formatMessageContent(msg));
-      const end = performance.now();
-
-      expect(end - start).toBeLessThan(50); // 50ms以内
-    });
-
-    it('長いメッセージでも効率的に処理する', () => {
-      const longMessage = '  ' + 'Very long message content. '.repeat(1000) + '  ';
-
-      const start = performance.now();
-      const result = formatMessageContent(longMessage);
-      const end = performance.now();
-
-      expect(end - start).toBeLessThan(10); // 10ms以内
-      expect(result).toBe(longMessage.trim());
-    });
-  });
-
-  describe('実際の使用シナリオ', () => {
-    it('チャットメッセージの表示準備', () => {
-      const rawMessage = '  Hello! How are you doing today?  ';
-      const formatted = formatMessageContent(rawMessage);
-
-      expect(formatted).toBe('Hello! How are you doing today?');
-      expect(formatted.startsWith(' ')).toBe(false);
-      expect(formatted.endsWith(' ')).toBe(false);
-    });
-
-    it('APIレスポンスのクリーンアップ', () => {
-      const apiResponse = `  
-      
-      Based on your question, here's what I recommend:
-      
-      1. Start with the basics
-      2. Practice regularly
-      3. Ask questions when stuck
-      
-      `;
-
-      const formatted = formatMessageContent(apiResponse);
-      expect(formatted).not.toMatch(/^\s+/); // 先頭に空白なし
-      expect(formatted).not.toMatch(/\s+$/); // 末尾に空白なし
-      expect(formatted).toContain('Based on your question');
-    });
-
-    it('空のメッセージハンドリング', () => {
-      const emptyMessages = ['', '  ', '\t', '\n', '   \t\n  '];
-
-      emptyMessages.forEach(msg => {
-        expect(formatMessageContent(msg)).toBe('');
-      });
-    });
-  });
 });

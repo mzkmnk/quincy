@@ -4,7 +4,7 @@ import { ElementRef } from '@angular/core';
  * メッセージコンテナーをスクロールして最下部に移動する
  * @param messageContainer メッセージコンテナーのElementRef
  */
-export function scrollToBottom(messageContainer: ElementRef<HTMLDivElement>): void {
+export function scrollToBottom(messageContainer: ElementRef<HTMLDivElement> | null): void {
   try {
     if (messageContainer) {
       const element = messageContainer.nativeElement;

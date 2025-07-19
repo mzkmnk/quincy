@@ -1,11 +1,16 @@
+import type { MessageService } from 'primeng/api';
+import type { Router } from '@angular/router';
+
 import { startProject } from '../start-project';
+import type { WebSocketService } from '../../../../../../core/services/websocket.service';
+import type { AppStore } from '../../../../../../core/store/app.state';
 
 describe('startProject', () => {
-  let mockWebSocket: any;
-  let mockAppStore: any;
-  let mockMessageService: any;
-  let mockRouter: any;
-  let mockStartingSignal: any;
+  let mockWebSocket: Partial<WebSocketService>;
+  let mockAppStore: Partial<AppStore>;
+  let mockMessageService: Partial<MessageService>;
+  let mockRouter: Partial<Router>;
+  let mockStartingSignal: { set: (value: boolean) => void };
 
   beforeEach(() => {
     mockWebSocket = {
@@ -13,22 +18,22 @@ describe('startProject', () => {
       startProjectSession: vi.fn(),
       setupProjectSessionListeners: vi.fn(),
       on: vi.fn(),
-    };
+    } as Partial<WebSocketService>;
 
     mockAppStore = {
       clearCurrentView: vi.fn(),
       setSessionStarting: vi.fn(),
       switchToActiveSession: vi.fn(),
       setSessionError: vi.fn(),
-    };
+    } as Partial<AppStore>;
 
     mockMessageService = {
       add: vi.fn(),
-    };
+    } as Partial<MessageService>;
 
     mockRouter = {
       navigate: vi.fn().mockResolvedValue(true),
-    };
+    } as Partial<Router>;
 
     mockStartingSignal = {
       set: vi.fn(),
@@ -48,10 +53,10 @@ describe('startProject', () => {
       await startProject(
         '/Users/test/project',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
@@ -68,10 +73,10 @@ describe('startProject', () => {
       await startProject(
         '  /Users/test/project  ',
         true,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
@@ -82,10 +87,10 @@ describe('startProject', () => {
       await startProject(
         '/test/path',
         true,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
@@ -98,10 +103,10 @@ describe('startProject', () => {
       await startProject(
         '/test/path',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
@@ -112,15 +117,16 @@ describe('startProject', () => {
       await startProject(
         '/test/path',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
       // setupProjectSessionListenersのコールバックを実行
-      const callback = mockWebSocket.setupProjectSessionListeners.mock.calls[0][0];
+      const setupCalls = (mockWebSocket.setupProjectSessionListeners as unknown as { mock: { calls: [(data: { sessionId: string; projectPath: string }) => void][] } }).mock.calls;
+      const callback = setupCalls[0][0];
       const sessionData = { sessionId: 'test-session', projectPath: '/test/path' };
 
       callback(sessionData);
@@ -135,15 +141,16 @@ describe('startProject', () => {
       await startProject(
         '/test/path',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
       // エラーリスナーのコールバックを実行
-      const errorCallback = mockWebSocket.on.mock.calls.find(call => call[0] === 'error')[1];
+      const onCalls = (mockWebSocket.on as unknown as { mock: { calls: [string, (error: { code: string; message: string }) => void][] } }).mock.calls;
+      const errorCallback = onCalls.find(call => call[0] === 'error')![1];
       const error = { code: 'GENERIC_ERROR', message: 'Test error' };
 
       errorCallback(error);
@@ -158,15 +165,16 @@ describe('startProject', () => {
       await startProject(
         '/test/path',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
-      const errorCallback = mockWebSocket.on.mock.calls.find(call => call[0] === 'error')[1];
-      const error = { code: 'Q_CLI_NOT_AVAILABLE' };
+      const onCalls = (mockWebSocket.on as unknown as { mock: { calls: [string, (error: { code: string; message: string }) => void][] } }).mock.calls;
+      const errorCallback = onCalls.find(call => call[0] === 'error')![1];
+      const error = { code: 'Q_CLI_NOT_AVAILABLE', message: 'Q CLI not available' };
 
       errorCallback(error);
 
@@ -179,15 +187,16 @@ describe('startProject', () => {
       await startProject(
         '/test/path',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
-      const errorCallback = mockWebSocket.on.mock.calls.find(call => call[0] === 'error')[1];
-      const error = { code: 'Q_CLI_NOT_FOUND' };
+      const onCalls = (mockWebSocket.on as unknown as { mock: { calls: [string, (error: { code: string; message: string }) => void][] } }).mock.calls;
+      const errorCallback = onCalls.find(call => call[0] === 'error')![1];
+      const error = { code: 'Q_CLI_NOT_FOUND', message: 'Q CLI not found' };
 
       errorCallback(error);
 
@@ -200,15 +209,16 @@ describe('startProject', () => {
       await startProject(
         '/test/path',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
-      const errorCallback = mockWebSocket.on.mock.calls.find(call => call[0] === 'error')[1];
-      const error = { code: 'Q_CLI_PERMISSION_ERROR' };
+      const onCalls = (mockWebSocket.on as unknown as { mock: { calls: [string, (error: { code: string; message: string }) => void][] } }).mock.calls;
+      const errorCallback = onCalls.find(call => call[0] === 'error')![1];
+      const error = { code: 'Q_CLI_PERMISSION_ERROR', message: 'Q CLI permission error' };
 
       errorCallback(error);
 
@@ -221,15 +231,16 @@ describe('startProject', () => {
       await startProject(
         '/test/path',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
-      const errorCallback = mockWebSocket.on.mock.calls.find(call => call[0] === 'error')[1];
-      const error = { code: 'Q_CLI_SPAWN_ERROR' };
+      const onCalls = (mockWebSocket.on as unknown as { mock: { calls: [string, (error: { code: string; message: string }) => void][] } }).mock.calls;
+      const errorCallback = onCalls.find(call => call[0] === 'error')![1];
+      const error = { code: 'Q_CLI_SPAWN_ERROR', message: 'Q CLI spawn error' };
 
       errorCallback(error);
 
@@ -239,17 +250,17 @@ describe('startProject', () => {
     });
 
     it('例外が発生した場合の処理', async () => {
-      mockWebSocket.connect.mockImplementation(() => {
+      (mockWebSocket.connect as ReturnType<typeof vi.fn>).mockImplementation(() => {
         throw new Error('Connection failed');
       });
 
       await startProject(
         '/test/path',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
@@ -271,10 +282,10 @@ describe('startProject', () => {
       await startProject(
         '',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
@@ -285,10 +296,10 @@ describe('startProject', () => {
       await startProject(
         '   ',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
@@ -301,10 +312,10 @@ describe('startProject', () => {
       await startProject(
         specialPath,
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
@@ -317,10 +328,10 @@ describe('startProject', () => {
       await startProject(
         '/test/path',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
@@ -331,15 +342,16 @@ describe('startProject', () => {
       await startProject(
         '/test/path',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
-      const callback = mockWebSocket.setupProjectSessionListeners.mock.calls[0][0];
-      const sessionData = { sessionId: 'test-session' };
+      const setupCalls = (mockWebSocket.setupProjectSessionListeners as unknown as { mock: { calls: [(data: { sessionId: string; projectPath: string }) => void][] } }).mock.calls;
+      const callback = setupCalls[0][0];
+      const sessionData = { sessionId: 'test-session', projectPath: '/test/project' };
 
       callback(sessionData);
 
@@ -350,15 +362,16 @@ describe('startProject', () => {
       await startProject(
         '/test/path',
         false,
-        mockWebSocket,
-        mockAppStore,
-        mockMessageService,
-        mockRouter,
+        mockWebSocket as WebSocketService,
+        mockAppStore as AppStore,
+        mockMessageService as MessageService,
+        mockRouter as Router,
         mockStartingSignal
       );
 
-      const errorCallback = mockWebSocket.on.mock.calls.find(call => call[0] === 'error')[1];
-      const error = { code: 'TEST_ERROR' };
+      const onCalls = (mockWebSocket.on as unknown as { mock: { calls: [string, (error: { code: string; message: string }) => void][] } }).mock.calls;
+      const errorCallback = onCalls.find(call => call[0] === 'error')![1];
+      const error = { code: 'TEST_ERROR', message: 'Test error message' };
 
       errorCallback(error);
 

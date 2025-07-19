@@ -1,11 +1,12 @@
 import { vi } from 'vitest';
-import { signal } from '@angular/core';
+import { signal, type WritableSignal } from '@angular/core';
+import type { Socket } from 'socket.io-client';
 
 import { connect, disconnect, emit, on, off } from '../connection';
 import { ConnectionState } from '../types';
 
 // Socket.ioのモック
-const mockSocket = {
+const mockSocket: Partial<Socket> = {
   on: vi.fn(),
   off: vi.fn(),
   emit: vi.fn(),
@@ -20,7 +21,7 @@ vi.mock('socket.io-client', () => ({
 }));
 
 describe('WebSocket Connection Functions', () => {
-  let connectionState: any;
+  let connectionState: WritableSignal<ConnectionState>;
 
   // テストヘルパー関数
   const createConnectionState = () =>
@@ -53,7 +54,7 @@ describe('WebSocket Connection Functions', () => {
 
   describe('disconnect', () => {
     it('ソケットを切断し、接続状態をリセットする', () => {
-      disconnect(mockSocket, connectionState);
+      disconnect(mockSocket as Socket, connectionState);
 
       expect(mockSocket.disconnect).toHaveBeenCalled();
       expect(connectionState().connected).toBe(false);
@@ -71,7 +72,7 @@ describe('WebSocket Connection Functions', () => {
     it('接続されているソケットでイベントを送信する', () => {
       const testData = { message: 'test' };
 
-      emit(mockSocket, 'test-event', testData);
+      emit(mockSocket as Socket, 'test-event', testData);
 
       expect(mockSocket.emit).toHaveBeenCalledWith('test-event', testData);
     });
@@ -79,7 +80,7 @@ describe('WebSocket Connection Functions', () => {
     it('接続されていないソケットでは何もしない', () => {
       mockSocket.connected = false;
 
-      emit(mockSocket, 'test-event', {});
+      emit(mockSocket as Socket, 'test-event', {});
 
       expect(mockSocket.emit).not.toHaveBeenCalled();
     });
@@ -93,7 +94,7 @@ describe('WebSocket Connection Functions', () => {
     it('イベントリスナーを設定する', () => {
       const callback = vi.fn();
 
-      on(mockSocket, 'test-event', callback);
+      on(mockSocket as Socket, 'test-event', callback);
 
       expect(mockSocket.on).toHaveBeenCalledWith('test-event', callback);
     });
@@ -107,7 +108,7 @@ describe('WebSocket Connection Functions', () => {
     it('イベントリスナーを削除する', () => {
       const callback = vi.fn();
 
-      off(mockSocket, 'test-event', callback);
+      off(mockSocket as Socket, 'test-event', callback);
 
       expect(mockSocket.off).toHaveBeenCalledWith('test-event', callback);
     });

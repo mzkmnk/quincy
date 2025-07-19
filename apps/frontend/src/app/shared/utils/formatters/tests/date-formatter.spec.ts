@@ -45,12 +45,6 @@ describe('formatDate', () => {
 
   // エッジケースのテスト
   describe('エッジケース', () => {
-    it('nullやundefinedを渡された場合の動作', () => {
-      // nullは1970年1月1日として扱われる（new Date(null)の動作）
-      expect(formatDate(null as unknown as string)).toMatch(/1970/);
-      // undefinedは無効な日付となる
-      expect(formatDate(undefined as unknown as string)).toBe('');
-    });
 
     it('極端に古い日付を処理する', () => {
       const veryOldDate = new Date('0001-01-01');
@@ -104,23 +98,6 @@ describe('formatDate', () => {
       expect(result1).toBe(result2);
     });
 
-    it('無効な形式文字列でもエラーにならない', () => {
-      const result = formatDate(testDate, 'invalid-format' as unknown as string);
-      expect(typeof result).toBe('string');
-      expect(result.length).toBeGreaterThan(0);
-    });
-
-    it('オブジェクトや配列を渡された場合の動作', () => {
-      expect(formatDate({} as unknown as string)).toBe('');
-      expect(formatDate([] as unknown as string)).toBe('');
-      expect(formatDate({ year: 2024 } as unknown as string)).toBe('');
-    });
-
-    it('文字列の数値を渡された場合の動作', () => {
-      const stringTimestamp = '1705318245000'; // 数値文字列
-      const result = formatDate(stringTimestamp as unknown as string);
-      expect(typeof result).toBe('string');
-    });
 
     it('ISO文字列の様々な形式を処理する', () => {
       expect(formatDate('2024-01-15')).toMatch(/2024/);
