@@ -4,24 +4,24 @@ import { signal } from '@angular/core';
 import { ConnectionState } from '../types';
 
 // Socket.ioのモック
-const mockIo = vi.fn();
+const mockSocket = {
+  on: vi.fn(),
+  off: vi.fn(),
+  emit: vi.fn(),
+  disconnect: vi.fn(),
+  connected: true
+};
+
+const mockIo = vi.fn().mockReturnValue(mockSocket);
+
 vi.mock('socket.io-client', () => ({
   io: mockIo
 }));
 
 describe('WebSocket Connection Functions', () => {
   let connectionState: any;
-  let mockSocket: any;
 
   // テストヘルパー関数
-  const createMockSocket = () => ({
-    on: vi.fn(),
-    off: vi.fn(),
-    emit: vi.fn(),
-    disconnect: vi.fn(),
-    connected: true
-  });
-
   const createConnectionState = () => signal<ConnectionState>({
     connected: false,
     connecting: false,
@@ -35,7 +35,6 @@ describe('WebSocket Connection Functions', () => {
 
   beforeEach(() => {
     connectionState = createConnectionState();
-    mockSocket = createMockSocket();
     setupMocks();
   });
 

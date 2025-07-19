@@ -1,8 +1,10 @@
-import { Component, input, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ProjectListComponent } from '../project-list/project-list.component';
 import { AppStore } from '../../../core/store/app.state';
+import { shouldShowFullButton, shouldShowIconButton } from './utils';
+import { handleNewProject } from './services';
 
 @Component({
   selector: 'app-sidebar',
@@ -14,7 +16,7 @@ import { AppStore } from '../../../core/store/app.state';
       <div class="p-4">
         <button
           class="w-full px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--tertiary-bg)] border border-[var(--border-color)] rounded-md hover:bg-[var(--hover-bg)] transition-colors flex items-center justify-center gap-2"
-          [class.hidden]="collapsed()"
+          [class.hidden]="!showFullButton()"
           (click)="createNewProject()"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,7 +26,7 @@ import { AppStore } from '../../../core/store/app.state';
         </button>
         <button
           class="w-full p-2 text-[var(--text-primary)] bg-[var(--tertiary-bg)] border border-[var(--border-color)] rounded-md hover:bg-[var(--hover-bg)] transition-colors flex items-center justify-center"
-          [class.hidden]="!collapsed()"
+          [class.hidden]="!showIconButton()"
           (click)="createNewProject()"
           title="New Project"
         >
@@ -47,10 +49,10 @@ export class SidebarComponent {
   private router = inject(Router);
   private appStore = inject(AppStore);
 
+  showFullButton = computed(() => shouldShowFullButton(this.collapsed()));
+  showIconButton = computed(() => shouldShowIconButton(this.collapsed()));
+
   createNewProject(): void {
-    // 現在の状態をクリアしてプロジェクト未選択状態にする
-    this.appStore.clearCurrentView();
-    // /chatページに移動
-    this.router.navigate(['/chat']);
+    handleNewProject(this.router, this.appStore);
   }
 }

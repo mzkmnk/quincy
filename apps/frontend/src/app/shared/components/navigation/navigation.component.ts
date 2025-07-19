@@ -1,8 +1,9 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
+import { getConnectionStatusClass, getConnectionStatusText } from './utils';
 
 @Component({
   selector: 'app-navigation',
@@ -18,13 +19,10 @@ import { WebSocketService } from '../../../core/services/websocket.service';
         <div class="flex items-center gap-2 text-sm">
           <span 
             class="w-2 h-2 rounded-full"
-            [class.bg-green-500]="websocket.connected()"
-            [class.bg-orange-500]="websocket.connecting()"
-            [class.animate-pulse]="websocket.connecting()"
-            [class.bg-red-500]="!websocket.connected() && !websocket.connecting()"
+            [class]="connectionStatusClass()"
           ></span>
           <span class="text-[var(--text-secondary)] font-medium hidden md:inline">
-            {{ websocket.connected() ? 'Connected' : websocket.connecting() ? 'Connecting' : 'Disconnected' }}
+            {{ connectionStatusText() }}
           </span>
         </div>
       </div>
@@ -40,4 +38,12 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 export class NavigationComponent {
   protected appStore = inject(AppStore);
   protected websocket = inject(WebSocketService);
+
+  connectionStatusClass = computed(() => 
+    getConnectionStatusClass(this.websocket.connected(), this.websocket.connecting())
+  );
+
+  connectionStatusText = computed(() => 
+    getConnectionStatusText(this.websocket.connected(), this.websocket.connecting())
+  );
 }
