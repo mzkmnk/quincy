@@ -109,14 +109,6 @@ export default tseslint.config(
         },
     },
 
-    // Test用設定
-    {
-        files: ["**/*.{test,spec}.{ts,js}"],
-        rules: {
-            "@typescript-eslint/no-explicit-any": "off",
-            "no-console": "off",
-        },
-    },
 
     // Prettier との競合回避
     eslintConfigPrettier,

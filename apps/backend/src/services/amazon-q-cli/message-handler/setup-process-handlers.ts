@@ -1,4 +1,4 @@
-import type { QCompleteEvent, QErrorEvent } from '@quincy/shared';
+import type { QCompleteEvent, QErrorEvent, QResponseEvent, QInfoEvent } from '@quincy/shared';
 
 import type { QProcessSession } from '../session-manager/types';
 
@@ -7,7 +7,7 @@ import { handleStderr } from './handle-stderr';
 
 export function setupProcessHandlers(
   session: QProcessSession,
-  emitCallback: (event: string, data: any) => void,
+  emitCallback: (event: string, data: QResponseEvent | QInfoEvent | QErrorEvent | QCompleteEvent) => void,
   flushIncompleteOutputLineCallback: (session: QProcessSession) => void,
   flushIncompleteErrorLineCallback: (session: QProcessSession) => void,
   addToInitializationBufferCallback: (session: QProcessSession, message: string) => void,

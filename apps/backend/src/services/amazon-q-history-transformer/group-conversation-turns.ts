@@ -26,7 +26,7 @@ export function groupConversationTurns(historyData: HistoryData): ConversationTu
         turns.push(turn);
         currentTurnEntries = [];
         startIndex = i + 1;
-      } catch (error) {
+      } catch {
         // エラーが発生した場合も次のターンに進む
         currentTurnEntries = [];
         startIndex = i + 1;
@@ -39,7 +39,7 @@ export function groupConversationTurns(historyData: HistoryData): ConversationTu
     try {
       const turn = createConversationTurn(currentTurnEntries, startIndex, entries.length - 1);
       turns.push(turn);
-    } catch (error) {
+    } catch {
       // エラーは無視
     }
   }

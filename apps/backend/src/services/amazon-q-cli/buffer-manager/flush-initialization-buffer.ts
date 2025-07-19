@@ -6,7 +6,7 @@ import { combineInitializationMessages } from './combine-initialization-messages
 
 export function flushInitializationBuffer(
   session: QProcessSession,
-  emitCallback: (event: string, data: any) => void
+  emitCallback: (event: string, data: QInfoEvent) => void
 ): void {
   if (session.initializationBuffer.length === 0 || !session.initializationPhase) {
     return;

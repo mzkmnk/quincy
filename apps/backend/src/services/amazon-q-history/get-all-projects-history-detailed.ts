@@ -66,7 +66,7 @@ export async function getAllProjectsHistoryDetailed(): Promise<{
             lastUpdated: new Date(),
             model: conversation.model
           });
-        } catch (_parseError) {
+        } catch {
           // パースエラーは無視して次の行を処理
         }
       }

@@ -12,7 +12,7 @@ import { updateThinkingState } from './update-thinking-state';
 export function handleStdout(
   session: QProcessSession,
   data: Buffer,
-  emitCallback: (event: string, data: any) => void,
+  emitCallback: (event: string, data: QResponseEvent) => void,
   flushIncompleteLineCallback: (session: QProcessSession) => void
 ): void {
   session.lastActivity = Date.now();

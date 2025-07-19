@@ -14,7 +14,7 @@ import {
 
 export function flushIncompleteErrorLine(
   session: QProcessSession,
-  emitCallback: (event: string, data: any) => void,
+  emitCallback: (event: string, data: QInfoEvent | QErrorEvent) => void,
   addToInitializationBufferCallback: (session: QProcessSession, message: string) => void
 ): void {
   if (!session.incompleteErrorLine.trim()) {

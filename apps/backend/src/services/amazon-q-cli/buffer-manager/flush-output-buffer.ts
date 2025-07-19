@@ -4,7 +4,7 @@ import type { QProcessSession } from '../session-manager/types';
 
 export function flushOutputBuffer(
   session: QProcessSession,
-  emitCallback: (event: string, data: any) => void
+  emitCallback: (event: string, data: QResponseEvent) => void
 ): void {
   if (!session.outputBuffer.trim()) {
     return;

@@ -12,8 +12,8 @@ export function classifyStderrMessage(message: string): 'info' | 'error' | 'skip
     /^\s*\p{Cc}\s*$/u,                                // 制御文字のみ（Unicode対応）
     /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏⠿⠾⠽⠻⠺⠯⠟⠞⠜⠛⠚⠉⠈⠁]\s*$/, // スピナー文字のみ
     /^\s*\d+\s*\d*\s*$/,                              // 数字のみの断片
-    /^\s*[[\{]+\s*$/,                                 // 開いた括弧のみ
-    /^\s*m\u001b*\s*$/,                               // エスケープ文字の残骸
+    /^\s*[[{]+\s*$/u,                                 // 開いた括弧のみ
+    /^\s*m\p{Cc}*\s*$/u,                              // エスケープ文字の残骸
   ];
   
   if (skipPatterns.some(pattern => pattern.test(trimmed))) {

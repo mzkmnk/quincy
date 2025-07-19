@@ -14,7 +14,7 @@ import { getInfoMessageType } from './get-info-message-type';
 export function handleStderr(
   session: QProcessSession,
   data: Buffer,
-  emitCallback: (event: string, data: any) => void,
+  emitCallback: (event: string, data: QInfoEvent | QErrorEvent) => void,
   addToInitializationBufferCallback: (session: QProcessSession, message: string) => void,
   flushIncompleteErrorLineCallback: (session: QProcessSession) => void
 ): void {

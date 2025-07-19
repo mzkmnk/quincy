@@ -25,7 +25,7 @@ export async function findByConversationId(conversationId: string): Promise<{ pr
               conversation
             };
           }
-        } catch (parseError) {
+        } catch {
           // パースエラーは無視して次の行を処理
         }
       }
@@ -34,7 +34,7 @@ export async function findByConversationId(conversationId: string): Promise<{ pr
     } finally {
       db.close();
     }
-  } catch (error) {
+  } catch {
     return null;
   }
 }

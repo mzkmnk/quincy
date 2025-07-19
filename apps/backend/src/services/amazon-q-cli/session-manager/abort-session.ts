@@ -2,11 +2,17 @@ import { killProcess } from '../process-manager/kill-process';
 
 import type { QProcessSession } from './types';
 
+interface SessionAbortedEvent {
+  sessionId: string;
+  reason: string;
+  exitCode: number;
+}
+
 export async function abortSession(
   sessions: Map<string, QProcessSession>,
   sessionId: string,
   reason: string = 'user_request',
-  emitCallback: (event: string, data: any) => void
+  emitCallback: (event: string, data: SessionAbortedEvent) => void
 ): Promise<boolean> {
   const session = sessions.get(sessionId);
   if (!session) {
@@ -35,7 +41,7 @@ export async function abortSession(
     }, 3000);
 
     return true;
-  } catch (_error) {
+  } catch {
     return false;
   }
 }

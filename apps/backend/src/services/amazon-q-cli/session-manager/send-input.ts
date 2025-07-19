@@ -22,7 +22,7 @@ export async function sendInput(
     } else {
       return false;
     }
-  } catch (_error) {
+  } catch {
     return false;
   }
 }

@@ -6,7 +6,7 @@ import { shouldSkipOutput, isInitializationMessage, isThinkingMessage, shouldSki
 
 export function flushIncompleteOutputLine(
   session: QProcessSession,
-  emitCallback: (event: string, data: any) => void
+  emitCallback: (event: string, data: QResponseEvent) => void
 ): void {
   if (!session.incompleteOutputLine.trim()) {
     return;

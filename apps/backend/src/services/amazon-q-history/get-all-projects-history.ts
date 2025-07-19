@@ -44,7 +44,7 @@ export async function getAllProjectsHistory(): Promise<ConversationMetadata[]> {
             lastUpdated: new Date(), // SQLiteには更新日時がないため現在時刻を使用
             model: conversation.model
           });
-        } catch (_parseError) {
+        } catch {
           // パースエラーは無視して次の行を処理
         }
       }
