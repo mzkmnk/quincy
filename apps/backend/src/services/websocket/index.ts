@@ -37,7 +37,7 @@ export class WebSocketService {
       transports: ['websocket', 'polling'],
       allowUpgrades: true,
       maxHttpBufferSize: 1e6,
-      allowRequest: (req, fn) => {
+      allowRequest: (req, fn): void => {
         // Basic request validation
         fn(null, true);
       }

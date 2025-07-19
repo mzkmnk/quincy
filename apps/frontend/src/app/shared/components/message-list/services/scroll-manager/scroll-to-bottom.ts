@@ -10,7 +10,7 @@ export function scrollToBottom(messageContainer: ElementRef<HTMLDivElement>): vo
       const element = messageContainer.nativeElement;
       element.scrollTop = element.scrollHeight;
     }
-  } catch (_err) {
+  } catch {
     // スクロールエラーを無視
   }
 }

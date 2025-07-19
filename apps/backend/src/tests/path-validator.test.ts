@@ -19,15 +19,15 @@ import {
 describe('パス検証ユーティリティ', () => {
   let tempDir: string;
 
-  beforeAll(async () => {
+  beforeAll(async (): Promise<void> => {
     // ホームディレクトリに一時ディレクトリを作成（/varを避ける）
     tempDir = await mkdtemp(join(homedir(), 'path-validator-test-'));
   });
 
-  afterAll(async () => {
+  afterAll(async (): Promise<void> => {
     try {
       await rmdir(tempDir);
-    } catch (error) {
+    } catch {
       // テンポラリディレクトリの削除に失敗してもテストは継続
     }
   });
@@ -46,8 +46,8 @@ describe('パス検証ユーティリティ', () => {
     });
 
     it('null/undefinedを拒否する', () => {
-      const result1 = isValidPath(null as any);
-      const result2 = isValidPath(undefined as any);
+      const result1 = isValidPath(null as unknown as string);
+      const result2 = isValidPath(undefined as unknown as string);
       expect(result1.valid).toBe(false);
       expect(result2.valid).toBe(false);
     });

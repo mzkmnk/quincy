@@ -13,7 +13,7 @@ export function shouldDisplayError(error: string): boolean {
 
   // 初期化メッセージや情報メッセージは表示しない
   const skipPatterns = [
-    /^\s*[\x00-\x1f]\s*$/,                            // 制御文字のみ
+    /^\s*\p{Cc}\s*$/u,                                 // 制御文字のみ
     /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]\s*$/, // スピナー文字のみ
     /mcp servers? initialized/i,                       // MCPサーバー初期化メッセージ
     /ctrl-c to start chatting/i,                       // チャット開始指示

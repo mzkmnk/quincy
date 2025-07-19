@@ -37,11 +37,12 @@ export function formatPath(
         formatted = ellipsis + formatted.substring(formatted.length - maxLen);
         break;
       
-      case 'middle':
+      case 'middle': {
         const halfLen = Math.floor(maxLen / 2);
         formatted = formatted.substring(0, halfLen) + ellipsis + 
                    formatted.substring(formatted.length - halfLen);
         break;
+      }
       
       case 'end':
       default:

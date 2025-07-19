@@ -62,7 +62,7 @@ export async function validateProjectPath(projectPath: string): Promise<PathVali
 
       return { valid: true, normalizedPath };
 
-    } catch (accessError) {
+    } catch {
       return { 
         valid: false, 
         error: `Directory does not exist or is not accessible: ${normalizedPath}` 

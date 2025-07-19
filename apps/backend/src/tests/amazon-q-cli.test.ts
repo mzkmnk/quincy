@@ -3,6 +3,7 @@
  * TDD approach: テストファーストで実装
  */
 
+import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
 
 import { AmazonQCLIService, QProcessOptions } from '../services/amazon-q-cli';
@@ -46,8 +47,6 @@ jest.mock('child_process', () => ({
   })
 }));
 
-const { spawn } = require('child_process');
-
 describe('AmazonQCLIService', () => {
   let service: AmazonQCLIService;
 
@@ -60,7 +59,7 @@ describe('AmazonQCLIService', () => {
     mockChildProcess.stdin.destroyed = false;
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     await service.terminateAllSessions();
   });
 

@@ -4,6 +4,7 @@
  */
 
 import { EventEmitter } from 'events';
+import { promisify } from 'util';
 
 import { AmazonQCLIService } from '../services/amazon-q-cli';
 import { validateProjectPath } from '../utils/path-validator';
@@ -15,8 +16,20 @@ jest.mock('child_process');
 jest.mock('fs');
 jest.mock('util');
 
-// 統合テスト用のモック設定
-const mockChildProcess = new EventEmitter() as any;
+// 統合テスト用のモック設定  
+interface MockChildProcess extends EventEmitter {
+  pid: number;
+  stdout: EventEmitter;
+  stderr: EventEmitter;
+  stdin: {
+    write: jest.Mock;
+    destroyed: boolean;
+  };
+  kill: jest.Mock;
+  killed: boolean;
+}
+
+const mockChildProcess = new EventEmitter() as MockChildProcess;
 mockChildProcess.pid = 12345;
 mockChildProcess.stdout = new EventEmitter();
 mockChildProcess.stderr = new EventEmitter();
@@ -47,7 +60,7 @@ jest.mock('util', () => ({
   promisify: jest.fn(() => 
     jest.fn().mockResolvedValue({ stdout: 'q version 1.0.0', stderr: '' })
   ),
-  deprecate: jest.fn((fn, message) => fn)
+  deprecate: jest.fn((fn, _message) => fn)
 }));
 
 describe('Amazon Q CLI Service Integration Test', () => {
@@ -67,7 +80,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
     // モックの基本設定をリセット
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     await service.terminateAllSessions();
   });
 
@@ -169,8 +182,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
 
     it('CLIが利用不可能な場合のエラー処理が統合的に動作すること', async () => {
       // CLI検証の失敗をシミュレート
-      const { promisify } = require('util');
-      promisify.mockReturnValueOnce(
+      (promisify as jest.Mock).mockReturnValueOnce(
         jest.fn().mockRejectedValue(new Error('q: command not found'))
       );
 
@@ -256,7 +268,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
 
   describe('イベント統合テスト', () => {
     it('複数のイベントが順序立てて発行されること', async () => {
-      const sessionId = await service.startSession(testCommand, {
+      const _sessionId = await service.startSession(testCommand, {
         workingDir: testWorkingDir
       });
 
@@ -271,7 +283,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
         let eventCount = 0;
         const expectedEvents = 3;
 
-        const checkComplete = () => {
+        const checkComplete = (): void => {
           eventCount++;
           if (eventCount === expectedEvents) {
             expect(events).toEqual(['response', 'error', 'complete']);

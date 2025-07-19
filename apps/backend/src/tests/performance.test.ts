@@ -11,7 +11,7 @@ describe('Performance Tests', () => {
     service = new AmazonQCLIService();
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     await service.terminateAllSessions();
   });
 

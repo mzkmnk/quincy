@@ -14,7 +14,6 @@ import type {
 
 import type { AmazonQCLIService } from '../../amazon-q-cli';
 import type { AmazonQHistoryService } from '../../amazon-q-history';
-
 // Import handlers
 import { handleConnection, handleDisconnection } from '../connection-manager';
 import { handleRoomJoin, handleRoomLeave, userRooms } from '../room-manager';
@@ -47,7 +46,7 @@ export function setupEventHandlers(
       };
       
       next();
-    } catch (error) {
+    } catch {
       next(new Error('Connection validation failed'));
     }
   });
@@ -116,12 +115,12 @@ export function setupEventHandlers(
     });
 
     // Handle disconnection
-    socket.on('disconnect', (reason) => {
+    socket.on('disconnect', (_reason) => {
       handleDisconnection(socket, userRooms, cleanupSocketFromSessions);
     });
 
     // Handle connection errors
-    socket.on('error', (error) => {
+    socket.on('error', (_error) => {
       sendError(socket, 'SOCKET_ERROR', 'WebSocket connection error');
     });
   });
