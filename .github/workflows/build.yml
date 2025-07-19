@@ -1,4 +1,4 @@
-name: Build Check
+name: Build, Lint and Format Check
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 jobs:
-  build:
+  build-and-quality:
     runs-on: ubuntu-latest
 
     strategy:
@@ -29,6 +29,14 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Run ESLint
+        run: pnpm lint:code
+        timeout-minutes: 5
+
+      - name: Check Prettier formatting
+        run: pnpm format:check
+        timeout-minutes: 5
 
       - name: Build shared package
         run: pnpm --filter @quincy/shared build
