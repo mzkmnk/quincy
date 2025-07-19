@@ -13,8 +13,8 @@ import { ChatMessagesComponent } from './components/chat-messages/chat-messages.
 import { EmptyStateComponent } from './components/empty-state/empty-state.component';
 
 // 分離されたサービスのインポート
-import { 
-  setupChatWebSocketListeners, 
+import {
+  setupChatWebSocketListeners,
   cleanupChatWebSocketListeners,
   handleStreamingResponse,
   handleErrorResponse,
@@ -23,7 +23,7 @@ import {
   ChatWebSocketHandlers
 } from './services/chat-websocket';
 
-import { 
+import {
   handleStreamingStart,
   handleStreamingUpdate,
   formatInfoMessage,
@@ -33,7 +33,7 @@ import {
 import { resumeSession } from './services/session-manager';
 
 // 分離されたユーティリティのインポート
-import { 
+import {
   updateMessageIndexMap,
   isSessionDisabled,
   canChat,
@@ -45,7 +45,7 @@ import {
 @Component({
   selector: 'app-chat',
   imports: [
-    CommonModule, 
+    CommonModule,
     MessageListComponent,
     ChatHeaderComponent,
     SessionStartComponent,
@@ -109,7 +109,7 @@ import {
           </div>
         } @else {
           <!-- Empty State -->
-          <app-empty-state></app-empty-state>
+          <app-empty-state class="h-full"></app-empty-state>
         }
       </div>
     </div>
@@ -163,7 +163,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     // Monitor conversation changes to trigger detailed history loading
     effect(() => {
       const currentConversation = this.appStore.currentQConversation();
-      
+
       // Load detailed history when conversation is selected
       if (currentConversation) {
         const projectPath = getProjectPathFromConversation(
