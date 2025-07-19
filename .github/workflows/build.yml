@@ -34,13 +34,13 @@ jobs:
         run: pnpm --filter @quincy/shared build
 
       - name: Build backend
-        run: pnpm --filter backend build
+        run: pnpm build:backend
 
       - name: Build frontend
-        run: pnpm --filter frontend build
+        run: pnpm build:frontend
 
       - name: Build docs
-        run: pnpm --filter docs build
+        run: pnpm build:docs
 
       - name: Check build artifacts
         run: |
@@ -51,13 +51,13 @@ jobs:
           ls -la apps/docs/.vitepress/dist/
 
       - name: Run backend tests
-        run: pnpm --filter backend test
+        run: pnpm test:backend
         timeout-minutes: 5
         env:
           NODE_ENV: test
 
       - name: Run frontend tests
-        run: pnpm --filter frontend test:ci
+        run: pnpm test:frontend:ci
         timeout-minutes: 5
         env:
           NODE_ENV: test
