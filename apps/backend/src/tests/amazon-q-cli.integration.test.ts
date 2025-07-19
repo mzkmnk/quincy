@@ -182,7 +182,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
 
     it('CLIが利用不可能な場合のエラー処理が統合的に動作すること', async () => {
       // CLI検証の失敗をシミュレート
-      (promisify as jest.Mock).mockReturnValueOnce(
+      (promisify as unknown as jest.Mock).mockReturnValueOnce(
         jest.fn().mockRejectedValue(new Error('q: command not found'))
       );
 
@@ -268,7 +268,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
 
   describe('イベント統合テスト', () => {
     it('複数のイベントが順序立てて発行されること', async () => {
-      startAmazonQCli('test message', {
+      service.startSession('test message', {
         workingDir: testWorkingDir,
       });
 

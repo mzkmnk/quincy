@@ -19,6 +19,6 @@ export function setupCleanupHandlers(
 
   // 非アクティブセッションの定期クリーンアップ
   return setInterval(() => {
-    cleanupInactiveSessions(sessions);
+    cleanupInactiveSessions();
   }, 60000); // 1分毎
 }
