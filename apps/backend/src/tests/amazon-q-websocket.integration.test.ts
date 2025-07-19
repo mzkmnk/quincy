@@ -10,7 +10,6 @@ import { io as Client, Socket as ClientSocket } from 'socket.io-client';
 import type { QCommandEvent, QAbortEvent, QMessageEvent, QProjectStartEvent } from '@quincy/shared';
 
 import { AmazonQCLIService } from '../services/amazon-q-cli';
-import { WebSocketService } from '../services/websocket';
 
 // 統合テスト用のモック設定
 jest.mock('child_process');
@@ -88,9 +87,6 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
 
     // Amazon Q CLI サービスの作成
     amazonQService = new AmazonQCLIService();
-
-    // WebSocket サービスの作成
-    const _webSocketService = new WebSocketService(httpServer);
 
     // テストサーバーの起動
     httpServer.listen(testPort, (): void => {

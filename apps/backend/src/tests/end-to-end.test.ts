@@ -9,8 +9,6 @@ import { EventEmitter } from 'events';
 import { io as Client, Socket as ClientSocket } from 'socket.io-client';
 import type { QCommandEvent, QMessageEvent, QProjectStartEvent, RoomData } from '@quincy/shared';
 
-import { AmazonQCLIService } from '../services/amazon-q-cli';
-
 // End-to-Endテスト用のモック設定
 jest.mock('child_process');
 jest.mock('fs');
@@ -84,7 +82,6 @@ jest.mock('sqlite3', () => ({
 
 describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
   let httpServer: Server;
-  let _amazonQService: AmazonQCLIService;
   let userSocket: ClientSocket;
   let collaboratorSocket: ClientSocket;
   const testPort = 3004;
@@ -93,8 +90,6 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
   beforeAll((done): void => {
     // 実際のサーバー環境をシミュレート
     httpServer = createServer();
-     
-    _amazonQService = new AmazonQCLIService();
 
     httpServer.listen(testPort, (): void => {
       done();
