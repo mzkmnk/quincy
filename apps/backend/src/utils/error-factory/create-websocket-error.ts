@@ -12,10 +12,7 @@ export function createWebSocketError(
 }
 
 export function createSocketConnectionError(socketId: string): WebSocketError {
-  return new WebSocketError(
-    `Socket connection failed for ID: ${socketId}`,
-    { socketId }
-  );
+  return new WebSocketError(`Socket connection failed for ID: ${socketId}`, { socketId });
 }
 
 export function createRoomOperationError(
@@ -25,15 +22,12 @@ export function createRoomOperationError(
 ): WebSocketError {
   const details: Record<string, string | number | boolean | null> = {
     operation,
-    roomId
+    roomId,
   };
-  
+
   if (socketId) {
     details.socketId = socketId;
   }
-  
-  return new WebSocketError(
-    `Room ${operation} failed for room: ${roomId}`,
-    details
-  );
+
+  return new WebSocketError(`Room ${operation} failed for room: ${roomId}`, details);
 }

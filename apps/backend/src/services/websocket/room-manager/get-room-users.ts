@@ -1,9 +1,9 @@
 import type { Server as SocketIOServer } from 'socket.io';
-import type { 
-  ClientToServerEvents, 
-  ServerToClientEvents, 
-  InterServerEvents, 
-  SocketData
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData,
 } from '@quincy/shared';
 
 export function getRoomUsers(

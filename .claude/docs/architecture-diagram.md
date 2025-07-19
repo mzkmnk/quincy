@@ -6,22 +6,22 @@
 graph TB
     %% Frontend
     FE[Frontend<br/>Angular 20]
-    
+
     %% Backend Main
     BE[Backend<br/>Express Server<br/>Port 3000]
-    
+
     %% WebSocket
     WS[WebSocket Service<br/>Socket.IO]
-    
+
     %% Amazon Q CLI
     QCLI[Amazon Q CLI<br/>Service]
-    
+
     %% Database
     DB[(SQLite3<br/>Database)]
-    
+
     %% Amazon Q Process
     QP[Amazon Q<br/>CLI Process]
-    
+
     %% Connections
     FE -.->|HTTP/WebSocket<br/>localhost:4200 -> 3000| BE
     FE -.->|WebSocket| WS
@@ -29,14 +29,14 @@ graph TB
     WS --> QCLI
     QCLI --> QP
     QCLI --> DB
-    
+
     %% Styling
     classDef frontend fill:#e1f5fe
     classDef backend fill:#f3e5f5
     classDef service fill:#e8f5e8
     classDef data fill:#fff3e0
     classDef external fill:#ffebee
-    
+
     class FE frontend
     class BE backend
     class WS,QCLI service
@@ -50,10 +50,10 @@ graph TB
 graph TB
     %% Main Entry Point
     Main[index.ts<br/>Express Server]
-    
+
     %% Routes
     Routes[routes/<br/>API Endpoints]
-    
+
     %% Services
     subgraph Services[Services]
         AQC[amazon-q-cli/]
@@ -62,7 +62,7 @@ graph TB
         AQMF[amazon-q-message-formatter/]
         WS[websocket/]
     end
-    
+
     %% Utils
     subgraph Utils[Utils]
         AS[ansi-stripper/]
@@ -72,21 +72,21 @@ graph TB
         IDG[id-generator/]
         PV[path-validator/]
     end
-    
+
     %% Types
     subgraph Types[Types]
         AQT[amazon-q.ts]
         CT[common.ts]
         WST[websocket.ts]
     end
-    
+
     %% Tests
     subgraph Tests[Tests]
         UT[Unit Tests]
         IT[Integration Tests]
         E2E[End-to-End Tests]
     end
-    
+
     %% Connections
     Main --> Routes
     Routes --> Services
@@ -95,14 +95,14 @@ graph TB
     Utils --> Types
     Tests --> Services
     Tests --> Utils
-    
+
     %% Styling
     classDef main fill:#e3f2fd
     classDef service fill:#e8f5e8
     classDef util fill:#fff3e0
     classDef type fill:#f3e5f5
     classDef test fill:#ffebee
-    
+
     class Main main
     class AQC,AQH,AQHT,AQMF,WS service
     class AS,CV,EF,ER,IDG,PV util
@@ -116,7 +116,7 @@ graph TB
 graph TB
     %% Main Service
     AQCS[AmazonQCLIService<br/>index.ts]
-    
+
     %% Sub-modules
     subgraph BufferManager[buffer-manager/]
         BM1[add-to-initialization-buffer.ts]
@@ -126,12 +126,12 @@ graph TB
         BM5[flush-initialization-buffer.ts]
         BM6[flush-output-buffer.ts]
     end
-    
+
     subgraph CliChecker[cli-checker/]
         CC1[build-command-args.ts]
         CC2[check-cli-availability.ts]
     end
-    
+
     subgraph MessageHandler[message-handler/]
         MH1[classify-stderr-message.ts]
         MH2[get-info-message-type.ts]
@@ -140,7 +140,7 @@ graph TB
         MH5[setup-process-handlers.ts]
         MH6[various utility functions...]
     end
-    
+
     subgraph ProcessManager[process-manager/]
         PM1[spawn-process.ts]
         PM2[kill-process.ts]
@@ -148,7 +148,7 @@ graph TB
         PM4[cleanup-inactive-sessions.ts]
         PM5[setup-cleanup-handlers.ts]
     end
-    
+
     subgraph SessionManager[session-manager/]
         SM1[create-session.ts]
         SM2[get-session.ts]
@@ -156,18 +156,18 @@ graph TB
         SM4[send-input.ts]
         SM5[various session functions...]
     end
-    
+
     %% Connections
     AQCS --> BufferManager
     AQCS --> CliChecker
     AQCS --> MessageHandler
     AQCS --> ProcessManager
     AQCS --> SessionManager
-    
+
     %% Styling
     classDef main fill:#e3f2fd
     classDef module fill:#e8f5e8
-    
+
     class AQCS main
     class BM1,BM2,BM3,BM4,BM5,BM6 module
     class CC1,CC2 module
@@ -182,7 +182,7 @@ graph TB
 graph TB
     %% Main Service
     WSS[WebSocketService<br/>index.ts]
-    
+
     %% Sub-modules
     subgraph AmazonQHandler[amazon-q-handler/]
         AQH1[handle-q-command.ts]
@@ -192,14 +192,14 @@ graph TB
         AQH5[setup-q-cli-event-handlers.ts]
         AQH6[session management functions...]
     end
-    
+
     subgraph ConnectionManager[connection-manager/]
         CM1[handle-connection.ts]
         CM2[handle-disconnection.ts]
         CM3[get-connected-users.ts]
         CM4[connection-map.ts]
     end
-    
+
     subgraph RoomManager[room-manager/]
         RM1[handle-room-join.ts]
         RM2[handle-room-leave.ts]
@@ -207,20 +207,20 @@ graph TB
         RM4[broadcast-to-all.ts]
         RM5[room-map.ts]
     end
-    
+
     subgraph ErrorHandler[error-handler/]
         EH1[send-error.ts]
         EH2[setup-global-error-handling.ts]
     end
-    
+
     subgraph EventSetup[event-setup/]
         ES1[setup-event-handlers.ts]
     end
-    
+
     subgraph MessageHandler[message-handler/]
         MH1[handle-message-send.ts]
     end
-    
+
     %% Connections
     WSS --> AmazonQHandler
     WSS --> ConnectionManager
@@ -228,11 +228,11 @@ graph TB
     WSS --> ErrorHandler
     WSS --> EventSetup
     WSS --> MessageHandler
-    
+
     %% Styling
     classDef main fill:#e3f2fd
     classDef module fill:#e8f5e8
-    
+
     class WSS main
     class AQH1,AQH2,AQH3,AQH4,AQH5,AQH6 module
     class CM1,CM2,CM3,CM4 module
@@ -251,14 +251,14 @@ sequenceDiagram
     participant AQ as Amazon Q CLI Service
     participant CLI as Amazon Q CLI Process
     participant DB as SQLite Database
-    
+
     U->>WS: WebSocket connection
     WS->>AQ: Initialize session
     AQ->>CLI: Spawn Q process
     CLI-->>AQ: Process ready
     AQ-->>WS: Session created
     WS-->>U: Connection established
-    
+
     U->>WS: Send Q command
     WS->>AQ: Execute command
     AQ->>CLI: Send input
@@ -266,7 +266,7 @@ sequenceDiagram
     AQ->>DB: Store history
     AQ-->>WS: Formatted response
     WS-->>U: Real-time output
-    
+
     U->>WS: Request history
     WS->>AQ: Get history
     AQ->>DB: Query history
@@ -285,21 +285,21 @@ graph TB
         IT[Integration Tests<br/>Service Integration]
         E2E[End-to-End Tests<br/>Complete Workflows]
     end
-    
+
     %% Test Targets
     subgraph TestTargets[Test Targets]
         UTT[Utils Functions<br/>- ID Generator<br/>- Path Validator<br/>- ANSI Stripper<br/>- CLI Validator]
         ITT[Service Integration<br/>- Amazon Q CLI Service<br/>- WebSocket Service<br/>- Combined Integration]
         E2ET[Complete Workflows<br/>- WebSocket + Amazon Q<br/>- History Management<br/>- Error Handling]
     end
-    
+
     %% Test Coverage
     subgraph Coverage[Test Coverage]
         TC1[✅ All Utils: 100%]
         TC2[✅ Services: Full Integration]
         TC3[✅ E2E: Core Workflows]
     end
-    
+
     %% Connections
     UT --> UTT
     IT --> ITT
@@ -307,12 +307,12 @@ graph TB
     UTT --> TC1
     ITT --> TC2
     E2ET --> TC3
-    
+
     %% Styling
     classDef test fill:#e8f5e8
     classDef target fill:#fff3e0
     classDef coverage fill:#e3f2fd
-    
+
     class UT,IT,E2E test
     class UTT,ITT,E2ET target
     class TC1,TC2,TC3 coverage
@@ -321,21 +321,25 @@ graph TB
 ## 1ファイル1関数アーキテクチャの利点
 
 ### モジュール性
+
 - 各関数が独立したファイルに分離
 - 関数の責任範囲が明確
 - テストが容易
 
 ### 保守性
+
 - 変更影響範囲が限定的
 - デバッグが容易
 - コードレビューが効率的
 
 ### 再利用性
+
 - 関数の再利用が容易
 - 他のプロジェクトへの移植性
 - 依存関係の明確化
 
 ### テスト容易性
+
 - 単体テストが書きやすい
 - モックが作りやすい
 - テストの独立性が保たれる

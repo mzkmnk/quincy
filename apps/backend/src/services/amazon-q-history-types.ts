@@ -40,13 +40,13 @@ export interface ToolUse {
 }
 
 // 入力メッセージの内容の型定義
-export type HistoryInputContent = 
+export type HistoryInputContent =
   | { Prompt: { prompt: string } }
   | { ToolUseResults: { tool_use_results: ToolUseResult[] } }
   | { CancelledToolUses: { prompt: string; tool_use_results: ToolUseResult[] } };
 
 // 応答メッセージの内容の型定義
-export type HistoryResponseContent = 
+export type HistoryResponseContent =
   | { ToolUse: { message_id: string; content: string; tool_uses: ToolUse[] } }
   | { Response: { message_id: string; content: string } };
 
@@ -72,8 +72,8 @@ export interface HistoryData {
 // 会話ターンの型定義（Response までの一連の流れ）
 export interface ConversationTurn {
   userMessage: string;
-  aiThinking: string[];  // ToolUse の連続
-  aiResponse: string;    // 最終的な Response
+  aiThinking: string[]; // ToolUse の連続
+  aiResponse: string; // 最終的な Response
   metadata: {
     environmentInfo: EnvironmentState;
     toolsUsed: ToolUse[];
@@ -97,23 +97,33 @@ export interface DisplayMessage {
 }
 
 // 型ガード関数
-export function isPromptMessage(content: HistoryInputContent): content is { Prompt: { prompt: string } } {
+export function isPromptMessage(
+  content: HistoryInputContent
+): content is { Prompt: { prompt: string } } {
   return 'Prompt' in content;
 }
 
-export function isToolUseResultsMessage(content: HistoryInputContent): content is { ToolUseResults: { tool_use_results: ToolUseResult[] } } {
+export function isToolUseResultsMessage(
+  content: HistoryInputContent
+): content is { ToolUseResults: { tool_use_results: ToolUseResult[] } } {
   return 'ToolUseResults' in content;
 }
 
-export function isCancelledToolUsesMessage(content: HistoryInputContent): content is { CancelledToolUses: { prompt: string; tool_use_results: ToolUseResult[] } } {
+export function isCancelledToolUsesMessage(
+  content: HistoryInputContent
+): content is { CancelledToolUses: { prompt: string; tool_use_results: ToolUseResult[] } } {
   return 'CancelledToolUses' in content;
 }
 
-export function isToolUseResponse(content: HistoryResponseContent): content is { ToolUse: { message_id: string; content: string; tool_uses: ToolUse[] } } {
+export function isToolUseResponse(
+  content: HistoryResponseContent
+): content is { ToolUse: { message_id: string; content: string; tool_uses: ToolUse[] } } {
   return 'ToolUse' in content;
 }
 
-export function isResponse(content: HistoryResponseContent): content is { Response: { message_id: string; content: string } } {
+export function isResponse(
+  content: HistoryResponseContent
+): content is { Response: { message_id: string; content: string } } {
   return 'Response' in content;
 }
 

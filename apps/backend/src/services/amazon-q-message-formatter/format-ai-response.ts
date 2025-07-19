@@ -7,7 +7,7 @@ import { generateMessageId } from '../../utils/id-generator';
 
 export function formatAiResponse(turn: ConversationTurn): DisplayMessage {
   const lastMessageId = turn.metadata.messageIds[turn.metadata.messageIds.length - 1];
-  
+
   return {
     id: generateMessageId(),
     type: 'assistant',
@@ -16,7 +16,7 @@ export function formatAiResponse(turn: ConversationTurn): DisplayMessage {
     metadata: {
       environmentInfo: turn.metadata.environmentInfo,
       toolsUsed: turn.metadata.toolsUsed,
-      messageId: lastMessageId
-    }
+      messageId: lastMessageId,
+    },
   };
 }

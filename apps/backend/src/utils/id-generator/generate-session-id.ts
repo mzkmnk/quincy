@@ -2,8 +2,9 @@
  * セッションID生成ユーティリティ
  */
 
-import { generateId } from './generate-id';
 import type { SessionId } from '../../types';
+
+import { generateId } from './generate-id';
 
 /**
  * Amazon Q CLIセッション用のユニークなIDを生成する

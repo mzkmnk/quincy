@@ -80,5 +80,5 @@ export {
   validateHistoryEntries,
   normalizeHistoryData,
   countPromptEntries,
-  getTransformationStats
+  getTransformationStats,
 };

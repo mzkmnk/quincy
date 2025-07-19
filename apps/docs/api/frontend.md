@@ -14,7 +14,7 @@ import { LayoutComponent } from '@/shared/components/layout/layout.component';
 @Component({
   selector: 'app-root',
   imports: [LayoutComponent],
-  template: `<app-layout />`
+  template: `<app-layout />`,
 })
 export class AppComponent {}
 ```
@@ -24,12 +24,13 @@ export class AppComponent {}
 サイドバーのナビゲーションを提供します。
 
 **使用例:**
+
 ```typescript
 import { NavigationComponent } from '@/shared/components/navigation/navigation.component';
 
 @Component({
   imports: [NavigationComponent],
-  template: `<app-navigation />`
+  template: `<app-navigation />`,
 })
 export class SidebarComponent {}
 ```
@@ -39,6 +40,7 @@ export class SidebarComponent {}
 リアルタイムチャット機能を提供します。
 
 **主な機能:**
+
 - メッセージの送受信
 - 入力状態の表示
 - メッセージ履歴の表示
@@ -48,7 +50,7 @@ import { ChatComponent } from '@/features/chat/chat.component';
 
 @Component({
   imports: [ChatComponent],
-  template: `<app-chat />`
+  template: `<app-chat />`,
 })
 export class MainComponent {}
 ```
@@ -58,6 +60,7 @@ export class MainComponent {}
 プロジェクト管理機能を提供します。
 
 **主な機能:**
+
 - プロジェクト一覧の表示
 - プロジェクトの作成・削除
 - アクティブプロジェクトの切り替え
@@ -67,7 +70,7 @@ import { ProjectsComponent } from '@/features/projects/projects.component';
 
 @Component({
   imports: [ProjectsComponent],
-  template: `<app-projects />`
+  template: `<app-projects />`,
 })
 export class DashboardComponent {}
 ```
@@ -79,10 +82,12 @@ export class DashboardComponent {}
 メッセージ入力フィールドを提供する再利用可能なコンポーネントです。
 
 **Props:**
+
 - `placeholder`: string - プレースホルダーテキスト
 - `disabled`: boolean - 無効状態
 
 **Events:**
+
 - `messageSubmit`: EventEmitter&lt;string&gt; - メッセージ送信イベント
 - `typing`: EventEmitter&lt;boolean&gt; - 入力状態変更イベント
 
@@ -97,7 +102,7 @@ import { MessageInputComponent } from '@/shared/components/message-input/message
       (messageSubmit)="onMessageSubmit($event)"
       (typing)="onTyping($event)"
     />
-  `
+  `,
 })
 export class ChatContainerComponent {
   onMessageSubmit(message: string) {
@@ -115,6 +120,7 @@ export class ChatContainerComponent {
 メッセージリストを表示するコンポーネントです。
 
 **Props:**
+
 - `messages`: Message[] - 表示するメッセージ配列
 
 ```typescript
@@ -136,10 +142,12 @@ export class ChatDisplayComponent {
 プロジェクト一覧を表示するコンポーネントです。
 
 **Props:**
+
 - `projects`: Project[] - プロジェクト配列
 - `activeProjectId`: string - アクティブなプロジェクトID
 
 **Events:**
+
 - `projectSelect`: EventEmitter&lt;string&gt; - プロジェクト選択イベント
 
 ```typescript
@@ -198,7 +206,7 @@ export class ProjectService {
 import { WebSocketService } from '@/core/services/websocket.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ChatService {
   constructor(private ws: WebSocketService) {}
@@ -206,14 +214,12 @@ export class ChatService {
   sendMessage(message: string) {
     this.ws.send({
       type: 'chat_message',
-      data: { content: message }
+      data: { content: message },
     });
   }
 
   onMessage() {
-    return this.ws.messages$.pipe(
-      filter(msg => msg.type === 'chat_message')
-    );
+    return this.ws.messages$.pipe(filter(msg => msg.type === 'chat_message'));
   }
 }
 ```
@@ -259,13 +265,15 @@ export class AppStateService {
 @Component({
   selector: 'app-example',
   template: `<div class="container">Content</div>`,
-  styles: [`
-    .container {
-      padding: 1rem;
-      border-radius: 0.5rem;
-      background-color: #f5f5f5;
-    }
-  `]
+  styles: [
+    `
+      .container {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: #f5f5f5;
+      }
+    `,
+  ],
 })
 export class ExampleComponent {}
 ```

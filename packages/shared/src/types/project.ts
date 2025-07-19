@@ -26,8 +26,7 @@ export interface ProjectScanResult {
   scanDuration: number;
 }
 
-
-export type ProjectEvent = 
+export type ProjectEvent =
   | { type: 'project:created'; project: Project }
   | { type: 'project:updated'; project: Project }
   | { type: 'project:deleted'; projectId: string }

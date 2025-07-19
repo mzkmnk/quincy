@@ -1,6 +1,6 @@
 export function isInitializationMessage(message: string): boolean {
   const trimmed = message.trim().toLowerCase();
-  
+
   const initPatterns = [
     /mcp servers? initialized/i,
     /ctrl-c to start chatting/i,
@@ -12,8 +12,8 @@ export function isInitializationMessage(message: string): boolean {
     /ctrl.*new.*lines/i,
     /ctrl.*fuzzy.*search/i,
     /you are chatting with/i,
-    /to exit.*cli.*press/i
+    /to exit.*cli.*press/i,
   ];
-  
+
   return initPatterns.some(pattern => pattern.test(trimmed));
 }

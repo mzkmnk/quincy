@@ -3,32 +3,38 @@
  */
 
 import Database from 'better-sqlite3';
+
 import type { AmazonQConversationWithHistory } from '../amazon-q-history-types';
-import { DB_PATH, SQL_QUERIES } from './constants';
-import { isDatabaseAvailable } from './is-database-available';
 import { HistoryTransformer } from '../amazon-q-history-transformer';
 
-export async function getAllProjectsHistoryDetailed(): Promise<{
-  projectPath: string;
-  conversation_id: string;
-  hasHistoryData: boolean;
-  messageCount: number;
-  turnCount: number;
-  lastUpdated: Date;
-  model: string;
-}[]> {
+import { DB_PATH, SQL_QUERIES } from './constants';
+import { isDatabaseAvailable } from './is-database-available';
+
+export async function getAllProjectsHistoryDetailed(): Promise<
+  {
+    projectPath: string;
+    conversation_id: string;
+    hasHistoryData: boolean;
+    messageCount: number;
+    turnCount: number;
+    lastUpdated: Date;
+    model: string;
+  }[]
+> {
   try {
     if (!isDatabaseAvailable()) {
-      throw new Error('データベースにアクセスできません。Amazon Q CLIがインストールされているか確認してください。');
+      throw new Error(
+        'データベースにアクセスできません。Amazon Q CLIがインストールされているか確認してください。'
+      );
     }
-    
+
     const db = new Database(DB_PATH, { readonly: true });
     const historyTransformer = new HistoryTransformer();
-    
+
     try {
       const stmt = db.prepare(SQL_QUERIES.GET_ALL_CONVERSATIONS);
       const results = stmt.all() as { key: string; value: string }[];
-      
+
       const detailedMetadata: {
         projectPath: string;
         conversation_id: string;
@@ -42,11 +48,11 @@ export async function getAllProjectsHistoryDetailed(): Promise<{
       for (const row of results) {
         try {
           const conversation: AmazonQConversationWithHistory = JSON.parse(row.value);
-          
+
           let hasHistoryData = false;
           let turnCount = 0;
           let messageCount = 0;
-          
+
           if (conversation.history && historyTransformer.isValidHistoryData(conversation.history)) {
             hasHistoryData = true;
             const normalizedHistory = historyTransformer.normalizeHistoryData(conversation.history);
@@ -54,7 +60,7 @@ export async function getAllProjectsHistoryDetailed(): Promise<{
             turnCount = turns.length;
             messageCount = historyTransformer.countPromptEntries(normalizedHistory);
           }
-          
+
           detailedMetadata.push({
             projectPath: row.key,
             conversation_id: conversation.conversation_id,
@@ -62,9 +68,9 @@ export async function getAllProjectsHistoryDetailed(): Promise<{
             messageCount,
             turnCount,
             lastUpdated: new Date(),
-            model: conversation.model
+            model: conversation.model,
           });
-        } catch (parseError) {
+        } catch {
           // パースエラーは無視して次の行を処理
         }
       }
@@ -74,6 +80,8 @@ export async function getAllProjectsHistoryDetailed(): Promise<{
       db.close();
     }
   } catch (error) {
-    throw error;
+    throw new Error(
+      `履歴取得に失敗しました: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }

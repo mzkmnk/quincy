@@ -12,7 +12,7 @@ export function formatUserMessage(turn: ConversationTurn): DisplayMessage {
     content: turn.userMessage,
     timestamp: new Date(),
     metadata: {
-      environmentInfo: turn.metadata.environmentInfo
-    }
+      environmentInfo: turn.metadata.environmentInfo,
+    },
   };
 }

@@ -15,13 +15,36 @@
     "build:docs": "pnpm --filter docs build",
     "build": "pnpm build:backend && pnpm build:frontend",
     "preview:docs": "pnpm --filter docs preview",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:backend": "pnpm --filter backend test",
+    "test:frontend": "pnpm --filter frontend test",
+    "test:frontend:watch": "pnpm --filter frontend test --watch",
+    "test": "pnpm test:backend && pnpm test:frontend",
+    "lint:code": "eslint . --ext .ts,.js,.html",
+    "lint:fix": "eslint . --ext .ts,.js,.html --fix",
+    "format:check": "prettier --check .",
+    "format:write": "prettier --write .",
+    "format": "pnpm format:write",
+    "lint:all": "pnpm lint:code && pnpm format:check",
+    "fix:all": "pnpm lint:fix && pnpm format:write",
+    "fix:code": "pnpm fix:all"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.13.1",
   "devDependencies": {
-    "concurrently": "^9.2.0"
+    "@angular-eslint/eslint-plugin": "^20.1.1",
+    "@angular-eslint/eslint-plugin-template": "^20.1.1",
+    "@angular-eslint/template-parser": "^20.1.1",
+    "@eslint/js": "9.31.0",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
+    "concurrently": "^9.2.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "2.32.0",
+    "eslint-plugin-unused-imports": "4.1.4",
+    "prettier": "^3.6.2",
+    "typescript-eslint": "8.37.0"
   }
 }

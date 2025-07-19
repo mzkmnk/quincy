@@ -1,12 +1,13 @@
 import type { Socket } from 'socket.io';
-import type { 
-  ClientToServerEvents, 
-  ServerToClientEvents, 
-  InterServerEvents, 
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
   SocketData,
   MessageSendEvent,
-  MessageData
+  MessageData,
 } from '@quincy/shared';
+
 import { generateMessageId } from '../../../utils/id-generator';
 
 export function handleMessageSend(
@@ -18,7 +19,7 @@ export function handleMessageSend(
     content: data.content,
     senderId: data.senderId,
     timestamp: Date.now(),
-    type: data.type
+    type: data.type,
   };
 
   // If roomId is specified, broadcast to room

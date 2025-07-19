@@ -1,10 +1,18 @@
 import type { Server as SocketIOServer } from 'socket.io';
-import type { 
-  ClientToServerEvents, 
-  ServerToClientEvents, 
-  InterServerEvents, 
-  SocketData
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData,
 } from '@quincy/shared';
+
+// BroadcastOperatorのオーバーロード型定義
+type BroadcastEmitOverloads = {
+  [K in keyof ServerToClientEvents]: (
+    event: K,
+    data: Parameters<ServerToClientEvents[K]>[0]
+  ) => void;
+};
 
 export function broadcastToRoom<K extends keyof ServerToClientEvents>(
   io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>,
@@ -12,7 +20,7 @@ export function broadcastToRoom<K extends keyof ServerToClientEvents>(
   event: K,
   data: Parameters<ServerToClientEvents[K]>[0]
 ): void {
-  // Socket.IOのBroadcastOperator型とジェネリック型の非互換性のため、型アサーションが必要
-  // これはSocket.IOライブラリの制約であり、実行時には安全
-  (io.to(roomId) as any).emit(event, data);
+  // Socket.IOのBroadcastOperatorとの互換性のため、型アサーションを使用
+  const broadcaster = io.to(roomId) as unknown as BroadcastEmitOverloads;
+  broadcaster[event](event, data);
 }

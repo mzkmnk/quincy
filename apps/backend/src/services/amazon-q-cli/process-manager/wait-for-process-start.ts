@@ -11,7 +11,7 @@ export async function waitForProcessStart(process: ChildProcess): Promise<void> 
       resolve();
     });
 
-    process.on('error', (error) => {
+    process.on('error', error => {
       clearTimeout(timeout);
       reject(error);
     });

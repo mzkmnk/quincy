@@ -7,21 +7,26 @@ QuincyのAPIは、RESTful HTTP APIとWebSocket APIの2つの通信方式を提�
 ## HTTP API
 
 ### ベースURL
+
 - **開発環境**: `http://localhost:3000`
 - **本番環境**: 環境変数 `FRONTEND_URL` で設定
 
 ### 共通レスポンス形式
 
 #### 成功レスポンス
+
 ```json
 {
   "status": "success",
-  "data": { /* レスポンスデータ */ },
+  "data": {
+    /* レスポンスデータ */
+  },
   "timestamp": "2025-01-01T00:00:00.000Z"
 }
 ```
 
 #### エラーレスポンス
+
 ```json
 {
   "error": "ERROR_CODE",
@@ -34,9 +39,11 @@ QuincyのAPIは、RESTful HTTP APIとWebSocket APIの2つの通信方式を提�
 ### エンドポイント
 
 #### 1. Root Information
+
 - **パス**: `GET /`
 - **説明**: API基本情報の取得
 - **レスポンス**:
+
 ```json
 {
   "name": "Quincy Backend API",
@@ -50,9 +57,11 @@ QuincyのAPIは、RESTful HTTP APIとWebSocket APIの2つの通信方式を提�
 ```
 
 #### 2. Health Check
+
 - **パス**: `GET /api/health`
 - **説明**: サーバーの稼働状態確認
 - **レスポンス**:
+
 ```json
 {
   "status": "OK",
@@ -62,9 +71,11 @@ QuincyのAPIは、RESTful HTTP APIとWebSocket APIの2つの通信方式を提�
 ```
 
 #### 3. WebSocket Status
+
 - **パス**: `GET /api/websocket/status`
 - **説明**: WebSocketサーバーの状態とイベント情報
 - **レスポンス**:
+
 ```json
 {
   "status": "running",
@@ -104,9 +115,11 @@ QuincyのAPIは、RESTful HTTP APIとWebSocket APIの2つの通信方式を提�
 ```
 
 #### 4. WebSocket Configuration
+
 - **パス**: `GET /api/websocket/info`
 - **説明**: WebSocket接続設定情報
 - **レスポンス**:
+
 ```json
 {
   "cors": {
@@ -134,21 +147,23 @@ QuincyのAPIは、RESTful HTTP APIとWebSocket APIの2つの通信方式を提�
 ## WebSocket API
 
 ### 接続エンドポイント
+
 - **URL**: `ws://localhost:3000/socket.io/`
 - **プロトコル**: Socket.io v4.x
 - **認証**: 認証なし（Amazon Q CLIが認証を管理）
 
 ### 接続設定
+
 ```javascript
 const socket = io('http://localhost:3000', {
   cors: {
     origin: ['http://localhost:4200'],
     methods: ['GET', 'POST'],
-    credentials: true
+    credentials: true,
   },
   pingTimeout: 60000,
   pingInterval: 25000,
-  transports: ['websocket', 'polling']
+  transports: ['websocket', 'polling'],
 });
 ```
 
@@ -157,14 +172,15 @@ const socket = io('http://localhost:3000', {
 #### 1. Amazon Q CLI管理
 
 ##### q:command
+
 Amazon Q CLIセッションを開始します。
 
 ```typescript
 interface QCommandEvent {
-  command: string;          // 実行コマンド（通常は 'chat'）
-  workingDir: string;       // 作業ディレクトリの絶対パス
-  model?: string;           // 使用するAIモデル
-  resume?: boolean;         // セッション再開フラグ
+  command: string; // 実行コマンド（通常は 'chat'）
+  workingDir: string; // 作業ディレクトリの絶対パス
+  model?: string; // 使用するAIモデル
+  resume?: boolean; // セッション再開フラグ
 }
 
 // 使用例
@@ -172,69 +188,74 @@ socket.emit('q:command', {
   command: 'chat',
   workingDir: '/path/to/project',
   model: 'claude-3-sonnet',
-  resume: false
+  resume: false,
 });
 ```
 
 ##### q:message
+
 Amazon Q CLIセッションにメッセージを送信します。
 
 ```typescript
 interface QMessageEvent {
-  sessionId: string;        // セッションID
-  message: string;          // 送信するメッセージ
+  sessionId: string; // セッションID
+  message: string; // 送信するメッセージ
 }
 
 // 使用例
 socket.emit('q:message', {
   sessionId: 'session_123',
-  message: 'Hello Amazon Q'
+  message: 'Hello Amazon Q',
 });
 ```
 
 ##### q:abort
+
 Amazon Q CLIセッションを中止します。
 
 ```typescript
 interface QAbortEvent {
-  sessionId: string;        // 中止するセッションID
+  sessionId: string; // 中止するセッションID
 }
 
 // 使用例
 socket.emit('q:abort', {
-  sessionId: 'session_123'
+  sessionId: 'session_123',
 });
 ```
 
 ##### q:project:start
+
 プロジェクト用の新規セッションを開始します。
 
 ```typescript
 interface QProjectStartEvent {
-  projectPath: string;      // プロジェクトパス
-  resume?: boolean;         // セッション再開フラグ
+  projectPath: string; // プロジェクトパス
+  resume?: boolean; // セッション再開フラグ
 }
 
 // 使用例
 socket.emit('q:project:start', {
   projectPath: '/path/to/project',
-  resume: false
+  resume: false,
 });
 ```
 
 #### 2. 履歴管理
 
 ##### q:history
+
 特定プロジェクトの会話履歴を取得します。
 
 ```typescript
 // 使用例
 socket.emit('q:history', {
-  projectPath: '/path/to/project'
+  projectPath: '/path/to/project',
 });
 ```
 
 ##### q:projects
+
 全プロジェクトの履歴一覧を取得します。
 
 ```typescript
@@ -243,27 +264,29 @@ socket.emit('q:projects');
 ```
 
 ##### q:resume
+
 既存セッションを再開します。
 
 ```typescript
 // 使用例
 socket.emit('q:resume', {
   projectPath: '/path/to/project',
-  conversationId: 'conv_123'  // オプション
+  conversationId: 'conv_123', // オプション
 });
 ```
 
 #### 3. メッセージ・ルーム管理
 
 ##### message:send
+
 メッセージを送信します。
 
 ```typescript
 interface MessageSendEvent {
-  content: string;          // メッセージ内容
-  senderId: string;         // 送信者ID
+  content: string; // メッセージ内容
+  senderId: string; // 送信者ID
   type: 'text' | 'system' | 'notification';
-  roomId?: string;          // ルームID（オプション）
+  roomId?: string; // ルームID（オプション）
 }
 
 // 使用例
@@ -271,28 +294,30 @@ socket.emit('message:send', {
   content: 'Hello',
   senderId: 'user_123',
   type: 'text',
-  roomId: 'room_456'
+  roomId: 'room_456',
 });
 ```
 
 ##### room:join / room:leave
+
 ルームに参加・退出します。
 
 ```typescript
 interface RoomData {
-  roomId: string;           // ルームID
-  projectId?: string;       // プロジェクトID（オプション）
-  sessionId?: string;       // セッションID（オプション）
+  roomId: string; // ルームID
+  projectId?: string; // プロジェクトID（オプション）
+  sessionId?: string; // セッションID（オプション）
 }
 
 // 使用例
 socket.emit('room:join', {
   roomId: 'project_room_123',
-  projectId: 'project_123'
+  projectId: 'project_123',
 });
 ```
 
 ##### ping
+
 サーバーの生存確認を行います。
 
 ```typescript
@@ -304,12 +329,13 @@ socket.emit('ping');
 #### 1. Amazon Q CLI応答
 
 ##### q:response
+
 Amazon Q CLIからの応答データです。
 
 ```typescript
 interface QResponseEvent {
-  sessionId: string;        // セッションID
-  data: string;             // 応答データ
+  sessionId: string; // セッションID
+  data: string; // 応答データ
   type: 'stream' | 'complete'; // データタイプ
 }
 
@@ -320,13 +346,14 @@ socket.on('q:response', (data: QResponseEvent) => {
 ```
 
 ##### q:error
+
 Amazon Q CLIからのエラー通知です。
 
 ```typescript
 interface QErrorEvent {
-  sessionId: string;        // セッションID
-  error: string;            // エラーメッセージ
-  code?: string;            // エラーコード
+  sessionId: string; // セッションID
+  error: string; // エラーメッセージ
+  code?: string; // エラーコード
 }
 
 // 受信例
@@ -336,12 +363,13 @@ socket.on('q:error', (data: QErrorEvent) => {
 ```
 
 ##### q:complete
+
 Amazon Q CLIセッションの完了通知です。
 
 ```typescript
 interface QCompleteEvent {
-  sessionId: string;        // セッションID
-  exitCode: number;         // 終了コード
+  sessionId: string; // セッションID
+  exitCode: number; // 終了コード
 }
 
 // 受信例
@@ -351,12 +379,13 @@ socket.on('q:complete', (data: QCompleteEvent) => {
 ```
 
 ##### q:info
+
 Amazon Q CLIからの情報メッセージです。
 
 ```typescript
 interface QInfoEvent {
-  sessionId: string;        // セッションID
-  message: string;          // 情報メッセージ
+  sessionId: string; // セッションID
+  message: string; // 情報メッセージ
   type?: 'initialization' | 'status' | 'progress' | 'general';
 }
 
@@ -369,12 +398,13 @@ socket.on('q:info', (data: QInfoEvent) => {
 #### 2. セッション管理
 
 ##### session:created
+
 新しいセッションが作成されました。
 
 ```typescript
 interface SessionCreatedEvent {
-  sessionId: string;        // セッションID
-  projectId: string;        // プロジェクトID
+  sessionId: string; // セッションID
+  projectId: string; // プロジェクトID
 }
 
 // 受信例
@@ -384,13 +414,14 @@ socket.on('session:created', (data: SessionCreatedEvent) => {
 ```
 
 ##### q:session:started
+
 Amazon Q CLIセッションが開始されました。
 
 ```typescript
 interface QSessionStartedEvent {
-  sessionId: string;        // セッションID
-  projectPath: string;      // プロジェクトパス
-  model?: string;           // 使用モデル
+  sessionId: string; // セッションID
+  projectPath: string; // プロジェクトパス
+  model?: string; // 使用モデル
 }
 
 // 受信例
@@ -400,6 +431,7 @@ socket.on('q:session:started', (data: QSessionStartedEvent) => {
 ```
 
 ##### q:session:failed
+
 セッション開始に失敗しました。
 
 ```typescript
@@ -412,20 +444,21 @@ socket.on('q:session:failed', (data: { error: string }) => {
 #### 3. 履歴データ
 
 ##### q:history:data
+
 プロジェクトの会話履歴データです。
 
 ```typescript
 interface QHistoryDataResponse {
-  projectPath: string;      // プロジェクトパス
+  projectPath: string; // プロジェクトパス
   conversation: AmazonQConversation | null; // 会話データ
-  message?: string;         // 補足メッセージ
+  message?: string; // 補足メッセージ
 }
 
 interface AmazonQConversation {
-  conversation_id: string;  // 会話ID
-  model: string;            // 使用モデル
-  transcript: string[];     // 会話履歴
-  tools: string[];          // 使用ツール
+  conversation_id: string; // 会話ID
+  model: string; // 使用モデル
+  transcript: string[]; // 会話履歴
+  tools: string[]; // 使用ツール
   context_manager: Record<string, unknown>;
   latest_summary: string | null;
 }
@@ -437,20 +470,21 @@ socket.on('q:history:data', (data: QHistoryDataResponse) => {
 ```
 
 ##### q:history:list
+
 全プロジェクトの履歴一覧です。
 
 ```typescript
 interface QHistoryListResponse {
   projects: ConversationMetadata[]; // プロジェクト一覧
-  count: number;                    // プロジェクト数
+  count: number; // プロジェクト数
 }
 
 interface ConversationMetadata {
-  projectPath: string;      // プロジェクトパス
-  conversation_id: string;  // 会話ID
-  messageCount: number;     // メッセージ数
-  lastUpdated: Date;        // 最終更新日
-  model: string;            // 使用モデル
+  projectPath: string; // プロジェクトパス
+  conversation_id: string; // 会話ID
+  messageCount: number; // メッセージ数
+  lastUpdated: Date; // 最終更新日
+  model: string; // 使用モデル
 }
 
 // 受信例
@@ -462,14 +496,15 @@ socket.on('q:history:list', (data: QHistoryListResponse) => {
 #### 4. メッセージ・ルーム
 
 ##### message:received / message:broadcast
+
 メッセージの受信・配信です。
 
 ```typescript
 interface MessageData {
-  id: string;               // メッセージID
-  content: string;          // メッセージ内容
-  senderId: string;         // 送信者ID
-  timestamp: number;        // タイムスタンプ
+  id: string; // メッセージID
+  content: string; // メッセージ内容
+  senderId: string; // 送信者ID
+  timestamp: number; // タイムスタンプ
   type: 'text' | 'system' | 'notification';
 }
 
@@ -484,17 +519,18 @@ socket.on('message:broadcast', (data: MessageData) => {
 ```
 
 ##### room:joined / room:left
+
 ルーム参加・退出の通知です。
 
 ```typescript
 interface RoomJoinedEvent {
-  roomId: string;           // ルームID
-  timestamp: number;        // タイムスタンプ
+  roomId: string; // ルームID
+  timestamp: number; // タイムスタンプ
 }
 
 interface RoomLeftEvent {
-  roomId: string;           // ルームID
-  timestamp: number;        // タイムスタンプ
+  roomId: string; // ルームID
+  timestamp: number; // タイムスタンプ
 }
 
 // 受信例
@@ -510,12 +546,13 @@ socket.on('room:left', (data: RoomLeftEvent) => {
 #### 5. エラー・制御
 
 ##### error
+
 一般的なエラー通知です。
 
 ```typescript
 interface ErrorData {
-  code: string;             // エラーコード
-  message: string;          // エラーメッセージ
+  code: string; // エラーコード
+  message: string; // エラーメッセージ
   details?: Record<string, string | number | boolean | null>;
 }
 
@@ -526,6 +563,7 @@ socket.on('error', (data: ErrorData) => {
 ```
 
 ##### pong
+
 ping に対する応答です。
 
 ```typescript
@@ -538,11 +576,13 @@ socket.on('pong', () => {
 ## エラーハンドリング
 
 ### HTTPエラーコード
+
 - `400`: Bad Request - 不正なリクエスト
 - `404`: Not Found - リソースが見つからない
 - `500`: Internal Server Error - サーバー内部エラー
 
 ### WebSocketエラーコード
+
 - `SOCKET_ERROR`: WebSocket接続エラー
 - `Q_COMMAND_ERROR`: Amazon Q CLI コマンドエラー
 - `Q_ABORT_ERROR`: セッション中止エラー
@@ -556,16 +596,19 @@ socket.on('pong', () => {
 ## 制限事項
 
 ### リクエスト制限
+
 - Body サイズ: 10MB
 - Buffer サイズ: 10KB
 - 同時接続数: 制限なし（メモリ使用量に依存）
 
 ### タイムアウト
+
 - WebSocket Ping Timeout: 60秒
 - WebSocket Ping Interval: 25秒
 - Connection Timeout: 45秒
 
 ### その他の制限
+
 - 絶対パスのみ許可（プロジェクトパス）
 - SQLite データベース同時アクセス制限
 - プロセス数の制限なし（システムリソースに依存）

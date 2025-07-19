@@ -15,19 +15,35 @@ export function isValidCLIPath(path: string): boolean {
 
   // 許可されたパスパターンのみ実行を許可
   const allowedPatterns = [
-    /^q$/,                                    // PATH内の'q'コマンド
-    /^\/usr\/local\/bin\/q$/,                // 標準的なインストール場所
-    /^\/opt\/homebrew\/bin\/q$/,             // Apple Silicon Mac
-    /^\/home\/[a-zA-Z0-9_-]+\/\.local\/bin\/q$/,  // ユーザーローカル
-    new RegExp(`^${process.env.HOME?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/\\.local/bin/q$`) // ホームディレクトリ
+    /^q$/, // PATH内の'q'コマンド
+    /^\/usr\/local\/bin\/q$/, // 標準的なインストール場所
+    /^\/opt\/homebrew\/bin\/q$/, // Apple Silicon Mac
+    /^\/home\/[a-zA-Z0-9_-]+\/\.local\/bin\/q$/, // ユーザーローカル
+    new RegExp(`^${process.env.HOME?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/\\.local/bin/q$`), // ホームディレクトリ
   ].filter(Boolean);
 
   const isAllowed = allowedPatterns.some(pattern => pattern.test(path));
-  
+
   // 危険な文字列をチェック
-  const dangerousChars = [';', '&', '|', '`', '$', '(', ')', '{', '}', '[', ']', '<', '>', '"', "'"];
+  const dangerousChars = [
+    ';',
+    '&',
+    '|',
+    '`',
+    '$',
+    '(',
+    ')',
+    '{',
+    '}',
+    '[',
+    ']',
+    '<',
+    '>',
+    '"',
+    "'",
+  ];
   const hasDangerousChars = dangerousChars.some(char => path.includes(char));
-  
+
   if (hasDangerousChars) {
     return false;
   }
@@ -44,6 +60,6 @@ export function getCLICandidates(): string[] {
     'q',
     '/usr/local/bin/q',
     '/opt/homebrew/bin/q',
-    process.env.HOME + '/.local/bin/q'
+    process.env.HOME + '/.local/bin/q',
   ].filter(Boolean); // undefined要素を除外
 }

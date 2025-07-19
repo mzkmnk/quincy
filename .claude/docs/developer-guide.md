@@ -38,21 +38,24 @@
 ### インストール手順
 
 1. **リポジトリのクローン**
+
    ```bash
    git clone <repository-url>
    cd backend-arc
    ```
 
 2. **依存関係のインストール**
+
    ```bash
    pnpm install
    ```
 
 3. **開発サーバーの起動**
+
    ```bash
    # バックエンドとフロントエンドを同時に起動
    pnpm dev:backend & pnpm dev:frontend
-   
+
    # または個別に起動
    pnpm --filter backend dev
    pnpm --filter frontend start
@@ -126,6 +129,7 @@ src/
 各ファイルは1つの主要な関数のみを含みます。
 
 **良い例**:
+
 ```typescript
 // src/utils/id-generator/generate-message-id.ts
 export function generateMessageId(): MessageId {
@@ -134,11 +138,18 @@ export function generateMessageId(): MessageId {
 ```
 
 **悪い例**:
+
 ```typescript
 // 複数の関数を含む
-export function generateMessageId(): MessageId { /* */ }
-export function generateSessionId(): SessionId { /* */ }
-export function generateUserId(): UserId { /* */ }
+export function generateMessageId(): MessageId {
+  /* */
+}
+export function generateSessionId(): SessionId {
+  /* */
+}
+export function generateUserId(): UserId {
+  /* */
+}
 ```
 
 ### 2. モジュール構造
@@ -203,15 +214,17 @@ git checkout -b refactor/component-name
    - 既存コードの理解
 
 2. **テストの作成**（TDD）
+
    ```bash
    # テストファイルの作成
    touch src/tests/new-feature.test.ts
-   
+
    # テストの実行
    pnpm test --watch
    ```
 
 3. **実装**
+
    ```bash
    # 新しい機能の実装
    mkdir -p src/services/new-service
@@ -219,13 +232,14 @@ git checkout -b refactor/component-name
    ```
 
 4. **テストの確認**
+
    ```bash
    # 全テストの実行
    pnpm test
-   
+
    # 型チェック
    pnpm typecheck
-   
+
    # ビルド確認
    pnpm build
    ```
@@ -315,6 +329,7 @@ export function createSession(options: QProcessOptions): QProcessSession {
 ### 1. テストの種類
 
 **単体テスト (Unit Tests)**
+
 - 1つの関数のテスト
 - モックを使用して依存関係を分離
 - 高速実行
@@ -330,6 +345,7 @@ describe('generateMessageId', () => {
 ```
 
 **結合テスト (Integration Tests)**
+
 - サービス間の連携テスト
 - 実際のサービスを使用
 
@@ -345,6 +361,7 @@ describe('AmazonQCLIService Integration', () => {
 ```
 
 **E2Eテスト (End-to-End Tests)**
+
 - 完全なワークフローのテスト
 - WebSocketを含む全体的な機能
 
@@ -386,10 +403,10 @@ describe('関数名またはクラス名', () => {
   it('should 期待される動作', () => {
     // arrange
     const input = 'test';
-    
+
     // act
     const result = functionUnderTest(input);
-    
+
     // assert
     expect(result).toBe(expected);
   });
@@ -421,6 +438,7 @@ touch src/tests/new-utility.test.ts
 ```
 
 **実装例**:
+
 ```typescript
 // src/utils/new-utility/main-function.ts
 export function mainFunction(input: string): string {
@@ -489,7 +507,7 @@ export function handleNewEvent(socket: Socket, data: NewEventData): void {
 
 // 2. イベントセットアップに追加
 // src/services/websocket/event-setup/setup-event-handlers.ts
-socket.on('new:event', (data) => handleNewEvent(socket, data));
+socket.on('new:event', data => handleNewEvent(socket, data));
 
 // 3. 型定義の追加
 // src/types/websocket.ts
@@ -507,6 +525,7 @@ export interface NewEventData {
 **症状**: `Q_CLI_NOT_FOUND` エラー
 
 **解決方法**:
+
 ```bash
 # Amazon Q CLIの確認
 which q
@@ -524,6 +543,7 @@ export Q_CLI_PATH=/usr/local/bin/q
 **症状**: フロントエンドからの接続が失敗
 
 **解決方法**:
+
 ```bash
 # サーバーの起動確認
 curl http://localhost:3000/health
@@ -540,6 +560,7 @@ curl http://localhost:3000/websocket/status
 **症状**: 履歴取得時のエラー
 
 **解決方法**:
+
 ```bash
 # SQLiteファイルの確認
 ls -la ~/.amazonq/
@@ -553,6 +574,7 @@ stat ~/.amazonq/cli-history.db
 **症状**: テストが予期しない理由で失敗
 
 **解決方法**:
+
 ```bash
 # キャッシュクリア
 pnpm test -- --clearCache
@@ -569,6 +591,7 @@ pnpm test -- --testNamePattern="問題のテスト名"
 **症状**: TypeScriptコンパイルエラー
 
 **解決方法**:
+
 ```bash
 # 型チェック
 pnpm typecheck
@@ -611,7 +634,7 @@ socket.on('connect', () => {
   console.log('WebSocket connected');
 });
 
-socket.on('disconnect', (reason) => {
+socket.on('disconnect', reason => {
   console.log('WebSocket disconnected:', reason);
 });
 ```
@@ -621,6 +644,7 @@ socket.on('disconnect', (reason) => {
 ### Q1: 新しい関数を追加したい場合、どこに置けばよいですか？
 
 A1: 機能に応じて適切なディレクトリに配置してください：
+
 - **共通ユーティリティ**: `src/utils/[category]/`
 - **ビジネスロジック**: `src/services/[service]/[category]/`
 - **型定義**: `src/types/`
@@ -628,13 +652,15 @@ A1: 機能に応じて適切なディレクトリに配置してください：
 ### Q2: テストはどの程度書けばよいですか？
 
 A2: 以下の基準を目安にしてください：
+
 - **ユーティリティ関数**: 100%のテストカバレッジ
 - **サービス関数**: 主要なパスのテスト
 - **エラーハンドリング**: 異常ケースのテスト
 
 ### Q3: 既存のコードを変更する場合の注意点は？
 
-A3: 
+A3:
+
 - 既存のテストが通ることを確認
 - 後方互換性を保つ
 - 変更の影響範囲を確認
@@ -642,7 +668,8 @@ A3:
 
 ### Q4: パフォーマンスが気になる場合は？
 
-A4: 
+A4:
+
 - プロファイリングツールの使用
 - 非同期処理の最適化
 - メモリリークの確認
@@ -650,7 +677,8 @@ A4:
 
 ### Q5: 新しい依存関係を追加する場合は？
 
-A5: 
+A5:
+
 - 必要性を十分検討
 - ライセンスの確認
 - セキュリティの確認

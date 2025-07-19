@@ -4,10 +4,8 @@
  */
 
 import type { ConversationMetadata } from '@quincy/shared';
-import type { 
-  DisplayMessage, 
-  AmazonQConversationWithHistory 
-} from '../amazon-q-history-types';
+
+import type { DisplayMessage, AmazonQConversationWithHistory } from '../amazon-q-history-types';
 
 // 分離した関数をインポート
 import { isDatabaseAvailable } from './is-database-available';
@@ -43,7 +41,9 @@ export class AmazonQHistoryService {
   /**
    * 特定のconversation_idで履歴を検索
    */
-  async findByConversationId(conversationId: string): Promise<{ projectPath: string; conversation: AmazonQConversationWithHistory } | null> {
+  async findByConversationId(
+    conversationId: string
+  ): Promise<{ projectPath: string; conversation: AmazonQConversationWithHistory } | null> {
     return findByConversationId(conversationId);
   }
 
@@ -69,15 +69,17 @@ export class AmazonQHistoryService {
   /**
    * 全プロジェクトの履歴をhistoryデータ付きで取得
    */
-  async getAllProjectsHistoryDetailed(): Promise<{
-    projectPath: string;
-    conversation_id: string;
-    hasHistoryData: boolean;
-    messageCount: number;
-    turnCount: number;
-    lastUpdated: Date;
-    model: string;
-  }[]> {
+  async getAllProjectsHistoryDetailed(): Promise<
+    {
+      projectPath: string;
+      conversation_id: string;
+      hasHistoryData: boolean;
+      messageCount: number;
+      turnCount: number;
+      lastUpdated: Date;
+      model: string;
+    }[]
+  > {
     return getAllProjectsHistoryDetailed();
   }
 }
@@ -90,5 +92,5 @@ export {
   findByConversationId,
   getProjectHistoryDetailed,
   getConversationStats,
-  getAllProjectsHistoryDetailed
+  getAllProjectsHistoryDetailed,
 };

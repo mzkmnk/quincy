@@ -33,6 +33,6 @@ export function getSessionStats(
     command: session.command,
     startTime: session.startTime,
     lastActivity: session.lastActivity,
-    isActive: ['starting', 'running'].includes(session.status)
+    isActive: ['starting', 'running'].includes(session.status),
   };
 }

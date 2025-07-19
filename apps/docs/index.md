@@ -3,9 +3,9 @@
 layout: home
 
 hero:
-  name: "Quincy"
-  text: "Amazon Q CLI Management Tool"
-  tagline: "効率的なコード管理とCLIプロセス管理のためのモダンなツール"
+  name: 'Quincy'
+  text: 'Amazon Q CLI Management Tool'
+  tagline: '効率的なコード管理とCLIプロセス管理のためのモダンなツール'
   image:
     src: /icon.png
     alt: Quincy Logo

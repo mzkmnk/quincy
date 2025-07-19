@@ -3,11 +3,11 @@ export function combineInitializationMessages(messages: string[]): string {
   const loadedServices: string[] = [];
   let mcpStatus = '';
   let welcomeMessage = '';
-  let helpInfo: string[] = [];
-  
+  const helpInfo: string[] = [];
+
   for (const message of messages) {
     const trimmed = message.trim();
-    
+
     if (/✓.*loaded in.*s$/i.test(trimmed)) {
       // ロードされたサービスを抽出
       const match = trimmed.match(/✓\s*(.+?)\s+loaded/i);
@@ -25,20 +25,20 @@ export function combineInitializationMessages(messages: string[]): string {
       helpInfo.push(trimmed);
     }
   }
-  
+
   // 統合メッセージを構築
   if (welcomeMessage) {
     lines.push(welcomeMessage);
   }
-  
+
   if (mcpStatus) {
     lines.push(mcpStatus);
   }
-  
+
   if (loadedServices.length > 0) {
     lines.push(`Loaded services: ${loadedServices.join(', ')}`);
   }
-  
+
   if (helpInfo.length > 0) {
     lines.push(''); // 空行
     lines.push('Available commands:');
@@ -47,7 +47,7 @@ export function combineInitializationMessages(messages: string[]): string {
         lines.push(`• ${info}`);
       }
     });
-    
+
     // "You are chatting with" メッセージは最後に
     const modelInfo = helpInfo.find(info => info.includes('You are chatting with'));
     if (modelInfo) {
@@ -55,6 +55,6 @@ export function combineInitializationMessages(messages: string[]): string {
       lines.push(modelInfo);
     }
   }
-  
+
   return lines.join('\n');
 }

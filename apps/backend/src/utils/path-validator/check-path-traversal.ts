@@ -13,12 +13,12 @@ export function checkPathTraversal(normalizedPath: string, originalPath: string)
   if (normalizedPath.includes('..')) {
     return true;
   }
-  
+
   // 正規化後と元のパス（重複スラッシュを除去）が異なる場合は危険
   const cleanedOriginalPath = originalPath.replace(/\/+/g, '/');
   if (normalizedPath !== cleanedOriginalPath) {
     return true;
   }
-  
+
   return false;
 }

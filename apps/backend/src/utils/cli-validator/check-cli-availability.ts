@@ -4,6 +4,7 @@
 
 import { promisify } from 'util';
 import { exec } from 'child_process';
+
 import { isValidCLIPath, getCLICandidates } from './validate-cli-path';
 
 const execAsync = promisify(exec);
@@ -20,12 +21,13 @@ export interface CLIAvailabilityResult {
  * @param args 引数の配列
  * @returns 実行結果
  */
-async function executeSecureCLI(cliPath: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
+async function executeSecureCLI(
+  cliPath: string,
+  args: string[]
+): Promise<{ stdout: string; stderr: string }> {
   // 引数をサニタイズ（シェルインジェクション対策）
-  const safeArgs = args.map(arg => 
-    arg.replace(/[;&|`$(){}[\]<>"'\\]/g, '\\$&')
-  );
-  
+  const safeArgs = args.map(arg => arg.replace(/[;&|`$(){}[\]<>"'\\]/g, '\\$&'));
+
   return execAsync(`"${cliPath}" ${safeArgs.join(' ')}`, { timeout: 5000 });
 }
 
@@ -44,11 +46,14 @@ export async function checkCLIAvailability(): Promise<CLIAvailabilityResult> {
 
     try {
       const { stdout } = await executeSecureCLI(candidate, ['--version']);
-      
-      if (stdout && (stdout.includes('q') || stdout.includes('amazon') || stdout.includes('version'))) {
+
+      if (
+        stdout &&
+        (stdout.includes('q') || stdout.includes('amazon') || stdout.includes('version'))
+      ) {
         return { available: true, path: candidate };
       }
-    } catch (error) {
+    } catch {
       continue;
     }
   }
@@ -63,7 +68,7 @@ export async function checkCLIAvailability(): Promise<CLIAvailabilityResult> {
         return { available: true, path };
       }
     }
-  } catch (error) {
+  } catch {
     // エラーは無視して続行
   }
 

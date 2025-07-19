@@ -1,18 +1,23 @@
 import type { Socket } from 'socket.io';
-import type { 
-  ClientToServerEvents, 
-  ServerToClientEvents, 
-  InterServerEvents, 
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
   SocketData,
-  AmazonQConversation
+  AmazonQConversation,
 } from '@quincy/shared';
+
 import type { AmazonQHistoryService } from '../../amazon-q-history';
 
 export async function handleQHistory(
   socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>,
   data: { projectPath: string },
   qHistoryService: AmazonQHistoryService,
-  sendErrorCallback: (socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>, code: string, message: string) => void
+  sendErrorCallback: (
+    socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>,
+    code: string,
+    message: string
+  ) => void
 ): Promise<void> {
   try {
     if (!qHistoryService.isDatabaseAvailable()) {
@@ -21,12 +26,12 @@ export async function handleQHistory(
     }
 
     const conversation = await qHistoryService.getProjectHistory(data.projectPath);
-    
+
     if (!conversation) {
       socket.emit('q:history:data', {
         projectPath: data.projectPath,
         conversation: null,
-        message: 'No conversation history found for this project'
+        message: 'No conversation history found for this project',
       });
       return;
     }
@@ -34,16 +39,18 @@ export async function handleQHistory(
     // Promptエントリ数を正確に計算（実際のユーザーメッセージ数）
     // 新しいサービス構造では、この計算はサービス内で行われるため、
     // ここでは基本的な計算のみ実行
-    let messageCount = 0;
-    if (conversation.history) {
-      messageCount = Array.isArray(conversation.history) ? conversation.history.length : 0;
-    }
-    
+    // messageCountは現在使用されていないため、コメントアウト
+    // let messageCount = 0;
+    // if (conversation.history) {
+    //   messageCount = Array.isArray(conversation.history) ? conversation.history.length : 0;
+    // }
+
     // AmazonQConversation型に合わせて変換（historyフィールドを除外）
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
     const { history, ...conversationForClient } = conversation;
     socket.emit('q:history:data', {
       projectPath: data.projectPath,
-      conversation: conversationForClient as AmazonQConversation
+      conversation: conversationForClient as AmazonQConversation,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

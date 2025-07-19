@@ -9,6 +9,6 @@ export function getToolsUsedInThinkingStep(turn: ConversationTurn, stepIndex: nu
   const toolsPerStep = Math.ceil(turn.metadata.toolsUsed.length / turn.aiThinking.length);
   const startIndex = stepIndex * toolsPerStep;
   const endIndex = Math.min(startIndex + toolsPerStep, turn.metadata.toolsUsed.length);
-  
+
   return turn.metadata.toolsUsed.slice(startIndex, endIndex);
 }

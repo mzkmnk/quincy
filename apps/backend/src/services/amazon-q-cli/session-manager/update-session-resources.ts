@@ -1,5 +1,6 @@
-import type { QProcessSession } from './types';
 import { monitorResources } from '../process-manager/monitor-resources';
+
+import type { QProcessSession } from './types';
 
 export async function updateSessionResources(
   sessions: Map<string, QProcessSession>,

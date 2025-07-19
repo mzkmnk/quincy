@@ -1,13 +1,17 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  provideBrowserGlobalErrorListeners,
+  provideZonelessChangeDetection,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
-
-import { routes } from './app.routes';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
+
+import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,11 +24,11 @@ export const appConfig: ApplicationConfig = {
       theme: {
         preset: Aura,
         options: {
-          darkModeSelector: ':root'
-        }
-      }
+          darkModeSelector: ':root',
+        },
+      },
     }),
     MessageService,
-    ConfirmationService
-  ]
+    ConfirmationService,
+  ],
 };

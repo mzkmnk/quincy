@@ -13,7 +13,7 @@ export function extractAiResponse(entries: HistoryEntry[]): string {
       return responseMessage.Response.content;
     }
   }
-  
+
   // Responseがない場合は最後のToolUseを使用
   for (let i = entries.length - 1; i >= 0; i--) {
     const [, responseMessage] = entries[i];
@@ -21,6 +21,6 @@ export function extractAiResponse(entries: HistoryEntry[]): string {
       return responseMessage.ToolUse.content;
     }
   }
-  
+
   return 'No AI response found';
 }

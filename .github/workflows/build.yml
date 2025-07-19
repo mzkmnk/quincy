@@ -1,13 +1,13 @@
-name: Build Check
+name: Build, Lint and Format Check
 
 on:
   push:
-    branches: [ main, feat/*, develop ]
+    branches: [main, feat/*, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
-  build:
+  build-and-quality:
     runs-on: ubuntu-latest
 
     strategy:
@@ -15,37 +15,47 @@ jobs:
         node-version: [20.x]
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Install pnpm
-      uses: pnpm/action-setup@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
 
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'pnpm'
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-    - name: Install dependencies
-      run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
 
-    - name: Build shared package
-      run: pnpm --filter @quincy/shared build
+      - name: Run ESLint
+        run: pnpm lint:code
+        timeout-minutes: 5
 
-    - name: Build backend
-      run: pnpm --filter backend build
+      - name: Check Prettier formatting
+        run: pnpm format:check
+        timeout-minutes: 5
 
-    - name: Build frontend
-      run: pnpm --filter frontend build
+      - name: Build shared package
+        run: pnpm --filter @quincy/shared build
 
-    - name: Build docs
-      run: pnpm --filter docs build
+      - name: Build backend
+        run: pnpm build:backend
 
-    - name: Check build artifacts
-      run: |
-        echo "Checking build outputs..."
-        ls -la packages/shared/dist/
-        ls -la apps/backend/dist/
-        ls -la apps/frontend/dist/
-        ls -la apps/docs/.vitepress/dist/
+      - name: Build frontend
+        run: pnpm build:frontend
+
+      - name: Build docs
+        run: pnpm build:docs
+
+      - name: Check build artifacts
+        run: |
+          echo "Checking build outputs..."
+          ls -la packages/shared/dist/
+          ls -la apps/backend/dist/
+          ls -la apps/frontend/dist/
+          ls -la apps/docs/.vitepress/dist/

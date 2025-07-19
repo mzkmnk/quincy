@@ -8,6 +8,6 @@ export function getSessionRuntime(
   if (!session) {
     return 0;
   }
-  
+
   return Date.now() - session.startTime;
 }

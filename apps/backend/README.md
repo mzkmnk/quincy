@@ -30,6 +30,7 @@ open http://localhost:3000
 ### Connection
 
 Connect to the WebSocket server:
+
 ```javascript
 const socket = io('http://localhost:3000');
 ```
@@ -56,15 +57,15 @@ socket.emit('message:send', {
   content: 'Hello, world!',
   senderId: 'user123',
   type: 'text',
-  roomId: 'optional-room-id' // Leave empty for broadcast to all
+  roomId: 'optional-room-id', // Leave empty for broadcast to all
 });
 
 // Receive messages
-socket.on('message:received', (data) => {
+socket.on('message:received', data => {
   console.log('Message sent:', data);
 });
 
-socket.on('message:broadcast', (data) => {
+socket.on('message:broadcast', data => {
   console.log('New message:', data.content);
 });
 ```
@@ -77,20 +78,20 @@ Join and leave rooms for group communication:
 // Join a room
 socket.emit('room:join', {
   roomId: 'project-123',
-  projectId: 'optional-project-id'
+  projectId: 'optional-project-id',
 });
 
 // Leave a room
 socket.emit('room:leave', {
-  roomId: 'project-123'
+  roomId: 'project-123',
 });
 
 // Handle room events
-socket.on('room:joined', (data) => {
+socket.on('room:joined', data => {
   console.log('Joined room:', data.roomId);
 });
 
-socket.on('room:left', (data) => {
+socket.on('room:left', data => {
   console.log('Left room:', data.roomId);
 });
 ```
@@ -98,16 +99,19 @@ socket.on('room:left', (data) => {
 ## HTTP API Endpoints
 
 ### WebSocket Status
+
 ```
 GET /api/websocket/status
 ```
 
 ### WebSocket Info
+
 ```
 GET /api/websocket/info
 ```
 
 ### Health Check
+
 ```
 GET /api/health
 ```

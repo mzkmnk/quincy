@@ -2,11 +2,11 @@
  * ID生成ユーティリティのテスト
  */
 
-import { 
-  generateId, 
-  generateRandomString, 
-  generateMessageId, 
-  generateSessionId 
+import {
+  generateId,
+  generateRandomString,
+  generateMessageId,
+  generateSessionId,
 } from '../utils/id-generator';
 
 describe('ID生成ユーティリティ', () => {
@@ -55,10 +55,10 @@ describe('ID生成ユーティリティ', () => {
       const beforeTime = Date.now();
       const result = generateId(prefix);
       const afterTime = Date.now();
-      
+
       const parts = result.split('_');
       const timestamp = parseInt(parts[1]);
-      
+
       expect(timestamp).toBeGreaterThanOrEqual(beforeTime);
       expect(timestamp).toBeLessThanOrEqual(afterTime);
     });
@@ -94,15 +94,15 @@ describe('ID生成ユーティリティ', () => {
     it('すべてのID生成関数が一貫した形式を使用する', () => {
       const messageId = generateMessageId();
       const sessionId = generateSessionId();
-      
+
       // 基本的な構造: prefix_timestamp_randomString
       expect(messageId.split('_')).toHaveLength(3);
       expect(sessionId.split('_')).toHaveLength(4); // q_session_timestamp_randomString
-      
+
       // タイムスタンプが数値であることを確認
       const messageTimestamp = parseInt(messageId.split('_')[1]);
       const sessionTimestamp = parseInt(sessionId.split('_')[2]);
-      
+
       expect(messageTimestamp).toBeGreaterThan(0);
       expect(sessionTimestamp).toBeGreaterThan(0);
     });

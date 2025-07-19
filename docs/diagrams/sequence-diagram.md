@@ -13,7 +13,7 @@ sequenceDiagram
     participant QCli as 🤖 Amazon Q CLI
     participant AWS as ☁️ AWS IAM Identity Center
     participant SQLite as 💾 SQLite Database
-    
+
     Note over User,SQLite: セッション開始フロー
     User->>Angular: プロジェクトを選択
     Angular->>SocketIO: emit('q:project:start', {projectPath})
@@ -22,7 +22,7 @@ sequenceDiagram
     QCLIService->>QCli: which q
     QCli-->>QCLIService: CLI path found
     QCLIService-->>Express: {available: true, path: '/usr/local/bin/q'}
-    
+
     Express->>QCLIService: startSession('chat', options)
     QCLIService->>QCLIService: validateProjectPath()
     QCLIService->>Process: spawn('q', ['chat'], {cwd: projectPath})
@@ -33,13 +33,13 @@ sequenceDiagram
     QCli-->>QCLIService: 初期化完了
     QCLIService->>QCLIService: セッション登録
     QCLIService-->>Express: sessionId
-    
+
     Express->>SocketIO: addSocketToSession(sessionId, socketId)
     SocketIO->>SocketIO: セッション-ソケット マッピング
     SocketIO-->>Angular: emit('session:created', {sessionId})
     SocketIO-->>Angular: emit('q:session:started', {sessionId, projectPath})
     Angular-->>User: セッション開始通知
-    
+
     Note over User,SQLite: エラーハンドリング
     alt CLI not available
         QCLIService-->>Express: {available: false, error: 'CLI not found'}
@@ -47,7 +47,7 @@ sequenceDiagram
         SocketIO-->>Angular: emit('error', {code, message})
         Angular-->>User: エラー表示
     end
-    
+
     alt Authentication failed
         QCli->>AWS: 認証状態確認
         AWS-->>QCli: 認証エラー
@@ -71,7 +71,7 @@ sequenceDiagram
     participant Process as ⚙️ Child Process
     participant QCli as 🤖 Amazon Q CLI
     participant AWS as ☁️ AWS Services
-    
+
     Note over User,AWS: メッセージ送信フロー
     User->>Angular: メッセージを入力
     Angular->>SocketIO: emit('q:message', {sessionId, message})
@@ -81,7 +81,7 @@ sequenceDiagram
     QCLIService->>Process: stdin.write(message + '\n')
     Process-->>QCli: メッセージ送信
     QCli->>AWS: AI処理リクエスト
-    
+
     Note over User,AWS: リアルタイム応答フロー
     AWS->>QCli: AI応答生成
     QCli-->>Process: stdout データ
@@ -94,7 +94,7 @@ sequenceDiagram
     SocketIO-->>Angular: emit('q:response', {sessionId, data})
     Angular->>Angular: UI更新
     Angular-->>User: 応答表示
-    
+
     Note over User,AWS: ストリーミング応答
     loop 応答データが継続中
         QCli-->>Process: stdout データ（続き）
@@ -105,13 +105,13 @@ sequenceDiagram
         SocketIO-->>Angular: emit('q:response')
         Angular-->>User: リアルタイム更新
     end
-    
+
     Note over User,AWS: 応答完了
     QCli-->>Process: 応答完了
     Process-->>QCLIService: 'close' event（該当なし）
     QCLIService->>QCLIService: レスポンス完了判定
     QCLIService-->>Express: 応答完了（通常は継続）
-    
+
     Note over User,AWS: エラーハンドリング
     alt セッション存在しない
         QCLIService-->>Express: sendInput() returns false
@@ -119,7 +119,7 @@ sequenceDiagram
         SocketIO-->>Angular: emit('error', {code, message})
         Angular-->>User: エラー表示
     end
-    
+
     alt プロセスエラー
         Process-->>QCLIService: 'error' event
         QCLIService->>QCLIService: emit('q:error', {sessionId, error})
@@ -140,7 +140,7 @@ sequenceDiagram
     participant Express as 🚀 Express Backend
     participant HistoryService as 📚 History Service
     participant SQLite as 💾 SQLite Database
-    
+
     Note over User,SQLite: プロジェクト履歴取得
     User->>Angular: プロジェクト履歴を要求
     Angular->>SocketIO: emit('q:history', {projectPath})
@@ -149,7 +149,7 @@ sequenceDiagram
     HistoryService->>SQLite: データベース存在確認
     SQLite-->>HistoryService: 存在確認結果
     HistoryService-->>Express: available: true
-    
+
     Express->>HistoryService: getProjectHistory(projectPath)
     HistoryService->>SQLite: SELECT conversation WHERE project_path = ?
     SQLite-->>HistoryService: conversation data
@@ -159,7 +159,7 @@ sequenceDiagram
     SocketIO-->>Angular: q:history:data event
     Angular->>Angular: 履歴データ表示
     Angular-->>User: 履歴表示
-    
+
     Note over User,SQLite: 全プロジェクト履歴取得
     User->>Angular: プロジェクト一覧を要求
     Angular->>SocketIO: emit('q:projects')
@@ -173,7 +173,7 @@ sequenceDiagram
     SocketIO-->>Angular: q:history:list event
     Angular->>Angular: プロジェクト一覧表示
     Angular-->>User: プロジェクト一覧
-    
+
     Note over User,SQLite: エラーハンドリング
     alt データベース利用不可
         HistoryService-->>Express: isDatabaseAvailable() returns false
@@ -181,7 +181,7 @@ sequenceDiagram
         SocketIO-->>Angular: emit('error')
         Angular-->>User: エラー表示
     end
-    
+
     alt 履歴データなし
         HistoryService-->>Express: getProjectHistory() returns null
         Express->>SocketIO: emit('q:history:data', {conversation: null})
@@ -203,19 +203,19 @@ sequenceDiagram
     participant Process as ⚙️ Child Process
     participant QCli as 🤖 Amazon Q CLI
     participant SQLite as 💾 SQLite Database
-    
+
     Note over User,SQLite: セッション再開フロー
     User->>Angular: セッション再開を要求
     Angular->>SocketIO: emit('q:resume', {projectPath, conversationId?})
     SocketIO->>Express: handleQResume()
     Express->>HistoryService: isDatabaseAvailable()
     HistoryService-->>Express: available: true
-    
+
     Express->>HistoryService: getProjectHistory(projectPath)
     HistoryService->>SQLite: SELECT conversation
     SQLite-->>HistoryService: conversation data
     HistoryService-->>Express: conversation object
-    
+
     alt 履歴が存在する
         Express->>QCLIService: startSession('chat', {resume: true})
         QCLIService->>Process: spawn('q', ['chat', '--resume'], {cwd: projectPath})
@@ -234,7 +234,7 @@ sequenceDiagram
         SocketIO-->>Angular: emit('q:session:failed', {error})
         Angular-->>User: エラー表示
     end
-    
+
     Note over User,SQLite: エラーハンドリング
     alt データベース利用不可
         HistoryService-->>Express: isDatabaseAvailable() returns false
@@ -242,7 +242,7 @@ sequenceDiagram
         SocketIO-->>Angular: emit('error')
         Angular-->>User: エラー表示
     end
-    
+
     alt プロセス開始失敗
         QCLIService-->>Express: startSession() throws error
         Express->>SocketIO: sendError('Q_RESUME_ERROR')
@@ -262,7 +262,7 @@ sequenceDiagram
     participant QCLIService as 🤖 Q CLI Service
     participant Process as ⚙️ Child Process
     participant QCli as 🤖 Amazon Q CLI
-    
+
     Note over User,QCli: ユーザーによる中止
     User->>Angular: セッション中止
     Angular->>SocketIO: emit('q:abort', {sessionId})
@@ -280,7 +280,7 @@ sequenceDiagram
     SocketIO->>SocketIO: cleanupSession()
     SocketIO-->>Angular: emit('q:complete', {sessionId})
     Angular-->>User: セッション終了通知
-    
+
     Note over User,QCli: 自然終了
     QCli-->>Process: 正常終了
     Process-->>QCLIService: 'exit' event (code: 0)
@@ -290,7 +290,7 @@ sequenceDiagram
     SocketIO->>SocketIO: cleanupSession()
     SocketIO-->>Angular: emit('q:complete', {sessionId, exitCode})
     Angular-->>User: セッション完了通知
-    
+
     Note over User,QCli: 接続切断時のクリーンアップ
     User->>Angular: ブラウザーを閉じる
     Angular->>SocketIO: disconnect event
@@ -299,7 +299,7 @@ sequenceDiagram
     SocketIO->>SocketIO: 対象セッション特定
     SocketIO->>Express: 関連セッション情報取得
     Express->>QCLIService: 関連セッション確認
-    
+
     alt セッションに他のソケットが存在
         QCLIService-->>Express: セッション継続
         Express->>SocketIO: セッション保持
@@ -309,10 +309,10 @@ sequenceDiagram
         Process-->>QCLIService: プロセス終了
         QCLIService->>QCLIService: cleanupSession()
     end
-    
+
     SocketIO->>SocketIO: ユーザー追跡削除
     SocketIO->>SocketIO: ルーム情報削除
-    
+
     Note over User,QCli: エラー発生時のクリーンアップ
     Process-->>QCLIService: 'error' event
     QCLIService->>QCLIService: emit('q:error', {sessionId, error})
@@ -321,7 +321,7 @@ sequenceDiagram
     Express->>SocketIO: emitToSession(sessionId, 'q:error')
     SocketIO-->>Angular: emit('q:error', {sessionId, error})
     Angular-->>User: エラー表示
-    
+
     alt 致命的エラー
         QCLIService->>QCLIService: emit('q:complete', {sessionId, exitCode: 1})
         QCLIService->>QCLIService: cleanupSession()

@@ -1,10 +1,10 @@
 import type { Socket } from 'socket.io';
-import type { 
-  ClientToServerEvents, 
-  ServerToClientEvents, 
-  InterServerEvents, 
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
   SocketData,
-  ErrorData
+  ErrorData,
 } from '@quincy/shared';
 
 export function sendError(
@@ -16,9 +16,9 @@ export function sendError(
   const errorData: ErrorData = {
     code,
     message,
-    details
+    details,
   };
-  
+
   // ソケットが接続されているか確認してからエラーを送信
   if (socket.connected) {
     socket.emit('error', errorData);
