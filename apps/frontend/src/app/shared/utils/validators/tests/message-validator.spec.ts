@@ -36,20 +36,20 @@ describe('isValidMessage', () => {
     });
 
     it('nullやundefinedを渡された場合の動作', () => {
-      expect(isValidMessage(null as any)).toBe(false);
-      expect(isValidMessage(undefined as any)).toBe(false);
+      expect(isValidMessage(null as unknown as string)).toBe(false);
+      expect(isValidMessage(undefined as unknown as string)).toBe(false);
     });
 
     it('数値を渡された場合の動作', () => {
-      expect(isValidMessage(123 as any)).toBe(false);
-      expect(isValidMessage(0 as any)).toBe(false);
-      expect(isValidMessage(NaN as any)).toBe(false);
+      expect(isValidMessage(123 as unknown as string)).toBe(false);
+      expect(isValidMessage(0 as unknown as string)).toBe(false);
+      expect(isValidMessage(NaN as unknown as string)).toBe(false);
     });
 
     it('オブジェクトを渡された場合の動作', () => {
-      expect(isValidMessage({} as any)).toBe(false);
-      expect(isValidMessage([] as any)).toBe(false);
-      expect(isValidMessage({ message: 'hello' } as any)).toBe(false);
+      expect(isValidMessage({} as unknown as string)).toBe(false);
+      expect(isValidMessage([] as unknown as string)).toBe(false);
+      expect(isValidMessage({ message: 'hello' } as unknown as string)).toBe(false);
     });
 
     it('特殊な空白文字のみの場合、falseを返す', () => {

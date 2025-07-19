@@ -93,7 +93,7 @@ describe('handleStreamingResponse', () => {
     });
 
     it('nullやundefinedのセッションIDを適切に処理する', () => {
-      const data = { sessionId: null as any, data: 'test data' };
+      const data = { sessionId: null as unknown as string, data: 'test data' };
       const sessionId = 'session-123';
 
       handleStreamingResponse(data, sessionId, mockOnHandleStreaming);

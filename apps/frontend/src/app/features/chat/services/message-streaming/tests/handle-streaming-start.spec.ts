@@ -78,7 +78,7 @@ describe('handleStreamingStart', () => {
 
       handleStreamingStart(content, mockAddMessage, streamingMessageId, mockUpdateMessageIndexMap);
 
-      expect(mockAddMessage).toHaveBeenCalledBefore(mockUpdateMessageIndexMap as any);
+      expect(mockAddMessage).toHaveBeenCalledBefore(mockUpdateMessageIndexMap as unknown as string);
       expect(updateIndexMapCalled).toBe(true);
       expect(streamingMessageIdSetValue).toBe(messageId);
     });

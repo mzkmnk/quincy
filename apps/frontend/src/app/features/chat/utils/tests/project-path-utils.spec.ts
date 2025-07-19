@@ -91,11 +91,11 @@ describe('project-path-utils', () => {
       });
 
       it('nullの場合、"Unknown Project"を返す', () => {
-        expect(getProjectName(null as any)).toBe('Unknown Project');
+        expect(getProjectName(null as unknown as string)).toBe('Unknown Project');
       });
 
       it('undefinedの場合、"Unknown Project"を返す', () => {
-        expect(getProjectName(undefined as any)).toBe('Unknown Project');
+        expect(getProjectName(undefined as unknown as string)).toBe('Unknown Project');
       });
 
       it('空白のみの場合も"Unknown Project"を返す', () => {
@@ -306,7 +306,7 @@ describe('project-path-utils', () => {
 
       it('非文字列のprojectPathの場合の動作', () => {
         const currentConversation = { conversation_id: 'conv-123' };
-        const amazonQHistory = [{ conversation_id: 'conv-123', projectPath: 123 as any }];
+        const amazonQHistory = [{ conversation_id: 'conv-123', projectPath: 123 as unknown as string }];
 
         const result = getProjectPathFromConversation(currentConversation, amazonQHistory);
         expect(result).toBe(123);

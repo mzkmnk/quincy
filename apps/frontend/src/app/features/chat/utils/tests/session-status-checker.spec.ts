@@ -162,17 +162,17 @@ describe('session-status-checker', () => {
 
       it('isActiveChatがtruthyな値でtrueを返す', () => {
         expect(canChat(true, sessionError, currentQSession)).toBe(true);
-        expect(canChat(1 as any, sessionError, currentQSession)).toBe(true);
-        expect(canChat('active' as any, sessionError, currentQSession)).toBe(true);
-        expect(canChat({} as any, sessionError, currentQSession)).toBe(true);
+        expect(canChat(1 as unknown as string, sessionError, currentQSession)).toBe(true);
+        expect(canChat('active' as unknown as string, sessionError, currentQSession)).toBe(true);
+        expect(canChat({} as unknown as string, sessionError, currentQSession)).toBe(true);
       });
 
       it('isActiveChatがfalsyな値でfalseを返す', () => {
         expect(canChat(false, sessionError, currentQSession)).toBe(false);
-        expect(canChat(0 as any, sessionError, currentQSession)).toBe(false);
-        expect(canChat('' as any, sessionError, currentQSession)).toBe(false);
-        expect(canChat(null as any, sessionError, currentQSession)).toBe(false);
-        expect(canChat(undefined as any, sessionError, currentQSession)).toBe(false);
+        expect(canChat(0 as unknown as string, sessionError, currentQSession)).toBe(false);
+        expect(canChat('' as unknown as string, sessionError, currentQSession)).toBe(false);
+        expect(canChat(null as unknown as string, sessionError, currentQSession)).toBe(false);
+        expect(canChat(undefined as unknown as string, sessionError, currentQSession)).toBe(false);
       });
     });
   });
@@ -309,14 +309,14 @@ describe('session-status-checker', () => {
     describe('エッジケース', () => {
       it('sessionErrorが非文字列でも正常に動作する', () => {
         // TypeScriptでは型エラーになるが、ランタイムでの動作を確認
-        const sessionError = 123 as any;
+        const sessionError = 123 as unknown as string;
         const currentQSession = { id: 'session' };
 
         expect(getDisabledReason(sessionError, currentQSession)).toBe(123);
       });
 
       it('sessionErrorがオブジェクトでも正常に動作する', () => {
-        const sessionError = { code: 500, message: 'Error' } as any;
+        const sessionError = { code: 500, message: 'Error' } as unknown as string;
         const currentQSession = { id: 'session' };
 
         expect(getDisabledReason(sessionError, currentQSession)).toBe(sessionError);

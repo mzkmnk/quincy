@@ -14,7 +14,7 @@ describe('setupChatWebSocketListeners', () => {
       abortSession: vi.fn(),
       connected: vi.fn(),
       connecting: vi.fn(),
-    }) as any;
+    }) as unknown as string;
 
   const createMockHandlers = (): ChatWebSocketHandlers => ({
     onQResponse: vi.fn(),
@@ -131,8 +131,8 @@ describe('setupChatWebSocketListeners', () => {
 
     it('ハンドラーがundefined/nullでもsetupChatListenersは呼び出される', () => {
       const invalidHandlers = {
-        onQResponse: undefined as any,
-        onQError: null as any,
+        onQResponse: undefined as unknown as string,
+        onQError: null as unknown as string,
         onQInfo: mockHandlers.onQInfo,
         onQCompletion: mockHandlers.onQCompletion,
       };

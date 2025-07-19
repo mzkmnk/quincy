@@ -179,7 +179,7 @@ describe('formatInfoMessage', () => {
         type: 'status',
         timestamp: Date.now(),
         extra: 'value',
-      } as any;
+      } as unknown as string;
       const result = formatInfoMessage(data);
       expect(result).toBe('✅ Extra properties');
     });
@@ -232,7 +232,7 @@ describe('formatInfoMessage', () => {
     });
 
     it('typeがnullの場合、generalとして扱われる', () => {
-      const data = { sessionId: 'session-1', message: 'Null type', type: null as any };
+      const data = { sessionId: 'session-1', message: 'Null type', type: null as unknown as string };
       const result = formatInfoMessage(data);
       expect(result).toBe('💬 Null type');
     });

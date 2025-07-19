@@ -106,7 +106,7 @@ describe('handleInfoResponse', () => {
     });
 
     it('nullやundefinedのセッションIDを適切に処理する', () => {
-      const data = { sessionId: null as any, message: 'Info message' };
+      const data = { sessionId: null as unknown as string, message: 'Info message' };
       const sessionId = 'session-123';
 
       handleInfoResponse(data, sessionId, mockOnHandleInfo);
@@ -171,7 +171,7 @@ describe('handleInfoResponse', () => {
         type: 'info',
         // 追加のプロパティがあっても保持される
         extraProperty: 'extra value',
-      } as any;
+      } as unknown as string;
 
       handleInfoResponse(originalData, sessionId, mockOnHandleInfo);
 
@@ -190,7 +190,7 @@ describe('handleInfoResponse', () => {
           source: 'test',
           details: ['detail1', 'detail2'],
         },
-      } as any;
+      } as unknown as string;
 
       handleInfoResponse(complexData, sessionId, mockOnHandleInfo);
 

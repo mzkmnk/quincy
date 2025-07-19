@@ -13,7 +13,7 @@ describe('cleanupChatWebSocketListeners', () => {
       abortSession: vi.fn(),
       connected: vi.fn(),
       connecting: vi.fn(),
-    }) as any;
+    }) as unknown as string;
 
   beforeEach(() => {
     mockWebSocketService = createMockWebSocketService();
@@ -56,7 +56,7 @@ describe('cleanupChatWebSocketListeners', () => {
     });
 
     it('WebSocketService.removeChatListenersがPromiseを返してもそのまま処理される', () => {
-      mockWebSocketService.removeChatListeners.mockReturnValue(Promise.resolve() as any);
+      mockWebSocketService.removeChatListeners.mockReturnValue(Promise.resolve() as unknown as string);
 
       expect(() => {
         cleanupChatWebSocketListeners(mockWebSocketService as WebSocketService);

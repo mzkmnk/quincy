@@ -3,8 +3,8 @@ import { formatMessageContent } from '../message-formatter';
 describe('formatMessageContent', () => {
   it('空の文字列の場合、空文字を返す', () => {
     expect(formatMessageContent('')).toBe('');
-    expect(formatMessageContent(null as any)).toBe('');
-    expect(formatMessageContent(undefined as any)).toBe('');
+    expect(formatMessageContent(null as unknown as string)).toBe('');
+    expect(formatMessageContent(undefined as unknown as string)).toBe('');
   });
 
   it('前後の空白を削除する', () => {

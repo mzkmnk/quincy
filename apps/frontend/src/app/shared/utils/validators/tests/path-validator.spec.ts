@@ -62,18 +62,18 @@ describe('validatePath', () => {
     });
 
     it('nullやundefinedを渡された場合の動作', () => {
-      expect(validatePath(null as any)).toBe('パスを入力してください');
-      expect(validatePath(undefined as any)).toBe('パスを入力してください');
+      expect(validatePath(null as unknown as string)).toBe('パスを入力してください');
+      expect(validatePath(undefined as unknown as string)).toBe('パスを入力してください');
     });
 
     it('数値を渡された場合の動作', () => {
-      expect(validatePath(123 as any)).toBe('パスを入力してください');
-      expect(validatePath(0 as any)).toBe('パスを入力してください');
+      expect(validatePath(123 as unknown as string)).toBe('パスを入力してください');
+      expect(validatePath(0 as unknown as string)).toBe('パスを入力してください');
     });
 
     it('オブジェクトを渡された場合の動作', () => {
-      expect(validatePath({} as any)).toBe('パスを入力してください');
-      expect(validatePath([] as any)).toBe('パスを入力してください');
+      expect(validatePath({} as unknown as string)).toBe('パスを入力してください');
+      expect(validatePath([] as unknown as string)).toBe('パスを入力してください');
     });
 
     it('タブや改行文字を含む入力を処理する', () => {

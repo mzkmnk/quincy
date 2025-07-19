@@ -307,7 +307,7 @@ describe('message-sender', () => {
           mockAppStore,
           mockWebSocket,
           mockMessageService,
-          null as any,
+          null as unknown as string,
           mockSendingSignal,
           mockMessageTextSignal,
           mockMessageSentEmitter

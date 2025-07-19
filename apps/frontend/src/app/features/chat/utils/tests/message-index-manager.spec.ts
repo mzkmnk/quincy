@@ -149,7 +149,7 @@ describe('updateMessageIndexMap', () => {
       const messages = [
         { id: 'msg-1', content: 'Hello', timestamp: Date.now() },
         { id: 'msg-2', content: 'World', author: 'user', metadata: { type: 'text' } },
-      ] as any[];
+      ] as unknown as string[];
 
       updateMessageIndexMap(messageIndexMap, messages);
 
@@ -171,7 +171,7 @@ describe('updateMessageIndexMap', () => {
           },
           array: [1, 2, 3],
         },
-      ] as any[];
+      ] as unknown as string[];
 
       updateMessageIndexMap(messageIndexMap, messages);
 

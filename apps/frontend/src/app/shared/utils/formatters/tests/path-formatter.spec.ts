@@ -3,8 +3,8 @@ import { formatPath } from '../path-formatter';
 describe('formatPath', () => {
   it('空のパスの場合、空文字を返す', () => {
     expect(formatPath('')).toBe('');
-    expect(formatPath(null as any)).toBe('');
-    expect(formatPath(undefined as any)).toBe('');
+    expect(formatPath(null as unknown as string)).toBe('');
+    expect(formatPath(undefined as unknown as string)).toBe('');
   });
 
   it('オプションなしの場合、そのまま返す', () => {

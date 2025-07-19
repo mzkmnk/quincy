@@ -13,18 +13,18 @@ describe('shouldShowTyping', () => {
 
   describe('エッジケース', () => {
     it('truthy値を正しく判定する', () => {
-      expect(shouldShowTyping(1 as any)).toBe(1);
-      expect(shouldShowTyping('true' as any)).toBe('true');
-      expect(shouldShowTyping({} as any)).toEqual({});
-      expect(shouldShowTyping([] as any)).toEqual([]);
+      expect(shouldShowTyping(1 as unknown as string)).toBe(1);
+      expect(shouldShowTyping('true' as unknown as string)).toBe('true');
+      expect(shouldShowTyping({} as unknown as string)).toEqual({});
+      expect(shouldShowTyping([] as unknown as string)).toEqual([]);
     });
 
     it('falsy値を正しく判定する', () => {
-      expect(shouldShowTyping(0 as any)).toBe(0);
-      expect(shouldShowTyping('' as any)).toBe('');
-      expect(shouldShowTyping(null as any)).toBe(null);
-      expect(shouldShowTyping(undefined as any)).toBe(undefined);
-      expect(shouldShowTyping(NaN as any)).toBeNaN();
+      expect(shouldShowTyping(0 as unknown as string)).toBe(0);
+      expect(shouldShowTyping('' as unknown as string)).toBe('');
+      expect(shouldShowTyping(null as unknown as string)).toBe(null);
+      expect(shouldShowTyping(undefined as unknown as string)).toBe(undefined);
+      expect(shouldShowTyping(NaN as unknown as string)).toBeNaN();
     });
   });
 

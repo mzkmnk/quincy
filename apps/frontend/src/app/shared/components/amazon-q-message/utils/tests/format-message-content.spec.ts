@@ -32,8 +32,8 @@ describe('formatMessageContent', () => {
     });
 
     it('null/undefinedの場合、空文字列を返す', () => {
-      expect(formatMessageContent(null as any)).toBe('');
-      expect(formatMessageContent(undefined as any)).toBe('');
+      expect(formatMessageContent(null as unknown as string)).toBe('');
+      expect(formatMessageContent(undefined as unknown as string)).toBe('');
     });
   });
 

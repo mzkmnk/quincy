@@ -6,7 +6,7 @@ describe('handleCompletionResponse', () => {
 
   beforeEach(() => {
     mockOnHandleCompletion = vi.fn();
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
   });
 
   afterEach(() => {
@@ -39,7 +39,7 @@ describe('handleCompletionResponse', () => {
         sessionId: 'session-123',
         timestamp: Date.now(),
         metadata: { source: 'test' },
-      } as any;
+      } as unknown as string;
       const sessionId = 'session-123';
 
       handleCompletionResponse(data, sessionId, mockOnHandleCompletion);
@@ -78,7 +78,7 @@ describe('handleCompletionResponse', () => {
     });
 
     it('nullやundefinedのセッションIDを適切に処理する', () => {
-      const data = { sessionId: null as any };
+      const data = { sessionId: null as unknown as string };
       const sessionId = 'session-123';
 
       handleCompletionResponse(data, sessionId, mockOnHandleCompletion);
@@ -232,7 +232,7 @@ describe('handleCompletionResponse', () => {
           processedItems: 100,
           totalItems: 100,
         },
-      } as any;
+      } as unknown as string;
       const sessionId = 'session-123';
 
       handleCompletionResponse(data, sessionId, mockOnHandleCompletion);
@@ -242,7 +242,7 @@ describe('handleCompletionResponse', () => {
     });
 
     it('sessionIdプロパティが存在しない場合はエラーが発生する可能性がある', () => {
-      const data = {} as any;
+      const data = {} as unknown as string;
       const sessionId = 'session-123';
 
       // sessionIdプロパティがないため、undefinedとの比較になる
@@ -278,7 +278,7 @@ describe('handleCompletionResponse', () => {
           failed: 0,
           duration: 5000,
         },
-      } as any;
+      } as unknown as string;
 
       const start = performance.now();
       handleCompletionResponse(complexData, 'session-123', mockOnHandleCompletion);

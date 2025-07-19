@@ -35,15 +35,15 @@ describe('scrollToBottom', () => {
 
   describe('エラーハンドリング', () => {
     it('ElementRefがnullの場合でもエラーを発生させない', () => {
-      expect(() => scrollToBottom(null as any)).not.toThrow();
+      expect(() => scrollToBottom(null as unknown as string)).not.toThrow();
     });
 
     it('ElementRefがundefinedの場合でもエラーを発生させない', () => {
-      expect(() => scrollToBottom(undefined as any)).not.toThrow();
+      expect(() => scrollToBottom(undefined as unknown as string)).not.toThrow();
     });
 
     it('nativeElementがnullの場合でもエラーを発生させない', () => {
-      const nullElementRef = { nativeElement: null } as any;
+      const nullElementRef = { nativeElement: null } as unknown as string;
 
       expect(() => scrollToBottom(nullElementRef)).not.toThrow();
     });
