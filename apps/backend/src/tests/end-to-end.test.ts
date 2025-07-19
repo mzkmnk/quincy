@@ -30,7 +30,19 @@ jest.mock('sqlite3', () => ({
 }), { virtual: true });
 
 // Amazon Q CLI用のモック設定
-const mockChildProcess = new EventEmitter() as any;
+interface MockChildProcess extends EventEmitter {
+  pid: number;
+  stdout: EventEmitter;
+  stderr: EventEmitter;
+  stdin: {
+    write: jest.Mock;
+    destroyed: boolean;
+  };
+  kill: jest.Mock;
+  killed: boolean;
+}
+
+const mockChildProcess = new EventEmitter() as MockChildProcess;
 mockChildProcess.pid = 12345;
 mockChildProcess.stdout = new EventEmitter();
 mockChildProcess.stderr = new EventEmitter();
@@ -60,7 +72,7 @@ jest.mock('util', () => ({
   promisify: jest.fn(() => 
     jest.fn().mockResolvedValue({ stdout: 'q version 1.0.0', stderr: '' })
   ),
-  deprecate: jest.fn((fn, message) => fn)
+  deprecate: jest.fn((fn, _message) => fn)
 }));
 
 // SQLite3のモック
@@ -76,29 +88,29 @@ jest.mock('sqlite3', () => ({
 
 describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
   let httpServer: Server;
-  let webSocketService: WebSocketService;
+  let _webSocketService: WebSocketService;
   let amazonQService: AmazonQCLIService;
   let userSocket: ClientSocket;
   let collaboratorSocket: ClientSocket;
   const testPort = 3004;
   const testProject = '/Users/test/my-project';
 
-  beforeAll((done) => {
+  beforeAll((done): void => {
     // 実際のサーバー環境をシミュレート
     httpServer = createServer();
     amazonQService = new AmazonQCLIService();
-    webSocketService = new WebSocketService(httpServer);
+    _webSocketService = new WebSocketService(httpServer);
     
-    httpServer.listen(testPort, () => {
+    httpServer.listen(testPort, (): void => {
       done();
     });
   });
 
-  afterAll((done) => {
+  afterAll((done): void => {
     httpServer?.close(done);
   });
 
-  beforeEach((done) => {
+  beforeEach((done): void => {
     jest.clearAllMocks();
     
     // モックの設定
@@ -114,13 +126,13 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
     userSocket.on('connect', done);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     userSocket?.close();
     collaboratorSocket?.close();
   });
 
   describe('シナリオ1: 新しいプロジェクトでAmazon Qとの対話', () => {
-    it('プロジェクト開始 → Q対話 → 結果確認の完全なフロー', (done) => {
+    it('プロジェクト開始 → Q対話 → 結果確認の完全なフロー', (done): void => {
       // シナリオの段階を追跡
       const scenario = {
         projectStarted: false,
@@ -130,9 +142,9 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       };
       
       // Step 1: プロジェクト開始
-      userSocket.on('q:project:started', (data) => {
-        expect(data.success).toBe(true);
-        expect(data.projectPath).toBe(testProject);
+      userSocket.on('q:project:started', (_data): void => {
+        expect(_data.success).toBe(true);
+        expect(_data.projectPath).toBe(testProject);
         scenario.projectStarted = true;
         
         // Step 2: Q対話開始
@@ -144,20 +156,20 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       });
       
       // Step 3: セッション開始の確認
-      userSocket.on('q:session:started', (data) => {
-        expect(data.sessionId).toMatch(/^q_session_/);
+      userSocket.on('q:session:started', (_data): void => {
+        expect(_data.sessionId).toMatch(/^q_session_/);
         scenario.sessionStarted = true;
       });
       
       // Step 4: Q応答の受信
-      userSocket.on('q:response', (data) => {
-        expect(data.data).toBe('プロジェクトの構造について説明します。');
+      userSocket.on('q:response', (_data): void => {
+        expect(_data.data).toBe('プロジェクトの構造について説明します。');
         scenario.messageReceived = true;
       });
       
       // Step 5: 対話完了の確認
-      userSocket.on('q:complete', (data) => {
-        expect(data.exitCode).toBe(0);
+      userSocket.on('q:complete', (_data): void => {
+        expect(_data.exitCode).toBe(0);
         scenario.conversationCompleted = true;
         
         // 全てのステップが完了したことを確認
@@ -176,31 +188,31 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       userSocket.emit('q:project:start', projectStartEvent);
       
       // Amazon Qの応答をシミュレート
-      setTimeout(() => {
+      setTimeout((): void => {
         mockChildProcess.stdout.emit('data', Buffer.from('プロジェクトの構造について説明します。'));
       }, 200);
       
       // 完了をシミュレート
-      setTimeout(() => {
+      setTimeout((): void => {
         mockChildProcess.emit('exit', 0, null);
       }, 300);
     });
   });
 
   describe('シナリオ2: 共同作業でのAmazon Q利用', () => {
-    it('複数ユーザーが同じプロジェクトでAmazon Qを利用', (done) => {
+    it('複数ユーザーが同じプロジェクトでAmazon Qを利用', (done): void => {
       const roomId = 'project-collaboration';
       
       // 2人目のユーザー（協力者）を接続
       collaboratorSocket = Client(`http://localhost:${testPort}`);
       
-      collaboratorSocket.on('connect', () => {
+      collaboratorSocket.on('connect', (): void => {
         // 両方のユーザーを同じルームに参加
         userSocket.emit('room:join', { roomId } as RoomData);
         collaboratorSocket.emit('room:join', { roomId } as RoomData);
         
         let joinCount = 0;
-        const handleJoin = () => {
+        const handleJoin = (): void => {
           joinCount++;
           if (joinCount === 2) {
             startCollaborativeSession();
@@ -211,10 +223,10 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
         collaboratorSocket.on('room:joined', handleJoin);
       });
       
-      const startCollaborativeSession = () => {
+      const startCollaborativeSession = (): void => {
         // 協力者がQ応答を受信できるかテスト
-        collaboratorSocket.on('q:response', (data) => {
-          expect(data.data).toBe('共同作業のガイドラインを説明します。');
+        collaboratorSocket.on('q:response', (_data): void => {
+          expect(_data.data).toBe('共同作業のガイドラインを説明します。');
           done();
         });
         
@@ -226,7 +238,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
         userSocket.emit('q:command', qCommandEvent);
         
         // 応答をシミュレート
-        setTimeout(() => {
+        setTimeout((): void => {
           mockChildProcess.stdout.emit('data', Buffer.from('共同作業のガイドラインを説明します。'));
         }, 100);
       };
@@ -234,7 +246,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
   });
 
   describe('シナリオ3: 長時間の対話セッション', () => {
-    it('複数のメッセージを交互に送信する長時間セッション', (done) => {
+    it('複数のメッセージを交互に送信する長時間セッション', (done): void => {
       const messages = [
         'プロジェクトの概要を教えてください',
         'どのような技術スタックを使用していますか？',
@@ -242,12 +254,12 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       ];
       
       let sessionId: string;
-      const currentMessageIndex = 0;
+      const _currentMessageIndex = 0;
       let responseCount = 0;
       
       // セッション開始
-      userSocket.on('q:session:started', (data) => {
-        sessionId = data.sessionId;
+      userSocket.on('q:session:started', (_data): void => {
+        sessionId = _data.sessionId;
         
         // 最初のメッセージを送信
         const messageEvent: QMessageEvent = {
@@ -258,7 +270,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       });
       
       // 応答を受信したら次のメッセージを送信
-      userSocket.on('q:response', (data) => {
+      userSocket.on('q:response', (_data): void => {
         responseCount++;
         
         if (responseCount < messages.length) {
@@ -270,7 +282,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
           userSocket.emit('q:message', messageEvent);
           
           // 次の応答をシミュレート
-          setTimeout(() => {
+          setTimeout((): void => {
             mockChildProcess.stdout.emit('data', Buffer.from(`回答 ${responseCount + 1}`));
           }, 100);
         } else {
@@ -288,14 +300,14 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       userSocket.emit('q:command', qCommandEvent);
       
       // 最初の応答をシミュレート
-      setTimeout(() => {
+      setTimeout((): void => {
         mockChildProcess.stdout.emit('data', Buffer.from('回答 1'));
       }, 100);
     });
   });
 
   describe('シナリオ4: エラー処理と復旧', () => {
-    it('エラー発生時の適切な処理と復旧', (done) => {
+    it('エラー発生時の適切な処理と復旧', (done): void => {
       const scenario = {
         errorOccurred: false,
         recoveryAttempted: false,
@@ -303,8 +315,8 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       };
       
       // エラー発生の監視
-      userSocket.on('q:error', (data) => {
-        expect(data.error).toBe('Connection timeout');
+      userSocket.on('q:error', (_data): void => {
+        expect(_data.error).toBe('Connection timeout');
         scenario.errorOccurred = true;
         
         // 復旧を試行
@@ -317,7 +329,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       });
       
       // 復旧成功の確認
-      userSocket.on('q:session:started', (data) => {
+      userSocket.on('q:session:started', (_data): void => {
         if (scenario.recoveryAttempted) {
           scenario.recoverySuccessful = true;
           
@@ -338,14 +350,14 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       userSocket.emit('q:command', qCommandEvent);
       
       // エラーをシミュレート
-      setTimeout(() => {
+      setTimeout((): void => {
         mockChildProcess.stderr.emit('data', Buffer.from('Connection timeout'));
       }, 100);
     });
   });
 
   describe('シナリオ5: 履歴機能の活用', () => {
-    it('履歴確認 → 新しい対話 → 履歴更新の完全なフロー', (done) => {
+    it('履歴確認 → 新しい対話 → 履歴更新の完全なフロー', (done): void => {
       // 初期履歴データをモック
       const initialHistory = [
         { id: 1, conversation_id: 'conv_1', project_path: testProject }
@@ -359,9 +371,9 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       };
       
       // Step 1: 履歴取得
-      userSocket.on('q:history', (data) => {
-        expect(data.history.length).toBe(1);
-        expect(data.projectPath).toBe(testProject);
+      userSocket.on('q:history', (_data): void => {
+        expect(_data.history.length).toBe(1);
+        expect(_data.projectPath).toBe(testProject);
         scenario.historyRetrieved = true;
         
         // Step 2: 新しい対話を開始
@@ -373,12 +385,12 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       });
       
       // Step 3: 新しい対話の開始確認
-      userSocket.on('q:session:started', (data) => {
+      userSocket.on('q:session:started', (_data): void => {
         scenario.newConversationStarted = true;
       });
       
       // Step 4: 対話完了後の履歴更新確認
-      userSocket.on('q:complete', (data) => {
+      userSocket.on('q:complete', (_data): void => {
         scenario.historyUpdated = true;
         
         // 全てのステップが完了したことを確認
@@ -395,19 +407,19 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       });
       
       // 新しい対話の応答をシミュレート
-      setTimeout(() => {
+      setTimeout((): void => {
         mockChildProcess.stdout.emit('data', Buffer.from('新しい質問への回答です。'));
       }, 200);
       
       // 完了をシミュレート
-      setTimeout(() => {
+      setTimeout((): void => {
         mockChildProcess.emit('exit', 0, null);
       }, 300);
     });
   });
 
   describe('シナリオ6: 高負荷時のパフォーマンス', () => {
-    it('複数の同時セッションでの安定性', (done) => {
+    it('複数の同時セッションでの安定性', (done): void => {
       const concurrentSessions = 5;
       let completedSessions = 0;
       
@@ -421,7 +433,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       }
       
       // 全てのセッション開始を確認
-      userSocket.on('q:session:started', (data) => {
+      userSocket.on('q:session:started', (_data): void => {
         completedSessions++;
         
         if (completedSessions === concurrentSessions) {
@@ -435,7 +447,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
   });
 
   describe('シナリオ7: 実際のユーザーワークフロー', () => {
-    it('典型的な開発者ワークフローの完全なシミュレーション', (done) => {
+    it('典型的な開発者ワークフローの完全なシミュレーション', (done): void => {
       const workflow = {
         projectOpened: false,
         codeReviewRequested: false,
@@ -446,7 +458,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       };
       
       // ワークフローの段階的実行
-      const executeWorkflowStep = (step: string) => {
+      const executeWorkflowStep = (step: string): void => {
         switch (step) {
           case 'project':
             userSocket.emit('q:project:start', { projectPath: testProject });
@@ -475,28 +487,28 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       let currentSessionId: string;
       
       // プロジェクト開始
-      userSocket.on('q:project:started', (data) => {
+      userSocket.on('q:project:started', (_data): void => {
         workflow.projectOpened = true;
         executeWorkflowStep('code-review');
       });
       
       // コードレビュー開始
-      userSocket.on('q:session:started', (data) => {
-        currentSessionId = data.sessionId;
+      userSocket.on('q:session:started', (_data): void => {
+        currentSessionId = _data.sessionId;
         if (!workflow.codeReviewRequested) {
           workflow.codeReviewRequested = true;
         }
       });
       
       // 提案受信
-      userSocket.on('q:response', (data) => {
-        if (data.data.includes('リファクタリング提案')) {
+      userSocket.on('q:response', (_data): void => {
+        if (_data.data.includes('リファクタリング提案')) {
           workflow.suggestionsReceived = true;
           executeWorkflowStep('implementation');
-        } else if (data.data.includes('実装完了')) {
+        } else if (_data.data.includes('実装完了')) {
           workflow.implementationStarted = true;
           executeWorkflowStep('testing');
-        } else if (data.data.includes('テストケース')) {
+        } else if (_data.data.includes('テストケース')) {
           workflow.testingRequested = true;
           workflow.workflowCompleted = true;
           
@@ -516,15 +528,15 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       executeWorkflowStep('project');
       
       // 段階的な応答をシミュレート
-      setTimeout(() => {
+      setTimeout((): void => {
         mockChildProcess.stdout.emit('data', Buffer.from('リファクタリング提案: 以下の改善を推奨します。'));
       }, 200);
       
-      setTimeout(() => {
+      setTimeout((): void => {
         mockChildProcess.stdout.emit('data', Buffer.from('実装完了: リファクタリングが完了しました。'));
       }, 400);
       
-      setTimeout(() => {
+      setTimeout((): void => {
         mockChildProcess.stdout.emit('data', Buffer.from('テストケース: 以下のテストを実行してください。'));
       }, 600);
     });

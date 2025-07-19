@@ -6,14 +6,11 @@ import { WebSocketService } from '../../core/services/websocket.service';
 import { MessageListComponent } from '../../shared/components/message-list/message-list.component';
 import { MessageInputComponent } from '../../shared/components/message-input/message-input.component';
 
-// 分離されたコンポーネントのインポート
 import { ChatHeaderComponent } from './components/chat-header/chat-header.component';
 import { SessionStartComponent, SessionStatus } from './components/session-start/session-start.component';
 import { ChatErrorComponent } from './components/chat-error/chat-error.component';
 import { ChatMessagesComponent } from './components/chat-messages/chat-messages.component';
 import { EmptyStateComponent } from './components/empty-state/empty-state.component';
-
-// 分離されたサービスのインポート
 import {
   setupChatWebSocketListeners,
   cleanupChatWebSocketListeners,
@@ -30,8 +27,6 @@ import {
   shouldDisplayError
 } from './services/message-streaming';
 import { resumeSession } from './services/session-manager';
-
-// 分離されたユーティリティのインポート
 import {
   updateMessageIndexMap,
   isSessionDisabled,

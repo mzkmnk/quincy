@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, output, ChangeDetectionStrategy } from '@angular/core';
 
 import { ChatMessagesComponent } from './chat-messages.component';
+import { MessageListComponent } from '../../../../shared/components/message-list/message-list.component';
+import { MessageInputComponent } from '../../../../shared/components/message-input/message-input.component';
 
 // MessageListComponentとMessageInputComponentのモック
 @Component({
@@ -45,8 +47,8 @@ describe('ChatMessagesComponent', () => {
     .overrideComponent(ChatMessagesComponent, {
       remove: {
         imports: [
-          require('../../../../shared/components/message-list/message-list.component').MessageListComponent,
-          require('../../../../shared/components/message-input/message-input.component').MessageInputComponent
+          MessageListComponent,
+          MessageInputComponent
         ]
       },
       add: {

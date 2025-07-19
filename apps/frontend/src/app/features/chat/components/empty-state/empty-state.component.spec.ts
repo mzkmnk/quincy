@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 import { EmptyStateComponent } from './empty-state.component';
+import { PathSelectorComponent } from '../../../../shared/components/path-selector/path-selector.component';
 
 // PathSelectorComponentのモック
 @Component({
@@ -23,7 +24,7 @@ describe('EmptyStateComponent', () => {
     .overrideComponent(EmptyStateComponent, {
       remove: {
         imports: [
-          require('../../../../shared/components/path-selector/path-selector.component').PathSelectorComponent
+          PathSelectorComponent
         ]
       },
       add: {

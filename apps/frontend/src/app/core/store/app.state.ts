@@ -1,6 +1,4 @@
 import { signal, computed, Injectable } from '@angular/core';
-
-// 分離されたストアからのインポート
 import type { Project, Session, ConversationMetadata, AmazonQConversation, QSessionStartedEvent } from '@quincy/shared';
 
 import type { BaseUIState } from '../../shared/types/ui.types';
@@ -34,22 +32,16 @@ import {
   chatMessages, 
   hasChatMessages 
 } from './chat/chat.state';
-
-// アクションのインポート
 import * as ProjectActions from './project/actions';
 import * as SessionActions from './session/actions';
 import * as AmazonQHistoryActions from './amazon-q-history/actions';
 import * as ChatActions from './chat/actions';
-
-// 型定義
 import type { ChatMessage } from './chat/chat.state';
 import type { DisplayMessage } from './amazon-q-history/amazon-q-history.state';
 
 
 // UI状態
-interface UIState extends BaseUIState {
-  // 追加のUI状態があれば、ここに定義
-}
+type UIState = BaseUIState;
 
 const uiState = signal<UIState>({
   loading: false,

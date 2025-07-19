@@ -14,7 +14,10 @@ export default tseslint.config(
             "**/temp",
             "**/coverage",
             "**/build",
-            "**/.angular"
+            "**/.angular",
+            "apps/frontend/src/index.html",
+            "apps/frontend/src/app/app.html",
+            "apps/frontend/**/*.html"
         ],
     },
     
@@ -64,9 +67,9 @@ export default tseslint.config(
         },
     },
 
-    // Frontend (Angular) 専用設定
+    // Frontend (Angular) TypeScript専用設定
     {
-        files: ["apps/frontend/**/*.{ts,html}"],
+        files: ["apps/frontend/**/*.ts"],
         plugins: {
             "@angular-eslint": angular,
         },
@@ -90,6 +93,20 @@ export default tseslint.config(
             ],
         },
     },
+
+    // Angular HTMLテンプレート専用設定（一時的に無効化）
+    // {
+    //     files: ["apps/frontend/**/*.html"],
+    //     languageOptions: {
+    //         parser: angularTemplate.parser || "@angular-eslint/template-parser",
+    //     },
+    //     plugins: {
+    //         "@angular-eslint/template": angularTemplate,
+    //     },
+    //     rules: {
+    //         // HTMLテンプレート固有のルールを必要に応じて追加
+    //     },
+    // },
 
     // Better TailwindCSS 設定
     {

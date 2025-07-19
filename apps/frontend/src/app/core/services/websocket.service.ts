@@ -1,14 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
+import { Socket } from 'socket.io-client';
 import type { ConversationMetadata, AmazonQConversation, QSessionStartedEvent } from '@quincy/shared';
-
-
-
 
 // Connection管理
 import { connect, disconnect, emit, on, off, ConnectionStateManager } from './websocket/connection';
-
 // Amazon Q履歴管理
 import { 
   getProjectHistory, 
@@ -19,7 +15,6 @@ import {
   removeHistoryListeners,
   removeHistoryDetailedListeners
 } from './websocket/amazon-q-history';
-
 // チャット管理
 import { 
   sendQMessage, 
@@ -27,7 +22,6 @@ import {
   removeChatListeners, 
   abortQSession 
 } from './websocket/chat';
-
 // プロジェクトセッション管理
 import { 
   startProjectSession, 
@@ -36,7 +30,6 @@ import {
   createSessionFailedObservable, 
   removeProjectSessionListeners 
 } from './websocket/project-session';
-
 // 型定義
 import { 
   ChatListeners, 
@@ -130,7 +123,7 @@ export class WebSocketService {
   setupQHistoryDetailedListeners(
     onDetailedHistoryData: (data: { 
       projectPath: string; 
-      displayMessages: any[]; 
+      displayMessages: unknown[]; 
       stats: { 
         totalEntries: number; 
         totalTurns: number; 

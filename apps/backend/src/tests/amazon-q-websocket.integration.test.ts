@@ -22,7 +22,19 @@ jest.mock('child_process');
 jest.mock('fs');
 jest.mock('util');
 // Amazon Q CLI用のモック設定
-const mockChildProcess = new EventEmitter() as any;
+interface MockChildProcess extends EventEmitter {
+  pid: number;
+  stdout: EventEmitter;
+  stderr: EventEmitter;
+  stdin: {
+    write: jest.Mock;
+    destroyed: boolean;
+  };
+  kill: jest.Mock;
+  killed: boolean;
+}
+
+const mockChildProcess = new EventEmitter() as MockChildProcess;
 mockChildProcess.pid = 12345;
 mockChildProcess.stdout = new EventEmitter();
 mockChildProcess.stderr = new EventEmitter();
@@ -52,7 +64,7 @@ jest.mock('util', () => ({
   promisify: jest.fn(() => 
     jest.fn().mockResolvedValue({ stdout: 'q version 1.0.0', stderr: '' })
   ),
-  deprecate: jest.fn((fn, message) => fn)
+  deprecate: jest.fn((fn, _message) => fn)
 }));
 
 // SQLite3のモック
@@ -68,13 +80,13 @@ jest.mock('sqlite3', () => ({
 
 describe('Amazon Q CLI & WebSocket Integration Test', () => {
   let httpServer: Server;
-  let webSocketService: WebSocketService;
+  let _webSocketService: WebSocketService;
   let amazonQService: AmazonQCLIService;
   let clientSocket: ClientSocket;
   let secondClientSocket: ClientSocket;
   const testPort = 3003;
 
-  beforeAll((done) => {
+  beforeAll((done): void => {
     // HTTP serverの作成
     httpServer = createServer();
     
@@ -82,19 +94,19 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
     amazonQService = new AmazonQCLIService();
     
     // WebSocket サービスの作成
-    webSocketService = new WebSocketService(httpServer);
+    _webSocketService = new WebSocketService(httpServer);
     
     // テストサーバーの起動
-    httpServer.listen(testPort, () => {
+    httpServer.listen(testPort, (): void => {
       done();
     });
   });
 
-  afterAll((done) => {
+  afterAll((done): void => {
     httpServer?.close(done);
   });
 
-  beforeEach((done) => {
+  beforeEach((done): void => {
     jest.clearAllMocks();
     
     // モックの基本設定
@@ -110,29 +122,29 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
     clientSocket.on('connect', done);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     clientSocket?.close();
     secondClientSocket?.close();
   });
 
   describe('Amazon Q CLI実行の結合テスト', () => {
-    it('WebSocket経由でAmazon Q CLIコマンドを実行し、結果を受信できること', (done) => {
+    it('WebSocket経由でAmazon Q CLIコマンドを実行し、結果を受信できること', (done): void => {
       const qCommandEvent: QCommandEvent = {
         command: 'help',
         workingDir: '/Users/test/project'
       };
       
       // セッション開始の確認
-      clientSocket.on('q:session:started', (data) => {
-        expect(data.sessionId).toMatch(/^q_session_/);
-        expect(data.success).toBe(true);
+      clientSocket.on('q:session:started', (_data): void => {
+        expect(_data.sessionId).toMatch(/^q_session_/);
+        expect(_data.success).toBe(true);
       });
       
       // レスポンスの確認
-      clientSocket.on('q:response', (data) => {
-        expect(data.data).toBe('Amazon Q CLI Help Content');
-        expect(data.type).toBe('stream');
-        expect(data.sessionId).toMatch(/^q_session_/);
+      clientSocket.on('q:response', (_data): void => {
+        expect(_data.data).toBe('Amazon Q CLI Help Content');
+        expect(_data.type).toBe('stream');
+        expect(_data.sessionId).toMatch(/^q_session_/);
         done();
       });
       
@@ -140,12 +152,12 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       clientSocket.emit('q:command', qCommandEvent);
       
       // レスポンスをシミュレート
-      setTimeout(() => {
+      setTimeout((): void => {
         mockChildProcess.stdout.emit('data', Buffer.from('Amazon Q CLI Help Content'));
       }, 100);
     });
 
-    it('複数のクライアントが同じセッションの結果を受信できること', (done) => {
+    it('複数のクライアントが同じセッションの結果を受信できること', (done): void => {
       const qCommandEvent: QCommandEvent = {
         command: 'chat "Hello"',
         workingDir: '/Users/test/project'
@@ -154,12 +166,12 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       // 2つ目のクライアントを作成
       secondClientSocket = Client(`http://localhost:${testPort}`);
       
-      secondClientSocket.on('connect', () => {
+      secondClientSocket.on('connect', (): void => {
         let responseCount = 0;
         const expectedResponse = 'Hello from Amazon Q';
         
-        const handleResponse = (data: any) => {
-          expect(data.data).toBe(expectedResponse);
+        const handleResponse = (_data: { data: string }): void => {
+          expect(_data.data).toBe(expectedResponse);
           responseCount++;
           if (responseCount === 2) {
             done();
@@ -174,13 +186,13 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
         clientSocket.emit('q:command', qCommandEvent);
         
         // レスポンスをシミュレート
-        setTimeout(() => {
+        setTimeout((): void => {
           mockChildProcess.stdout.emit('data', Buffer.from(expectedResponse));
         }, 100);
       });
     });
 
-    it('セッション中止がWebSocket経由で適切に処理されること', (done) => {
+    it('セッション中止がWebSocket経由で適切に処理されること', (done): void => {
       const qCommandEvent: QCommandEvent = {
         command: 'chat "Long running task"',
         workingDir: '/Users/test/project'
@@ -189,8 +201,8 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       let sessionId: string;
       
       // セッション開始の確認
-      clientSocket.on('q:session:started', (data) => {
-        sessionId = data.sessionId;
+      clientSocket.on('q:session:started', (_data): void => {
+        sessionId = _data.sessionId;
         
         // セッション中止の実行
         const abortEvent: QAbortEvent = { sessionId };
@@ -198,9 +210,9 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       });
       
       // セッション中止の確認
-      clientSocket.on('q:session:aborted', (data) => {
-        expect(data.sessionId).toBe(sessionId);
-        expect(data.success).toBe(true);
+      clientSocket.on('q:session:aborted', (_data): void => {
+        expect(_data.sessionId).toBe(sessionId);
+        expect(_data.success).toBe(true);
         expect(mockChildProcess.kill).toHaveBeenCalledWith('SIGTERM');
         done();
       });
@@ -211,7 +223,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
   });
 
   describe('メッセージ送信の結合テスト', () => {
-    it('WebSocket経由でAmazon Q CLIセッションにメッセージを送信できること', (done) => {
+    it('WebSocket経由でAmazon Q CLIセッションにメッセージを送信できること', (done): void => {
       const qCommandEvent: QCommandEvent = {
         command: 'chat',
         workingDir: '/Users/test/project'
@@ -220,8 +232,8 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       let sessionId: string;
       
       // セッション開始後にメッセージ送信
-      clientSocket.on('q:session:started', (data) => {
-        sessionId = data.sessionId;
+      clientSocket.on('q:session:started', (_data): void => {
+        sessionId = _data.sessionId;
         
         // メッセージ送信
         const messageEvent: QMessageEvent = {
@@ -233,9 +245,9 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       });
       
       // メッセージ送信結果の確認
-      clientSocket.on('q:message:sent', (data) => {
-        expect(data.sessionId).toBe(sessionId);
-        expect(data.success).toBe(true);
+      clientSocket.on('q:message:sent', (_data): void => {
+        expect(_data.sessionId).toBe(sessionId);
+        expect(_data.success).toBe(true);
         expect(mockChildProcess.stdin.write).toHaveBeenCalledWith('Hello from WebSocket integration test\n');
         done();
       });
@@ -244,16 +256,16 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       clientSocket.emit('q:command', qCommandEvent);
     });
 
-    it('無効なセッションIDでのメッセージ送信がエラーとして処理されること', (done) => {
+    it('無効なセッションIDでのメッセージ送信がエラーとして処理されること', (done): void => {
       const messageEvent: QMessageEvent = {
         sessionId: 'invalid_session_id',
         message: 'This should fail'
       };
       
       // エラーの確認
-      clientSocket.on('q:error', (data) => {
-        expect(data.error).toContain('Session not found');
-        expect(data.code).toBe('SESSION_NOT_FOUND');
+      clientSocket.on('q:error', (_data): void => {
+        expect(_data.error).toContain('Session not found');
+        expect(_data.code).toBe('SESSION_NOT_FOUND');
         done();
       });
       
@@ -263,7 +275,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
   });
 
   describe('履歴機能の結合テスト', () => {
-    it('WebSocket経由でAmazon Q履歴を取得できること', (done) => {
+    it('WebSocket経由でAmazon Q履歴を取得できること', (done): void => {
       const mockHistoryData = [
         { id: 1, conversation_id: 'conv_1', project_path: '/Users/test/project' },
         { id: 2, conversation_id: 'conv_2', project_path: '/Users/test/project' }
@@ -272,10 +284,10 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       mockDatabase.all.mockResolvedValue(mockHistoryData);
       
       // 履歴取得の確認
-      clientSocket.on('q:history', (data) => {
-        expect(Array.isArray(data.history)).toBe(true);
-        expect(data.history.length).toBe(2);
-        expect(data.projectPath).toBe('/Users/test/project');
+      clientSocket.on('q:history', (_data): void => {
+        expect(Array.isArray(_data.history)).toBe(true);
+        expect(_data.history.length).toBe(2);
+        expect(_data.projectPath).toBe('/Users/test/project');
         done();
       });
       
@@ -285,7 +297,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       });
     });
 
-    it('履歴詳細がWebSocket経由で適切にフォーマットされて返されること', (done) => {
+    it('履歴詳細がWebSocket経由で適切にフォーマットされて返されること', (done): void => {
       const mockDetailedData = [
         {
           id: 1,
@@ -301,10 +313,10 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       mockDatabase.all.mockResolvedValue(mockDetailedData);
       
       // 履歴詳細取得の確認
-      clientSocket.on('q:history:detailed', (data) => {
-        expect(data.conversations).toBeDefined();
-        expect(data.stats).toBeDefined();
-        expect(data.projectPath).toBe('/Users/test/project');
+      clientSocket.on('q:history:detailed', (_data): void => {
+        expect(_data.conversations).toBeDefined();
+        expect(_data.stats).toBeDefined();
+        expect(_data.projectPath).toBe('/Users/test/project');
         done();
       });
       
@@ -316,7 +328,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
   });
 
   describe('プロジェクト管理の結合テスト', () => {
-    it('WebSocket経由でプロジェクト一覧を取得できること', (done) => {
+    it('WebSocket経由でプロジェクト一覧を取得できること', (done): void => {
       const mockProjectData = [
         { project_path: '/Users/test/project1' },
         { project_path: '/Users/test/project2' }
@@ -325,10 +337,10 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       mockDatabase.all.mockResolvedValue(mockProjectData);
       
       // プロジェクト一覧取得の確認
-      clientSocket.on('q:projects', (data) => {
-        expect(Array.isArray(data.projects)).toBe(true);
-        expect(data.projects.length).toBe(2);
-        expect(data.projects[0].project_path).toBe('/Users/test/project1');
+      clientSocket.on('q:projects', (_data): void => {
+        expect(Array.isArray(_data.projects)).toBe(true);
+        expect(_data.projects.length).toBe(2);
+        expect(_data.projects[0].project_path).toBe('/Users/test/project1');
         done();
       });
       
@@ -336,11 +348,11 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       clientSocket.emit('q:projects');
     });
 
-    it('WebSocket経由でプロジェクト開始ができること', (done) => {
+    it('WebSocket経由でプロジェクト開始ができること', (done): void => {
       // プロジェクト開始の確認
-      clientSocket.on('q:project:started', (data) => {
-        expect(data.success).toBe(true);
-        expect(data.projectPath).toBe('/Users/test/project');
+      clientSocket.on('q:project:started', (_data): void => {
+        expect(_data.success).toBe(true);
+        expect(_data.projectPath).toBe('/Users/test/project');
         done();
       });
       
@@ -353,11 +365,11 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
   });
 
   describe('セッション再開の結合テスト', () => {
-    it('WebSocket経由でセッション再開ができること', (done) => {
+    it('WebSocket経由でセッション再開ができること', (done): void => {
       // セッション再開の確認
-      clientSocket.on('q:session:resumed', (data) => {
-        expect(data.success).toBe(true);
-        expect(data.sessionId).toMatch(/^q_session_/);
+      clientSocket.on('q:session:resumed', (_data): void => {
+        expect(_data.success).toBe(true);
+        expect(_data.sessionId).toMatch(/^q_session_/);
         done();
       });
       
@@ -369,17 +381,17 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
   });
 
   describe('エラーハンドリングの結合テスト', () => {
-    it('Amazon Q CLIエラーがWebSocket経由で適切に伝播されること', (done) => {
+    it('Amazon Q CLIエラーがWebSocket経由で適切に伝播されること', (done): void => {
       const qCommandEvent: QCommandEvent = {
         command: 'invalid-command',
         workingDir: '/Users/test/project'
       };
       
       // エラーの確認
-      clientSocket.on('q:error', (data) => {
-        expect(data.error).toBe('CLI Error: Unknown command');
-        expect(data.code).toBe('STDERR');
-        expect(data.sessionId).toMatch(/^q_session_/);
+      clientSocket.on('q:error', (_data): void => {
+        expect(_data.error).toBe('CLI Error: Unknown command');
+        expect(_data.code).toBe('STDERR');
+        expect(_data.sessionId).toMatch(/^q_session_/);
         done();
       });
       
@@ -387,12 +399,12 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       clientSocket.emit('q:command', qCommandEvent);
       
       // エラーをシミュレート
-      setTimeout(() => {
+      setTimeout((): void => {
         mockChildProcess.stderr.emit('data', Buffer.from('CLI Error: Unknown command'));
       }, 100);
     });
 
-    it('WebSocket切断時にAmazon Q CLIセッションが適切にクリーンアップされること', (done) => {
+    it('WebSocket切断時にAmazon Q CLIセッションが適切にクリーンアップされること', (done): void => {
       const qCommandEvent: QCommandEvent = {
         command: 'chat "test"',
         workingDir: '/Users/test/project'
@@ -401,14 +413,14 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       let sessionId: string;
       
       // セッション開始の確認
-      clientSocket.on('q:session:started', (data) => {
-        sessionId = data.sessionId;
+      clientSocket.on('q:session:started', (_data): void => {
+        sessionId = _data.sessionId;
         
         // 接続を切断
         clientSocket.disconnect();
         
         // 少し待ってセッションの状態を確認
-        setTimeout(() => {
+        setTimeout((): void => {
           const session = amazonQService.getSession(sessionId);
           if (session) {
             expect(['aborted', 'completed']).toContain(session.status);
@@ -423,7 +435,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
   });
 
   describe('リアルタイム通信の結合テスト', () => {
-    it('Amazon Q CLIの出力がリアルタイムで複数クライアントに配信されること', (done) => {
+    it('Amazon Q CLIの出力がリアルタイムで複数クライアントに配信されること', (done): void => {
       const qCommandEvent: QCommandEvent = {
         command: 'chat "Generate a long response"',
         workingDir: '/Users/test/project'
@@ -432,12 +444,12 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       // 2つ目のクライアントを作成
       secondClientSocket = Client(`http://localhost:${testPort}`);
       
-      secondClientSocket.on('connect', () => {
+      secondClientSocket.on('connect', (): void => {
         let responseCount = 0;
         const expectedResponses = ['Response part 1', 'Response part 2', 'Response part 3'];
         
-        const handleResponse = (data: any) => {
-          expect(expectedResponses).toContain(data.data);
+        const handleResponse = (_data: { data: string }): void => {
+          expect(expectedResponses).toContain(_data.data);
           responseCount++;
           if (responseCount === 6) { // 2 clients × 3 responses
             done();
@@ -452,15 +464,15 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
         clientSocket.emit('q:command', qCommandEvent);
         
         // 段階的にレスポンスをシミュレート
-        setTimeout(() => {
+        setTimeout((): void => {
           mockChildProcess.stdout.emit('data', Buffer.from('Response part 1'));
         }, 100);
         
-        setTimeout(() => {
+        setTimeout((): void => {
           mockChildProcess.stdout.emit('data', Buffer.from('Response part 2'));
         }, 200);
         
-        setTimeout(() => {
+        setTimeout((): void => {
           mockChildProcess.stdout.emit('data', Buffer.from('Response part 3'));
         }, 300);
       });
@@ -468,11 +480,11 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
   });
 
   describe('パフォーマンス結合テスト', () => {
-    it('大量のAmazon Q CLIセッションが効率的に管理されること', (done) => {
+    it('大量のAmazon Q CLIセッションが効率的に管理されること', (done): void => {
       const sessionCount = 10;
       let completedSessions = 0;
       
-      const handleSessionStart = (data: any) => {
+      const handleSessionStart = (_data: { sessionId: string; success: boolean }): void => {
         completedSessions++;
         if (completedSessions === sessionCount) {
           // 全セッションが開始されたことを確認
@@ -495,7 +507,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
   });
 
   describe('状態管理の結合テスト', () => {
-    it('WebSocketとAmazon Q CLIの状態が同期されること', (done) => {
+    it('WebSocketとAmazon Q CLIの状態が同期されること', (done): void => {
       const qCommandEvent: QCommandEvent = {
         command: 'chat "test"',
         workingDir: '/Users/test/project'
@@ -504,8 +516,8 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
       let sessionId: string;
       
       // セッション開始の確認
-      clientSocket.on('q:session:started', (data) => {
-        sessionId = data.sessionId;
+      clientSocket.on('q:session:started', (_data): void => {
+        sessionId = _data.sessionId;
         
         // Amazon Q CLIサービスの状態を確認
         const session = amazonQService.getSession(sessionId);
@@ -513,7 +525,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
         expect(session?.status).toBe('starting');
         
         // WebSocketサービスの状態を確認
-        const userCount = webSocketService.getUserCount();
+        const userCount = _webSocketService.getUserCount();
         expect(userCount).toBeGreaterThanOrEqual(1);
         
         done();

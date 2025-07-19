@@ -10,7 +10,6 @@ import { Router } from '@angular/router';
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
 
-// 分離されたサービスのインポート
 import { validatePath, isValidPath, canStartProject } from './services/path-validator';
 import { startProject } from './services/session-starter';
 

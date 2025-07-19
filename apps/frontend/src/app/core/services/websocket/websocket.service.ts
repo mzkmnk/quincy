@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
+import { Socket } from 'socket.io-client';
 
-// Connection管理
 import type { ConversationMetadata, AmazonQConversation, QSessionStartedEvent } from '@quincy/shared';
 
+// Connection管理
 import { connect, disconnect, emit, on, off, ConnectionStateManager } from './connection';
-
 // Amazon Q履歴管理
 import { 
   getProjectHistory, 
@@ -17,7 +16,6 @@ import {
   removeHistoryListeners,
   removeHistoryDetailedListeners
 } from './amazon-q-history';
-
 // チャット管理
 import { 
   sendQMessage, 
@@ -25,7 +23,6 @@ import {
   removeChatListeners, 
   abortQSession 
 } from './chat';
-
 // プロジェクトセッション管理
 import { 
   startProjectSession, 
@@ -34,7 +31,6 @@ import {
   createSessionFailedObservable, 
   removeProjectSessionListeners 
 } from './project-session';
-
 // 型定義
 import { 
   ChatListeners, 
