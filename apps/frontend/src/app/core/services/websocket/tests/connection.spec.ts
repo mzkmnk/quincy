@@ -13,24 +13,30 @@ describe('WebSocket Connection Functions', () => {
   let connectionState: any;
   let mockSocket: any;
 
-  beforeEach(() => {
-    connectionState = signal<ConnectionState>({
-      connected: false,
-      connecting: false,
-      error: null
-    });
+  // テストヘルパー関数
+  const createMockSocket = () => ({
+    on: vi.fn(),
+    off: vi.fn(),
+    emit: vi.fn(),
+    disconnect: vi.fn(),
+    connected: true
+  });
 
-    mockSocket = {
-      on: vi.fn(),
-      off: vi.fn(),
-      emit: vi.fn(),
-      disconnect: vi.fn(),
-      connected: true
-    };
+  const createConnectionState = () => signal<ConnectionState>({
+    connected: false,
+    connecting: false,
+    error: null
+  });
 
-    // Reset mock before each test
+  const setupMocks = () => {
     vi.clearAllMocks();
     mockIo.mockReturnValue(mockSocket);
+  };
+
+  beforeEach(() => {
+    connectionState = createConnectionState();
+    mockSocket = createMockSocket();
+    setupMocks();
   });
 
   describe('connect', () => {
