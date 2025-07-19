@@ -80,7 +80,7 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
   let amazonQService: AmazonQCLIService;
   let clientSocket: ClientSocket;
   let secondClientSocket: ClientSocket;
-  const testPort = 3003;
+  let testPort: number;
 
   beforeAll((done): void => {
     // HTTP serverの作成
@@ -92,8 +92,12 @@ describe('Amazon Q CLI & WebSocket Integration Test', () => {
     // WebSocket サービスの作成
     const _webSocketService = new WebSocketService(httpServer);
 
-    // テストサーバーの起動
-    httpServer.listen(testPort, (): void => {
+    // テストサーバーの起動（ランダムポート使用）
+    httpServer.listen(0, (): void => {
+      const address = httpServer.address();
+      if (address && typeof address === 'object') {
+        testPort = address.port;
+      }
       done();
     });
   });
