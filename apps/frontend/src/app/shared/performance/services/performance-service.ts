@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, isDevMode } from '@angular/core';
 import { measureMemoryUsage, measureRenderPerformance, measureFPS } from '../utils';
 
 export interface PerformanceMetrics {
@@ -20,10 +20,10 @@ export class PerformanceService {
   getIsMonitoring = this.isMonitoring.asReadonly();
 
   /**
-   * パフォーマンス監視を開始する
+   * パフォーマンス監視を開始する（開発環境のみ）
    */
   startMonitoring(intervalMs: number = 5000): void {
-    if (this.isMonitoring()) {
+    if (!isDevMode() || this.isMonitoring()) {
       return;
     }
 
@@ -54,9 +54,18 @@ export class PerformanceService {
   }
 
   /**
-   * 現在のパフォーマンスメトリクスを収集する
+   * 現在のパフォーマンスメトリクスを収集する（開発環境のみ）
    */
   async collectMetrics(): Promise<PerformanceMetrics> {
+    if (!isDevMode()) {
+      return {
+        memoryUsage: 0,
+        renderTime: 0,
+        fps: 60,
+        timestamp: Date.now()
+      };
+    }
+
     const [memoryUsage, fps] = await Promise.all([
       measureMemoryUsage(),
       measureFPS(1000)

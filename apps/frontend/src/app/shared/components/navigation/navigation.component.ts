@@ -30,6 +30,7 @@ import { getConnectionStatusClass, getConnectionStatusText } from './utils';
   `,
   styles: [`
     @reference "tailwindcss";
+    
     .router-link-active {
       @apply text-[var(--text-primary)] bg-[var(--tertiary-bg)];
     }

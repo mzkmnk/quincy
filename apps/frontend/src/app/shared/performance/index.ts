@@ -1,4 +1,5 @@
-export { PerformanceService } from './services/performance-service';
-export { PerformanceMonitorDirective } from './directives/performance-monitor.directive';
-export { PerformanceDashboardComponent } from './components/performance-dashboard.component';
+// 開発環境でのみパフォーマンス機能を提供
+export { loadPerformanceFeatures } from './lazy-performance';
+
+// ユーティリティ関数は常に利用可能（軽量）
 export * from './utils';

@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, isDevMode } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PerformanceService } from '../services/performance-service';
 
@@ -7,7 +7,8 @@ import { PerformanceService } from '../services/performance-service';
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="performance-dashboard p-4 bg-[var(--secondary-bg)] border border-[var(--border-color)] rounded-md">
+    @if (isDevModeEnabled()) {
+      <div class="performance-dashboard p-4 bg-[var(--secondary-bg)] border border-[var(--border-color)] rounded-md">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-[var(--text-primary)]">Performance Monitor</h3>
         <div class="flex gap-2">
@@ -73,9 +74,12 @@ import { PerformanceService } from '../services/performance-service';
           </div>
         </div>
       }
-    </div>
+      </div>
+    }
   `,
   styles: [`
+    @reference "tailwindcss";
+    
     .metric-card {
       @apply p-3 bg-[var(--tertiary-bg)] rounded border border-[var(--border-color)];
     }
@@ -87,6 +91,10 @@ export class PerformanceDashboardComponent {
   metrics = this.performanceService.getMetrics;
   isMonitoring = this.performanceService.getIsMonitoring;
   statistics = this.performanceService.getStatistics;
+
+  isDevModeEnabled(): boolean {
+    return isDevMode();
+  }
 
   toggleMonitoring(): void {
     if (this.isMonitoring()) {
