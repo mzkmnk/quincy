@@ -1,10 +1,11 @@
 import { signal, computed } from '@angular/core';
-import type { Session, QSessionStartedEvent } from '@quincy/shared';
+import type { Session } from '@quincy/shared';
+import type { AmazonQSession } from '../../types/amazon-q.types';
 
 export interface SessionState {
   sessions: Session[];
   currentSession: Session | null;
-  currentQSession: QSessionStartedEvent | null;
+  currentQSession: AmazonQSession | null;
   sessionStarting: boolean;
   sessionError: string | null;
 }

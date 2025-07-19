@@ -8,10 +8,11 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ConversationMetadata } from '@quincy/shared';
+import { ConversationMetadata, DisplayMessage as SharedDisplayMessage } from '@quincy/shared';
 
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
+import type { DisplayMessage } from '../../../core/store/amazon-q-history/amazon-q-history.state';
 
 @Component({
   selector: 'app-project-list',
@@ -163,6 +164,21 @@ export class ProjectListComponent implements OnInit, OnDestroy {
   private webSocketService = inject(WebSocketService);
   private router = inject(Router);
 
+  /**
+   * SharedDisplayMessageをDisplayMessageに変換する
+   * @param sharedMessage SharedDisplayMessage
+   * @returns DisplayMessage
+   */
+  private convertSharedDisplayMessage(sharedMessage: SharedDisplayMessage): DisplayMessage {
+    return {
+      id: sharedMessage.id,
+      type: sharedMessage.type,
+      content: sharedMessage.content,
+      timestamp: sharedMessage.timestamp || new Date(),
+      metadata: sharedMessage.metadata,
+    };
+  }
+
   ngOnInit(): void {
     this.loadAmazonQHistory();
   }
@@ -212,8 +228,12 @@ export class ProjectListComponent implements OnInit, OnDestroy {
       this.appStore.setQHistoryLoading(false);
 
       if (data.displayMessages && data.displayMessages.length > 0) {
+        // SharedDisplayMessageをDisplayMessageに変換
+        const convertedMessages = (data.displayMessages as SharedDisplayMessage[]).map((msg: SharedDisplayMessage) => 
+          this.convertSharedDisplayMessage(msg)
+        );
         // 詳細履歴データをストアに設定
-        this.appStore.switchToDetailedHistoryView(data.displayMessages, data.stats);
+        this.appStore.switchToDetailedHistoryView(convertedMessages, data.stats);
       } else {
         // データがない場合も空の配列を設定
         this.appStore.switchToDetailedHistoryView([], null);

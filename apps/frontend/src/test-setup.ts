@@ -8,5 +8,5 @@ declare global {
 }
 
 if (typeof structuredClone === 'undefined') {
-  (globalThis as Window).structuredClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
+  (globalThis as unknown as Window).structuredClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
 }
