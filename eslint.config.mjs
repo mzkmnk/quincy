@@ -3,7 +3,7 @@ import tseslint from "typescript-eslint";
 import eslintConfigPrettier from "eslint-config-prettier";
 import * as eslintPluginImport from "eslint-plugin-import";
 import eslintPluginUnusedImports from "eslint-plugin-unused-imports";
-import eslintPluginTailwindCSS from "eslint-plugin-tailwindcss";
+import eslintPluginBetterTailwindCSS from "eslint-plugin-better-tailwindcss";
 import angular from "@angular-eslint/eslint-plugin";
 
 export default tseslint.config(
@@ -68,13 +68,9 @@ export default tseslint.config(
         files: ["apps/frontend/**/*.{ts,html}"],
         plugins: {
             "@angular-eslint": angular,
-            tailwindcss: eslintPluginTailwindCSS,
         },
-        extends: [...eslintPluginTailwindCSS.configs["flat/recommended"]],
         rules: {
             "@typescript-eslint/explicit-function-return-type": "off", // Angularでは不要
-            "tailwindcss/classnames-order": "warn",
-            "tailwindcss/no-custom-classname": "off",
             "@angular-eslint/directive-selector": [
                 "error",
                 {
@@ -91,6 +87,24 @@ export default tseslint.config(
                     style: "kebab-case",
                 },
             ],
+        },
+    },
+
+    // Better TailwindCSS 設定
+    {
+        files: ["apps/frontend/**/*.{ts,html}"],
+        plugins: {
+            "better-tailwindcss": eslintPluginBetterTailwindCSS,
+        },
+        rules: {
+            "better-tailwindcss/enforce-consistent-class-order": "warn",
+            "better-tailwindcss/no-duplicate-classes": "error",
+        },
+        settings: {
+            "better-tailwindcss": {
+                // TailwindCSS v4対応 - CSSエントリーポイントを指定
+                entryPoint: "apps/frontend/src/styles.css",
+            },
         },
     },
 
