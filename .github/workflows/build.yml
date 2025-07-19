@@ -51,8 +51,8 @@ jobs:
           ls -la apps/docs/.vitepress/dist/
 
       - name: Run backend tests
-        run: pnpm test:backend
-        timeout-minutes: 5
+        run: pnpm test:backend:ci
+        timeout-minutes: 3
         env:
           NODE_ENV: test
 
