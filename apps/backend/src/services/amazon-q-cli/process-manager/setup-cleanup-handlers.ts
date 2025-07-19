@@ -1,12 +1,13 @@
-import { cleanupInactiveSessions } from './cleanup-inactive-sessions';
 import type { QProcessSession } from '../session-manager/types';
+
+import { cleanupInactiveSessions } from './cleanup-inactive-sessions';
 
 export function setupCleanupHandlers(
   sessions: Map<string, QProcessSession>,
   destroyCallback: () => void
 ): NodeJS.Timeout {
   // プロセス終了時のクリーンアップ
-  const cleanup = () => {
+  const cleanup = (): void => {
     destroyCallback();
   };
 

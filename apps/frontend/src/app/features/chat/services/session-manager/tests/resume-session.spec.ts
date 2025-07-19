@@ -1,4 +1,5 @@
-import { of, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
+
 import { resumeSession, SessionStatus } from '../resume-session';
 import { WebSocketService } from '../../../../../core/services/websocket.service';
 import { AppStore } from '../../../../../core/store/app.state';

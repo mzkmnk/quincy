@@ -1,4 +1,5 @@
 import { signal, computed, WritableSignal, Signal } from '@angular/core';
+
 import { ConnectionState } from '../types';
 
 /**

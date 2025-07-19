@@ -5,8 +5,10 @@ import type {
   InterServerEvents, 
   SocketData
 } from '@quincy/shared';
-import { connectedUsers } from './connection-map';
+
 import { generateMessageId } from '../../../utils/id-generator';
+
+import { connectedUsers } from './connection-map';
 
 export function handleDisconnection(
   socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>,

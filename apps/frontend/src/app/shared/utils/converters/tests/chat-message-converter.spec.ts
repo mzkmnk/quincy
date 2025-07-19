@@ -1,5 +1,6 @@
-import { convertDisplayMessagesToChatMessages } from '../chat-message-converter';
 import type { DisplayMessage } from '@quincy/shared';
+
+import { convertDisplayMessagesToChatMessages } from '../chat-message-converter';
 
 describe('convertDisplayMessagesToChatMessages', () => {
   it('DisplayMessage配列を正しくChatMessage配列に変換する', () => {

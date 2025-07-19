@@ -3,19 +3,19 @@
  * 実際のユーザーシナリオに近い形でのテスト
  */
 
-import { WebSocketService } from '../services/websocket';
-import { AmazonQCLIService } from '../services/amazon-q-cli';
 import { createServer, Server } from 'http';
-import { io as Client, Socket as ClientSocket } from 'socket.io-client';
 import { EventEmitter } from 'events';
+
+import { io as Client, Socket as ClientSocket } from 'socket.io-client';
 import type { 
   QCommandEvent,
-  QAbortEvent,
   QMessageEvent,
   QProjectStartEvent,
-  MessageSendEvent,
   RoomData
 } from '@quincy/shared';
+
+import { AmazonQCLIService } from '../services/amazon-q-cli';
+import { WebSocketService } from '../services/websocket';
 
 // End-to-Endテスト用のモック設定
 jest.mock('child_process');
@@ -242,7 +242,7 @@ describe('End-to-End Test: WebSocket経由のAmazon Q機能', () => {
       ];
       
       let sessionId: string;
-      let currentMessageIndex = 0;
+      const currentMessageIndex = 0;
       let responseCount = 0;
       
       // セッション開始

@@ -1,16 +1,13 @@
 import { Component, signal, ViewChild, ElementRef, inject, ChangeDetectionStrategy, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AppStore } from '../../../core/store/app.state';
-import { WebSocketService } from '../../../core/services/websocket.service';
 import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 import { TextareaModule } from 'primeng/textarea';
 
-// 分離されたサービスのインポート
+import { WebSocketService } from '../../../core/services/websocket.service';
+import { AppStore } from '../../../core/store/app.state';
 import { sendMessage, canSendMessage } from './services/message-sender';
-
-// 分離されたユーティリティのインポート
 import { 
   handleCompositionStart, 
   handleCompositionEnd, 

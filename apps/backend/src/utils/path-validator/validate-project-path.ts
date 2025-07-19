@@ -3,6 +3,7 @@
  */
 
 import { access, stat } from 'fs/promises';
+
 import { isValidPath, isDangerousPath } from './is-valid-path';
 import { normalizePath } from './normalize-path';
 import { checkPathTraversal } from './check-path-traversal';

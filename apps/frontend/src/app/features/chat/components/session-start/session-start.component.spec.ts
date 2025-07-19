@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+
 import { SessionStartComponent, SessionStatus } from './session-start.component';
 
 describe('SessionStartComponent', () => {

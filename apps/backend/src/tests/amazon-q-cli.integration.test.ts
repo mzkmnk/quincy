@@ -3,14 +3,12 @@
  * 複数のコンポーネントを組み合わせた統合テスト
  */
 
+import { EventEmitter } from 'events';
+
 import { AmazonQCLIService } from '../services/amazon-q-cli';
 import { validateProjectPath } from '../utils/path-validator';
-import { generateSessionId } from '../utils/id-generator';
 import { stripAnsiCodes } from '../utils/ansi-stripper';
 import { checkCLIAvailability } from '../utils/cli-validator';
-import { EventEmitter } from 'events';
-import { ChildProcess } from 'child_process';
-import path from 'path';
 
 // 統合テスト用のモック設定
 jest.mock('child_process');

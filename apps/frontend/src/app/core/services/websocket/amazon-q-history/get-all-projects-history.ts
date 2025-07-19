@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io-client';
+
 import { emit } from '../connection/emit';
-import { on } from '../connection/on';
 
 /**
  * 全プロジェクトの履歴を取得する

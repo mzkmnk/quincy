@@ -3,17 +3,19 @@
  * Amazon Q CLIサービスとWebSocketサービスの結合テスト
  */
 
-import { WebSocketService } from '../services/websocket';
-import { AmazonQCLIService } from '../services/amazon-q-cli';
 import { createServer, Server } from 'http';
-import { io as Client, Socket as ClientSocket } from 'socket.io-client';
 import { EventEmitter } from 'events';
+
+import { io as Client, Socket as ClientSocket } from 'socket.io-client';
 import type { 
   QCommandEvent,
   QAbortEvent,
   QMessageEvent,
   QProjectStartEvent
 } from '@quincy/shared';
+
+import { AmazonQCLIService } from '../services/amazon-q-cli';
+import { WebSocketService } from '../services/websocket';
 
 // 統合テスト用のモック設定
 jest.mock('child_process');

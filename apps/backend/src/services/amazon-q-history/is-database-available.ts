@@ -2,8 +2,10 @@
  * データベースの可用性を総合的にチェック
  */
 
-import Database from 'better-sqlite3';
 import { existsSync } from 'fs';
+
+import Database from 'better-sqlite3';
+
 import { DB_PATH, SQL_QUERIES } from './constants';
 
 export function isDatabaseAvailable(): boolean {

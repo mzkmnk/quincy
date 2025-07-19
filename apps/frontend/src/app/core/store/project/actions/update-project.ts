@@ -1,4 +1,5 @@
 import type { Project } from '@quincy/shared';
+
 import { projectState } from '../project.state';
 
 /**

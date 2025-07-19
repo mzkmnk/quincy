@@ -7,8 +7,10 @@ import type {
   RoomData,
   RoomJoinedEvent
 } from '@quincy/shared';
-import { userRooms } from './room-map';
+
 import { generateMessageId } from '../../../utils/id-generator';
+
+import { userRooms } from './room-map';
 
 export function handleRoomJoin(
   socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>,

@@ -1,8 +1,10 @@
 import { Component, inject, ChangeDetectionStrategy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
+
 import { getConnectionStatusClass, getConnectionStatusText } from './utils';
 
 @Component({

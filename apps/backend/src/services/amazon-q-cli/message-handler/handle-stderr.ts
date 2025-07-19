@@ -1,6 +1,8 @@
-import type { QProcessSession } from '../session-manager/types';
 import type { QInfoEvent, QErrorEvent } from '@quincy/shared';
+
+import type { QProcessSession } from '../session-manager/types';
 import { stripAnsiCodes } from '../../../utils/ansi-stripper';
+
 import { classifyStderrMessage } from './classify-stderr-message';
 import { isInitializationMessage } from './is-initialization-message';
 import { isThinkingMessage } from './is-thinking-message';

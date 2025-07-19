@@ -5,9 +5,10 @@ import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 import { TextareaModule } from 'primeng/textarea';
 import { CheckboxModule } from 'primeng/checkbox';
+import { Router } from '@angular/router';
+
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
-import { Router } from '@angular/router';
 
 // 分離されたサービスのインポート
 import { validatePath, isValidPath, canStartProject } from './services/path-validator';

@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
-import { connect, disconnect, emit, on, off } from '../connection';
 import { signal } from '@angular/core';
+
+import { connect, disconnect, emit, on, off } from '../connection';
 import { ConnectionState } from '../types';
 
 // Socket.ioのモック

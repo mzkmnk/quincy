@@ -1,5 +1,6 @@
-import { Server as SocketIOServer } from 'socket.io';
 import { Server as HTTPServer } from 'http';
+
+import { Server as SocketIOServer } from 'socket.io';
 import type { 
   ClientToServerEvents, 
   ServerToClientEvents, 
@@ -7,6 +8,7 @@ import type {
   SocketData,
   ConnectionInfo
 } from '@quincy/shared';
+
 import { AmazonQCLIService } from '../amazon-q-cli';
 import { AmazonQHistoryService } from '../amazon-q-history';
 

@@ -6,8 +6,10 @@ import type {
   SocketData,
   QCommandEvent
 } from '@quincy/shared';
+
 import type { AmazonQCLIService } from '../../amazon-q-cli';
 import type { AmazonQHistoryService } from '../../amazon-q-history';
+
 import { handleQCommand } from './handle-q-command';
 
 export async function handleQResume(

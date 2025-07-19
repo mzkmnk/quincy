@@ -1,10 +1,9 @@
 import { Component, inject, signal, ChangeDetectionStrategy, computed, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { AppStore } from '../../../core/store/app.state';
 import { UserMessageComponent } from '../user-message/user-message.component';
 import { AmazonQMessageComponent } from '../amazon-q-message/amazon-q-message.component';
-
-// 分離されたサービスのインポート
 import { 
   addMessage, 
   addTypingIndicator, 
@@ -12,13 +11,10 @@ import {
   clearMessages, 
   getMessageCount 
 } from './services/message-manager';
-
 import { 
   scrollToBottom, 
   markForScrollUpdate 
 } from './services/scroll-manager';
-
-// 分離されたユーティリティのインポート
 import { selectMessages } from './utils';
 
 @Component({

@@ -1,9 +1,10 @@
 import { Component, input, inject, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { ConversationMetadata } from '@quincy/shared';
+
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
-import { ConversationMetadata } from '@quincy/shared';
 
 @Component({
   selector: 'app-project-list',

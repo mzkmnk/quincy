@@ -1,7 +1,8 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { LayoutComponent } from './shared/components/layout/layout.component';
 import { Toast } from 'primeng/toast';
 import { ConfirmDialog } from 'primeng/confirmdialog';
+
+import { LayoutComponent } from './shared/components/layout/layout.component';
 
 @Component({
   selector: 'app-root',

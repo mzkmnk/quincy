@@ -1,5 +1,6 @@
-import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { AppStore } from '../../../../core/store/app.state';
 import { WebSocketService } from '../../../../core/services/websocket.service';
 

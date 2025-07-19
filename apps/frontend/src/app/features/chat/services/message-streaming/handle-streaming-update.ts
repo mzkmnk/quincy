@@ -1,4 +1,3 @@
-import { signal } from '@angular/core';
 
 /**
  * ストリーミングメッセージを更新する

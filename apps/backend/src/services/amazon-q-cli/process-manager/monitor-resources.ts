@@ -13,7 +13,7 @@ export async function monitorResources(session: QProcessSession): Promise<void> 
     session.cpuUsage = (usage.user + usage.system) / 1000; // マイクロ秒をミリ秒に
     session.memoryUsage = memUsage.rss / (1024 * 1024); // バイトをMBに
     session.lastActivity = Date.now();
-  } catch (error) {
+  } catch (_error) {
     // エラーは無視
   }
 }

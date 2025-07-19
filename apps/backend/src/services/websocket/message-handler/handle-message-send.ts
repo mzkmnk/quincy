@@ -7,6 +7,7 @@ import type {
   MessageSendEvent,
   MessageData
 } from '@quincy/shared';
+
 import { generateMessageId } from '../../../utils/id-generator';
 
 export function handleMessageSend(

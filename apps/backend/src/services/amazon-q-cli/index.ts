@@ -1,13 +1,10 @@
 import { EventEmitter } from 'events';
 import { promisify } from 'util';
 import { exec } from 'child_process';
-import type { 
-  QCommandEvent, 
-  QResponseEvent, 
-  QErrorEvent, 
-  QInfoEvent,
-  QCompleteEvent 
-} from '@quincy/shared';
+
+
+
+
 import { generateSessionId } from '../../utils/id-generator';
 import { validateProjectPath } from '../../utils/path-validator';
 import { isValidCLIPath, getCLICandidates } from '../../utils/cli-validator';
@@ -15,14 +12,12 @@ import { isValidCLIPath, getCLICandidates } from '../../utils/cli-validator';
 // 分離した関数のインポート
 import {
   spawnProcess,
-  killProcess,
   waitForProcessStart,
   startResourceMonitoring,
   updateAllSessionResources,
   setupCleanupHandlers,
   destroy as destroyProcessManager
 } from './process-manager';
-
 import {
   QProcessSession,
   QProcessOptions,
@@ -36,11 +31,9 @@ import {
   sendInput,
   abortSession
 } from './session-manager';
-
 import {
   setupProcessHandlers
 } from './message-handler';
-
 import {
   flushIncompleteOutputLine,
   flushIncompleteErrorLine,
@@ -48,7 +41,6 @@ import {
   addToInitializationBuffer,
   flushInitializationBuffer
 } from './buffer-manager';
-
 import {
   checkCLIAvailabilityService,
   buildCommandArgs

@@ -5,6 +5,7 @@
 
 import type { HistoryData, ConversationTurn, HistoryEntry } from '../amazon-q-history-types';
 import { isResponse } from '../amazon-q-history-types';
+
 import { createConversationTurn } from './create-conversation-turn';
 
 export function groupConversationTurns(historyData: HistoryData): ConversationTurn[] {

@@ -8,7 +8,9 @@ import type {
   QCommandEvent,
   QSessionStartedEvent
 } from '@quincy/shared';
+
 import type { AmazonQCLIService } from '../../amazon-q-cli';
+
 import { addSocketToSession } from './add-socket-to-session';
 
 export async function handleQProjectStart(

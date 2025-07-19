@@ -1,6 +1,5 @@
 import { WebSocketService } from '../../../../core/services/websocket.service';
 import { AppStore } from '../../../../core/store/app.state';
-import { Subscription } from 'rxjs';
 
 export interface SessionStatus {
   cliLaunched: boolean;

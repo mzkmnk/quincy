@@ -1,4 +1,5 @@
 import { Socket } from 'socket.io-client';
+
 import { on } from '../connection/on';
 import { HistoryListeners } from '../types';
 

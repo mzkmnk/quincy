@@ -1,5 +1,6 @@
-import { addMessage } from '../add-message';
 import { signal } from '@angular/core';
+
+import { addMessage } from '../add-message';
 
 describe('addMessage', () => {
   let mockAppStore: any;

@@ -3,9 +3,9 @@
  * TDD approach: テストファーストで実装
  */
 
-import { AmazonQCLIService, QProcessOptions, QProcessSession } from '../services/amazon-q-cli';
 import { EventEmitter } from 'events';
-import { ChildProcess } from 'child_process';
+
+import { AmazonQCLIService, QProcessOptions } from '../services/amazon-q-cli';
 
 // child_processとutilのモック
 jest.mock('child_process');

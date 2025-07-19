@@ -1,4 +1,5 @@
 import { Directive, inject, OnInit, OnDestroy, ElementRef } from '@angular/core';
+
 import { PerformanceService } from '../services/performance-service';
 
 @Directive({

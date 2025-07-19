@@ -1,7 +1,8 @@
 import { Socket } from 'socket.io-client';
-import { on } from '../connection/on';
 import { Observable } from 'rxjs';
 import type { QSessionStartedEvent } from '@quincy/shared';
+
+import { on } from '../connection/on';
 
 /**
  * プロジェクトセッションのイベントリスナーを設定する

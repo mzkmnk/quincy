@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+
 import { sendQMessage, abortQSession } from '../chat';
 
 describe('Chat Functions', () => {

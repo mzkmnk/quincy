@@ -3,6 +3,7 @@
  */
 
 import { isAbsolute } from 'path';
+
 import { getDangerousPaths } from './get-dangerous-paths';
 
 /**

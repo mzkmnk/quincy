@@ -4,6 +4,7 @@
 
 import { promisify } from 'util';
 import { exec } from 'child_process';
+
 import { isValidCLIPath, getCLICandidates } from './validate-cli-path';
 
 const execAsync = promisify(exec);

@@ -3,9 +3,11 @@
  */
 
 import Database from 'better-sqlite3';
+
 import type { AmazonQConversationWithHistory } from '../amazon-q-history-types';
-import { DB_PATH, SQL_QUERIES } from './constants';
 import { HistoryTransformer } from '../amazon-q-history-transformer';
+
+import { DB_PATH, SQL_QUERIES } from './constants';
 
 export async function getConversationStats(projectPath: string): Promise<{
   totalEntries: number;

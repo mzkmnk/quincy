@@ -333,9 +333,9 @@ describe('handleCompletionResponse', () => {
       const session2Id = 'session-2';
       const session3Id = 'session-3';
       
-      let session1Completed = false;
-      let session2Completed = false;
-      let session3Completed = false;
+      const session1Completed = false;
+      const session2Completed = false;
+      const session3Completed = false;
 
       const createCompletionHandler = (sessionRef: { completed: boolean }) => 
         () => { sessionRef.completed = true; };

@@ -6,6 +6,7 @@ import type {
   SocketData,
   QAbortEvent
 } from '@quincy/shared';
+
 import type { AmazonQCLIService } from '../../amazon-q-cli';
 
 export async function handleQAbort(

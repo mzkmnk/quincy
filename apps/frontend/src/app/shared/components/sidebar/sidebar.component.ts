@@ -1,8 +1,10 @@
 import { Component, input, ChangeDetectionStrategy, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+
 import { ProjectListComponent } from '../project-list/project-list.component';
 import { AppStore } from '../../../core/store/app.state';
+
 import { shouldShowFullButton, shouldShowIconButton } from './utils';
 import { handleNewProject } from './services';
 

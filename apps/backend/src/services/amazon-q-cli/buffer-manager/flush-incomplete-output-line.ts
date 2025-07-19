@@ -1,5 +1,6 @@
-import type { QProcessSession } from '../session-manager/types';
 import type { QResponseEvent } from '@quincy/shared';
+
+import type { QProcessSession } from '../session-manager/types';
 import { stripAnsiCodes } from '../../../utils/ansi-stripper';
 import { shouldSkipOutput, isInitializationMessage, isThinkingMessage, shouldSkipThinking, updateThinkingState } from '../message-handler';
 

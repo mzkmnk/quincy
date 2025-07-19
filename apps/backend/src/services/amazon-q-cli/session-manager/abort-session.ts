@@ -1,5 +1,6 @@
-import type { QProcessSession } from './types';
 import { killProcess } from '../process-manager/kill-process';
+
+import type { QProcessSession } from './types';
 
 export async function abortSession(
   sessions: Map<string, QProcessSession>,
@@ -34,7 +35,7 @@ export async function abortSession(
     }, 3000);
 
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }

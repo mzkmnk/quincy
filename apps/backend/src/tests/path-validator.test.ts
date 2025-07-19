@@ -2,6 +2,10 @@
  * パス検証ユーティリティのテスト
  */
 
+import { mkdtemp, rmdir } from 'fs/promises';
+import { homedir } from 'os';
+import { join } from 'path';
+
 import { 
   validateProjectPath,
   isValidPath,
@@ -11,9 +15,6 @@ import {
   normalizePath,
   DANGEROUS_PATHS
 } from '../utils/path-validator';
-import { mkdtemp, rmdir } from 'fs/promises';
-import { homedir } from 'os';
-import { join } from 'path';
 
 describe('パス検証ユーティリティ', () => {
   let tempDir: string;

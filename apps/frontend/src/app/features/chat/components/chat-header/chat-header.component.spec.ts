@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { ChatHeaderComponent } from './chat-header.component';
+
 import { AppStore } from '../../../../core/store/app.state';
 import { WebSocketService } from '../../../../core/services/websocket.service';
+
+import { ChatHeaderComponent } from './chat-header.component';
 
 describe('ChatHeaderComponent', () => {
   let component: ChatHeaderComponent;

@@ -1,4 +1,5 @@
 import { Injectable, signal, isDevMode } from '@angular/core';
+
 import { measureMemoryUsage, measureRenderPerformance, measureFPS } from '../utils';
 
 export interface PerformanceMetrics {

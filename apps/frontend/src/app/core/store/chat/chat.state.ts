@@ -1,4 +1,5 @@
 import { signal, computed } from '@angular/core';
+
 import type { MessageId, SessionId, Timestamp } from '../../types/common.types';
 import type { AmazonQMessageSender } from '../../types/amazon-q.types';
 

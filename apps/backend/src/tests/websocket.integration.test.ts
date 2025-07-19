@@ -3,11 +3,10 @@
  * 複数のコンポーネントを組み合わせた統合テスト
  */
 
-import { WebSocketService } from '../services/websocket';
-import { AmazonQCLIService } from '../services/amazon-q-cli';
 import { createServer, Server } from 'http';
-import { io as Client, Socket as ClientSocket } from 'socket.io-client';
 import { EventEmitter } from 'events';
+
+import { io as Client, Socket as ClientSocket } from 'socket.io-client';
 import type { 
   MessageSendEvent, 
   MessageData,
@@ -16,6 +15,9 @@ import type {
   QAbortEvent,
   QMessageEvent
 } from '@quincy/shared';
+
+import { AmazonQCLIService } from '../services/amazon-q-cli';
+import { WebSocketService } from '../services/websocket';
 
 // 統合テスト用のモック設定
 jest.mock('child_process');

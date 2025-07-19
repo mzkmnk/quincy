@@ -1,6 +1,7 @@
 import { Socket } from 'socket.io-client';
-import { emit } from '../connection/emit';
 import type { QProjectStartEvent } from '@quincy/shared';
+
+import { emit } from '../connection/emit';
 
 /**
  * プロジェクトセッションを開始する

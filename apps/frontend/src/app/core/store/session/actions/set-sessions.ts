@@ -1,4 +1,5 @@
 import type { Session } from '@quincy/shared';
+
 import { sessionState } from '../session.state';
 
 /**

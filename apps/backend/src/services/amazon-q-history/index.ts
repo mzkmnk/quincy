@@ -4,6 +4,7 @@
  */
 
 import type { ConversationMetadata } from '@quincy/shared';
+
 import type { 
   DisplayMessage, 
   AmazonQConversationWithHistory 

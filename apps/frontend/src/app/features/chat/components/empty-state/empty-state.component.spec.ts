@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, ChangeDetectionStrategy } from '@angular/core';
+
 import { EmptyStateComponent } from './empty-state.component';
 
 // PathSelectorComponentのモック

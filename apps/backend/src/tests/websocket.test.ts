@@ -3,13 +3,15 @@
  * Basic test to verify WebSocket server functionality
  */
 
-import { WebSocketService } from '../services/websocket/index'
 import { createServer, Server } from 'http'
+
 import { io as Client, Socket as ClientSocket } from 'socket.io-client'
 import type { 
   MessageSendEvent, 
   MessageData 
 } from '@quincy/shared'
+
+import { WebSocketService } from '../services/websocket/index'
 
 describe('WebSocket Server', () => {
   let httpServer: Server

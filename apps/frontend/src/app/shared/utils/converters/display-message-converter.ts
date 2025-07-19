@@ -1,4 +1,5 @@
 import type { DisplayMessage } from '@quincy/shared';
+
 import type { ChatMessage } from '../../../core/store/app.state';
 
 /**

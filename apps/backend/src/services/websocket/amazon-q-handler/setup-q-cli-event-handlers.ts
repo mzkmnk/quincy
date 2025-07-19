@@ -5,7 +5,9 @@ import type {
   InterServerEvents, 
   SocketData
 } from '@quincy/shared';
+
 import type { AmazonQCLIService } from '../../amazon-q-cli';
+
 import { emitToSession } from './emit-to-session';
 import { cleanupSession } from './cleanup-session';
 

@@ -1,5 +1,6 @@
-import { scrollToBottom } from '../scroll-to-bottom';
 import { ElementRef } from '@angular/core';
+
+import { scrollToBottom } from '../scroll-to-bottom';
 
 describe('scrollToBottom', () => {
   let mockElement: any;

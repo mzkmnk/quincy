@@ -4,6 +4,7 @@
 
 import type { ConversationTurn, DisplayMessage } from '../amazon-q-history-types';
 import { generateMessageId } from '../../utils/id-generator';
+
 import { formatThinkingContent } from './format-thinking-content';
 import { getToolsUsedInThinkingStep } from './get-tools-used-in-thinking-step';
 

@@ -6,6 +6,7 @@ import type {
   SocketData,
   AmazonQConversation
 } from '@quincy/shared';
+
 import type { AmazonQHistoryService } from '../../amazon-q-history';
 
 export async function handleQHistory(

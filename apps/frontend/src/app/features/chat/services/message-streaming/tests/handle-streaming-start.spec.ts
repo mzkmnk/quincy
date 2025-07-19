@@ -1,4 +1,5 @@
 import { signal } from '@angular/core';
+
 import { handleStreamingStart } from '../handle-streaming-start';
 
 describe('handleStreamingStart', () => {

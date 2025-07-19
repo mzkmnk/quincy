@@ -3,6 +3,7 @@
  */
 
 import type { ConversationTurn, HistoryEntry } from '../amazon-q-history-types';
+
 import { extractEnvironmentInfo } from './extract-environment-info';
 import { extractToolsUsed } from './extract-tools-used';
 import { extractMessageIds } from './extract-message-ids';

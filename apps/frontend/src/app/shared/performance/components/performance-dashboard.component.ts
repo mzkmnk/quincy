@@ -1,5 +1,6 @@
 import { Component, inject, ChangeDetectionStrategy, isDevMode } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { PerformanceService } from '../services/performance-service';
 
 @Component({

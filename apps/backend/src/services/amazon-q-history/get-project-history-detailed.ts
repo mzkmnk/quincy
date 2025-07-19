@@ -3,11 +3,13 @@
  */
 
 import Database from 'better-sqlite3';
+
 import type { DisplayMessage, AmazonQConversationWithHistory } from '../amazon-q-history-types';
-import { DB_PATH, SQL_QUERIES } from './constants';
-import { isDatabaseAvailable } from './is-database-available';
 import { HistoryTransformer } from '../amazon-q-history-transformer';
 import { MessageFormatter } from '../amazon-q-message-formatter';
+
+import { DB_PATH, SQL_QUERIES } from './constants';
+import { isDatabaseAvailable } from './is-database-available';
 
 export async function getProjectHistoryDetailed(projectPath: string): Promise<DisplayMessage[]> {
   try {

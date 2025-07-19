@@ -3,10 +3,12 @@
  */
 
 import Database from 'better-sqlite3';
+
 import type { AmazonQConversationWithHistory } from '../amazon-q-history-types';
+import { HistoryTransformer } from '../amazon-q-history-transformer';
+
 import { DB_PATH, SQL_QUERIES } from './constants';
 import { isDatabaseAvailable } from './is-database-available';
-import { HistoryTransformer } from '../amazon-q-history-transformer';
 
 export async function getAllProjectsHistoryDetailed(): Promise<{
   projectPath: string;
@@ -64,7 +66,7 @@ export async function getAllProjectsHistoryDetailed(): Promise<{
             lastUpdated: new Date(),
             model: conversation.model
           });
-        } catch (parseError) {
+        } catch (_parseError) {
           // パースエラーは無視して次の行を処理
         }
       }
@@ -74,6 +76,6 @@ export async function getAllProjectsHistoryDetailed(): Promise<{
       db.close();
     }
   } catch (error) {
-    throw error;
+    throw new Error(`履歴取得に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

@@ -3,6 +3,7 @@
  */
 
 import type { HistoryData } from '../amazon-q-history-types';
+
 import { groupConversationTurns } from './group-conversation-turns';
 
 export function getTransformationStats(historyData: HistoryData): {

@@ -3,7 +3,7 @@ export function combineInitializationMessages(messages: string[]): string {
   const loadedServices: string[] = [];
   let mcpStatus = '';
   let welcomeMessage = '';
-  let helpInfo: string[] = [];
+  const helpInfo: string[] = [];
   
   for (const message of messages) {
     const trimmed = message.trim();

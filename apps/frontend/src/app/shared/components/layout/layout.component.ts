@@ -1,9 +1,8 @@
-import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, Router } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
+
 import { SidebarComponent } from '../sidebar/sidebar.component';
-import { AppStore } from '../../../core/store/app.state';
-import { WebSocketService } from '../../../core/services/websocket.service';
 
 @Component({
   selector: 'app-layout',

@@ -4,6 +4,7 @@
  */
 
 import type { HistoryData } from '../amazon-q-history-types';
+
 import { validateHistoryEntries } from './validate-history-entries';
 
 export function isValidHistoryData(data: unknown): data is HistoryData {

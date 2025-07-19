@@ -5,6 +5,7 @@ import type {
   InterServerEvents, 
   SocketData
 } from '@quincy/shared';
+
 import type { AmazonQHistoryService } from '../../amazon-q-history';
 
 export async function handleQProjects(

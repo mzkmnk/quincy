@@ -4,10 +4,12 @@
 
 import Database from 'better-sqlite3';
 import type { ConversationMetadata } from '@quincy/shared';
+
 import type { AmazonQConversationWithHistory } from '../amazon-q-history-types';
+import { HistoryTransformer } from '../amazon-q-history-transformer';
+
 import { DB_PATH, SQL_QUERIES } from './constants';
 import { isDatabaseAvailable } from './is-database-available';
-import { HistoryTransformer } from '../amazon-q-history-transformer';
 
 export async function getAllProjectsHistory(): Promise<ConversationMetadata[]> {
   try {
@@ -42,7 +44,7 @@ export async function getAllProjectsHistory(): Promise<ConversationMetadata[]> {
             lastUpdated: new Date(), // SQLiteには更新日時がないため現在時刻を使用
             model: conversation.model
           });
-        } catch (parseError) {
+        } catch (_parseError) {
           // パースエラーは無視して次の行を処理
         }
       }
@@ -53,7 +55,6 @@ export async function getAllProjectsHistory(): Promise<ConversationMetadata[]> {
       db.close();
     }
   } catch (error) {
-    // エラーを再スローして上位コンポーネントでキャッチできるようにする
-    throw error;
+    throw new Error(`履歴取得に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

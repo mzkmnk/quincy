@@ -1,5 +1,6 @@
-import type { QProcessSession } from '../session-manager/types';
 import type { QResponseEvent } from '@quincy/shared';
+
+import type { QProcessSession } from '../session-manager/types';
 
 export function flushOutputBuffer(
   session: QProcessSession,

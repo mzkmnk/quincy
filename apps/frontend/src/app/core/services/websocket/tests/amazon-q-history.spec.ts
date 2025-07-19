@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+
 import { getProjectHistory, getAllProjectsHistory, getProjectHistoryDetailed } from '../amazon-q-history';
 
 describe('Amazon Q History Functions', () => {

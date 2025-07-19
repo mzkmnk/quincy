@@ -6,6 +6,7 @@ import type {
   SocketData,
   QMessageEvent
 } from '@quincy/shared';
+
 import type { AmazonQCLIService } from '../../amazon-q-cli';
 
 export async function handleQMessage(

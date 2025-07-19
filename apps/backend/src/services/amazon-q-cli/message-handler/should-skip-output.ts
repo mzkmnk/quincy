@@ -9,9 +9,9 @@ export function shouldSkipOutput(output: string): boolean {
   // Amazon Q CLIの初期化メッセージをスキップ
   const skipPatterns = [
     /^\s*$/,                                    // 空白のみ
-    /^\s*[\.•●]\s*$/,                      // ドットやブレットのみ
-    /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]\s*$/, // スピナー文字のみ
-    /^\s*[\x00-\x1f]\s*$/,                     // 制御文字のみ
+    /^\s*[.•●]\s*$/,                           // ドットやブレットのみ
+    /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]\s*$/,          // スピナー文字のみ
+    /^\s*\p{Cc}\s*$/u,                         // 制御文字のみ（Unicode対応）
   ];
   
   return skipPatterns.some(pattern => pattern.test(trimmed));

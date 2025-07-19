@@ -3,7 +3,9 @@
  */
 
 import Database from 'better-sqlite3';
+
 import type { AmazonQConversationWithHistory } from '../amazon-q-history-types';
+
 import { DB_PATH, SQL_QUERIES } from './constants';
 import { isDatabaseAvailable } from './is-database-available';
 

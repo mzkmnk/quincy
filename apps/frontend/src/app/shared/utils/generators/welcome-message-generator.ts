@@ -1,4 +1,5 @@
 import type { ChatMessage } from '../../../core/store/app.state';
+
 import { generateCurrentDate } from './timestamp-generator';
 
 /**

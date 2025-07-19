@@ -1,6 +1,8 @@
 import { Component, input, ChangeDetectionStrategy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.component';
+
 import { shouldShowTyping, formatMessageContent } from './utils';
 
 @Component({

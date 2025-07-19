@@ -1,4 +1,5 @@
 import type { QProcessSession } from '../session-manager/types';
+
 import { monitorResources } from './monitor-resources';
 
 export async function updateAllSessionResources(sessions: Map<string, QProcessSession>): Promise<void> {

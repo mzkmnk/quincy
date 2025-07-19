@@ -1,4 +1,5 @@
 import type { AmazonQConversation } from '@quincy/shared';
+
 import { amazonQHistoryState } from '../amazon-q-history.state';
 
 /**

@@ -3,6 +3,7 @@
  */
 
 import type { ConversationTurn, HistoryEntry } from '../amazon-q-history-types';
+
 import { extractUserMessage } from './extract-user-message';
 import { extractAiThinking } from './extract-ai-thinking';
 import { extractAiResponse } from './extract-ai-response';

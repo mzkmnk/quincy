@@ -3,6 +3,8 @@ import { Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
 
 // Connection管理
+import type { ConversationMetadata, AmazonQConversation, QSessionStartedEvent } from '@quincy/shared';
+
 import { connect, disconnect, emit, on, off, ConnectionStateManager } from './connection';
 
 // Amazon Q履歴管理
@@ -35,14 +37,11 @@ import {
 
 // 型定義
 import { 
-  ConnectionState, 
   ChatListeners, 
   HistoryListeners, 
-  ProjectSessionListeners, 
   ListenerFlags 
 } from './types';
 
-import type { ConversationMetadata, AmazonQConversation, QProjectStartEvent, QSessionStartedEvent } from '@quincy/shared';
 
 @Injectable({
   providedIn: 'root'

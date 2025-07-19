@@ -3,7 +3,9 @@
  */
 
 import Database from 'better-sqlite3';
+
 import type { AmazonQConversationWithHistory } from '../amazon-q-history-types';
+
 import { DB_PATH, SQL_QUERIES } from './constants';
 
 export async function findByConversationId(conversationId: string): Promise<{ projectPath: string; conversation: AmazonQConversationWithHistory } | null> {

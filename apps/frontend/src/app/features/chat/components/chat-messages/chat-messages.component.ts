@@ -1,5 +1,6 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { MessageListComponent } from '../../../../shared/components/message-list/message-list.component';
 import { MessageInputComponent } from '../../../../shared/components/message-input/message-input.component';
 

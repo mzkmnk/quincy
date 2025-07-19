@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { PathSelectorComponent } from '../../../../shared/components/path-selector/path-selector.component';
 
 @Component({

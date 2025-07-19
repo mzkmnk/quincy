@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, OnDestroy, ChangeDetectionStrategy, viewChild, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { AppStore } from '../../core/store/app.state';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { MessageListComponent } from '../../shared/components/message-list/message-list.component';
@@ -22,14 +23,12 @@ import {
   handleCompletionResponse,
   ChatWebSocketHandlers
 } from './services/chat-websocket';
-
 import {
   handleStreamingStart,
   handleStreamingUpdate,
   formatInfoMessage,
   shouldDisplayError
 } from './services/message-streaming';
-
 import { resumeSession } from './services/session-manager';
 
 // 分離されたユーティリティのインポート

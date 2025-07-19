@@ -1,5 +1,6 @@
-import { canSendMessage, sendMessage } from '../send-message';
 import { ElementRef } from '@angular/core';
+
+import { canSendMessage, sendMessage } from '../send-message';
 
 describe('message-sender', () => {
   describe('canSendMessage', () => {

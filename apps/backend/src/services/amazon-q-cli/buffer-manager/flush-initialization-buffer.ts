@@ -1,5 +1,7 @@
-import type { QProcessSession } from '../session-manager/types';
 import type { QInfoEvent } from '@quincy/shared';
+
+import type { QProcessSession } from '../session-manager/types';
+
 import { combineInitializationMessages } from './combine-initialization-messages';
 
 export function flushInitializationBuffer(
