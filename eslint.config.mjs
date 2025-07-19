@@ -127,7 +127,7 @@ export default tseslint.config(
     settings: {
       'better-tailwindcss': {
         // TailwindCSS v4対応 - CSSエントリーポイントを指定
-        entryPoint: 'apps/frontend/src/styles.css',
+        entryPoint: './apps/frontend/src/styles.css',
       },
     },
   },
