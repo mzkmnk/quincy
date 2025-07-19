@@ -1,4 +1,4 @@
-name: Build Check
+name: Build and Test
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     strategy:
@@ -49,3 +49,16 @@ jobs:
           ls -la apps/backend/dist/
           ls -la apps/frontend/dist/
           ls -la apps/docs/.vitepress/dist/
+
+      - name: Run backend tests
+        run: pnpm --filter backend test
+        timeout-minutes: 5
+        env:
+          NODE_ENV: test
+
+      - name: Run frontend tests
+        run: pnpm --filter frontend test:ci
+        timeout-minutes: 5
+        env:
+          NODE_ENV: test
+          CI: true
