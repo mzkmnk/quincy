@@ -6,8 +6,7 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "test:ci": "vitest run --exclude=src/app/app.spec.ts --exclude=src/app/core/services/websocket/tests/connection.spec.ts"
+    "test": "ng test"
   },
   "private": true,
   "dependencies": {

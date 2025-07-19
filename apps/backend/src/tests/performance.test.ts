@@ -81,8 +81,8 @@ describe('Performance Tests', () => {
 
       console.log(`Stripped ANSI codes from ${iterations} short texts in ${duration.toFixed(2)}ms`);
 
-      // 1万回の処理が200ms以下で完了すること（CI環境を考慮）
-      expect(duration).toBeLessThan(200);
+      // 1万回の処理が50ms以下で完了すること
+      expect(duration).toBeLessThan(50);
     });
 
     it('長いテキストのANSI除去が適切な時間で実行されること', () => {
@@ -100,8 +100,8 @@ describe('Performance Tests', () => {
 
       console.log(`Stripped ANSI codes from ${iterations} long texts in ${duration.toFixed(2)}ms`);
 
-      // 1000回の処理が1500ms以下で完了すること（CI環境を考慮）
-      expect(duration).toBeLessThan(1500);
+      // 1000回の処理が1000ms以下で完了すること
+      expect(duration).toBeLessThan(1000);
     });
   });
 
