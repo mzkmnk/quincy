@@ -222,7 +222,7 @@
   - [x] `src/app/features/chat/components/empty-state/` ディレクトリを作成
   - [x] `src/app/features/chat/components/empty-state/empty-state.component.ts` ファイルを作成
   - [x] 既存のテンプレートを各コンポーネントに分割（192行のテンプレート）
-  - [ ] 各コンポーネントのユニットテストを作成
+  - [x] 各コンポーネントのユニットテストを作成
 
 - [x] WebSocketリスナー管理の分離（1ファイル1関数）
   - [x] `src/app/features/chat/services/chat-websocket/` ディレクトリを作成
@@ -234,7 +234,7 @@
   - [x] `src/app/features/chat/services/chat-websocket/handle-completion-response.ts` ファイルを作成
   - [x] `src/app/features/chat/services/chat-websocket/index.ts` ファイルを作成（エクスポート集約）
   - [x] 既存の `setupWebSocketListeners()` を分離（426-473行）
-  - [ ] 各リスナー関数のユニットテストを作成
+  - [x] 各リスナー関数のユニットテストを作成
 
 - [x] メッセージストリーミング処理の分離（1ファイル1関数）
   - [x] `src/app/features/chat/services/message-streaming/` ディレクトリを作成
@@ -244,14 +244,14 @@
   - [x] `src/app/features/chat/services/message-streaming/should-display-error.ts` ファイルを作成
   - [x] `src/app/features/chat/services/message-streaming/index.ts` ファイルを作成（エクスポート集約）
   - [x] 既存のストリーミング処理ロジックを分離（476-513行）
-  - [ ] 各ストリーミング関数のユニットテストを作成
+  - [x] 各ストリーミング関数のユニットテストを作成
 
 - [x] セッション管理の分離（1ファイル1関数）
   - [x] `src/app/features/chat/services/session-manager/` ディレクトリを作成
   - [x] `src/app/features/chat/services/session-manager/resume-session.ts` ファイルを作成
   - [x] `src/app/features/chat/services/session-manager/index.ts` ファイルを作成（エクスポート集約）
   - [x] 既存の `resumeSession()` を分離（379-423行）
-  - [ ] 各セッション管理関数のユニットテストを作成
+  - [x] 各セッション管理関数のユニットテストを作成
 
 - [x] ユーティリティの分離（1ファイル1関数）
   - [x] `src/app/features/chat/utils/` ディレクトリを作成
@@ -260,13 +260,13 @@
   - [x] `src/app/features/chat/utils/project-path-utils.ts` ファイルを作成
   - [x] `src/app/features/chat/utils/index.ts` ファイルを作成（エクスポート集約）
   - [x] メッセージインデックス管理ロジックを移動
-  - [ ] 各ユーティリティ関数のユニットテストを作成
+  - [x] 各ユーティリティ関数のユニットテストを作成
 
 - [x] ChatComponentの再構築
   - [x] `src/app/features/chat/chat.component.ts` ファイルを再作成
   - [x] 各モジュールからの関数・コンポーネントをインポート
   - [x] シンプルなコンテナーコンポーネントとして再実装
-  - [ ] 統合テストを作成
+  - [x] 統合テストを作成
 
 ## Phase 5: その他のコンポーネントリファクタリング
 
@@ -289,7 +289,7 @@
   - [x] `src/app/shared/components/message-list/utils/message-selector.ts` ファイルを作成
   - [x] `src/app/shared/components/message-list/utils/index.ts` ファイルを作成
   - [x] 既存のメソッドを新しい関数に置き換え
-  - [ ] 各関数のユニットテストを作成
+  - [x] 各関数のユニットテストを作成
 
 - [x] PathSelectorComponentの分割（1ファイル1関数）
   - [x] `src/app/shared/components/path-selector/services/` ディレクトリを作成
@@ -303,7 +303,7 @@
   - [x] `src/app/shared/components/path-selector/utils/textarea-utils.ts` ファイルを作成
   - [x] `src/app/shared/components/path-selector/utils/index.ts` ファイルを作成
   - [x] 既存のメソッドを新しい関数に置き換え
-  - [ ] 各関数のユニットテストを作成
+  - [x] 各関数のユニットテストを作成
 
 - [x] MessageInputComponentの改善（1ファイル1関数）
   - [x] `src/app/shared/components/message-input/services/` ディレクトリを作成
@@ -314,22 +314,22 @@
   - [x] `src/app/shared/components/message-input/utils/composition-state-manager.ts` ファイルを作成
   - [x] `src/app/shared/components/message-input/utils/index.ts` ファイルを作成
   - [x] 既存のメソッドを新しい関数に置き換え
-  - [ ] 各関数のユニットテストを作成
+  - [x] 各関数のユニットテストを作成
 
-- [ ] AmazonQMessageComponentの改善
-  - [ ] メッセージ表示ロジックの分離
-  - [ ] フォーマット処理の抽出
-  - [ ] ユニットテストの作成
+- [x] AmazonQMessageComponentの改善
+  - [x] メッセージ表示ロジックの分離
+  - [x] フォーマット処理の抽出
+  - [x] ユニットテストの作成
 
-- [ ] SidebarComponentの改善
-  - [ ] プロジェクトリスト管理の分離
-  - [ ] ナビゲーション処理の抽出
-  - [ ] ユニットテストの作成
+- [x] SidebarComponentの改善
+  - [x] プロジェクトリスト管理の分離
+  - [x] ナビゲーション処理の抽出
+  - [x] ユニットテストの作成
 
-- [ ] NavigationComponentの改善
-  - [ ] ルーティングロジックの分離
-  - [ ] 状態管理の整理
-  - [ ] ユニットテストの作成
+- [x] NavigationComponentの改善
+  - [x] ルーティングロジックの分離
+  - [x] 状態管理の整理
+  - [x] ユニットテストの作成
 
 ## Phase 6: 型定義とインターフェースの整理
 
@@ -374,22 +374,22 @@
 
 ### TODO リスト
 
-- [ ] テスト環境の整備
-  - [ ] Jest設定の更新（新しいディレクトリ構造対応）
-  - [ ] テストヘルパー関数の作成
-  - [ ] モックファクトリーの作成
+- [x] テスト環境の整備
+  - [x] Vitest設定の更新（karma & jasmineからの移行完了）
+  - [x] テストヘルパー関数の作成
+  - [x] モックファクトリーの作成
 
-- [ ] 単体テストの作成・更新
-  - [ ] 全ユーティリティ関数の単体テスト作成
-  - [ ] 全サービス関数の単体テスト作成
-  - [ ] 全コンポーネントの単体テスト作成
-  - [ ] 全ストアアクション・セレクターの単体テスト作成
+- [x] 単体テストの作成・更新
+  - [x] 全ユーティリティ関数の単体テスト作成（TDD原則に基づく振る舞いベースのテストに改善完了）
+  - [x] 全サービス関数の単体テスト作成（WebSocket、Chat、Project関連モジュール完了）
+  - [x] 全コンポーネントの単体テスト作成
+  - [x] 全ストアアクション・セレクターの単体テスト作成
 
-- [ ] 統合テストの作成
-  - [ ] WebSocketサービス統合テスト作成
-  - [ ] 状態管理統合テスト作成
-  - [ ] ChatComponent統合テスト作成
-  - [ ] コンポーネント間連携テスト作成
+- [x] 統合テストの作成
+  - [x] WebSocketサービス統合テスト作成
+  - [x] 状態管理統合テスト作成
+  - [x] ChatComponent統合テスト作成
+  - [x] コンポーネント間連携テスト作成
 
 - [ ] E2Eテストの更新
   - [ ] 既存のE2Eテストを新しい構造に対応
@@ -420,18 +420,18 @@
 
 ## 全フェーズ共通のTODO
 
-- [ ] 各フェーズ完了後のコードレビュー
-- [ ] TypeScript strictモードでのビルド確認
+- [x] 各フェーズ完了後のコードレビュー
+- [x] TypeScript strictモードでのビルド確認
 - [ ] ESLintエラーの解消
 - [ ] Prettierフォーマットの適用
-- [ ] パフォーマンス測定と最適化
-  - [ ] 初期ロード時間の測定
-  - [ ] メモリ使用量の測定
-  - [ ] レンダリングパフォーマンスの測定
-- [ ] バンドルサイズの最適化
-  - [ ] 不要な依存関係の削除
-  - [ ] Tree-shakingの確認
-  - [ ] Lazy loadingの最適化
+- [x] パフォーマンス測定と最適化
+  - [x] 初期ロード時間の測定
+  - [x] メモリ使用量の測定
+  - [x] レンダリングパフォーマンスの測定
+- [x] バンドルサイズの最適化
+  - [x] 不要な依存関係の削除
+  - [x] Tree-shakingの確認
+  - [x] Lazy loadingの最適化
 
 ---
 
