@@ -324,12 +324,12 @@ export class ChatComponent implements OnInit, OnDestroy {
       const messageList = this.chatMessages()?.messageList();
       if (messageList) {
         const messageId = messageList.addMessage(messageContent, 'assistant');
-        console.log('Added info message:', { 
-          messageId, 
-          messageContent, 
+        console.log('Added info message:', {
+          messageId,
+          messageContent,
           sessionId: this.appStore.currentQSession()?.sessionId,
           totalMessages: this.appStore.chatMessages().length,
-          currentSessionMessages: this.appStore.currentSessionMessages().length
+          currentSessionMessages: this.appStore.currentSessionMessages().length,
         });
       } else {
         console.warn('MessageList component not found');

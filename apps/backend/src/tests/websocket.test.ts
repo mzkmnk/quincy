@@ -19,7 +19,7 @@ describe('WebSocket Server', () => {
   beforeAll(done => {
     // EventEmitterの最大リスナー数を増加
     process.setMaxListeners(20);
-    
+
     // Create HTTP server for testing
     httpServer = createServer();
     webSocketService = new WebSocketService(httpServer);

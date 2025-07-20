@@ -63,9 +63,11 @@ describe('classify-stderr-message', () => {
     });
 
     it('有効なチャットメッセージを情報として分類する', () => {
-      expect(classifyStderrMessage('Hello! I\'m Amazon Q, your AI coding assistant.')).toBe('info');
+      expect(classifyStderrMessage("Hello! I'm Amazon Q, your AI coding assistant.")).toBe('info');
       expect(classifyStderrMessage('How can I help you with your project today?')).toBe('info');
-      expect(classifyStderrMessage('I can help you write code, debug issues, and more.')).toBe('info');
+      expect(classifyStderrMessage('I can help you write code, debug issues, and more.')).toBe(
+        'info'
+      );
     });
 
     it('Unicode文字と有効なテキストが混在する場合は情報として分類する', () => {

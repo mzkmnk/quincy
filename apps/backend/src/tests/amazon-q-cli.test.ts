@@ -57,31 +57,31 @@ describe('AmazonQCLIService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // パス検証のモック - 常に成功を返す
     vi.spyOn(pathValidator, 'validateProjectPath').mockResolvedValue({
       valid: true,
-      normalizedPath: '/test/path'
+      normalizedPath: '/test/path',
     });
-    
+
     // CLI可用性チェックのモック - 常に成功を返す
     vi.spyOn(cliValidator, 'checkCLIAvailability').mockResolvedValue({
       available: true,
-      path: 'q'
+      path: 'q',
     });
-    
+
     vi.spyOn(cliValidator, 'isValidCLIPath').mockReturnValue(true);
     vi.spyOn(cliValidator, 'getCLICandidates').mockReturnValue(['q', '/usr/local/bin/q']);
-    
+
     service = new AmazonQCLIService();
-    
+
     // EventEmitterの最大リスナー数を増加
     service.setMaxListeners(20);
 
     // モック状態のリセット
     mockChildProcess.killed = false;
     mockChildProcess.stdin.destroyed = false;
-    
+
     // EventEmitterのリセット
     mockChildProcess.removeAllListeners();
     mockChildProcess.stdout.removeAllListeners();
@@ -90,13 +90,13 @@ describe('AmazonQCLIService', () => {
 
   afterEach(async (): Promise<void> => {
     await service.terminateAllSessions();
-    
+
     // EventEmitterのクリーンアップ
     service.removeAllListeners();
     mockChildProcess.removeAllListeners();
     mockChildProcess.stdout.removeAllListeners();
     mockChildProcess.stderr.removeAllListeners();
-    
+
     // spyの復元
     vi.restoreAllMocks();
   });

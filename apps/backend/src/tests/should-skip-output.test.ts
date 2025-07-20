@@ -51,7 +51,7 @@ describe('should-skip-output', () => {
     });
 
     it('有効なテキストメッセージをスキップしない', () => {
-      expect(shouldSkipOutput('Hello! I\'m Amazon Q')).toBe(false);
+      expect(shouldSkipOutput("Hello! I'm Amazon Q")).toBe(false);
       expect(shouldSkipOutput('How can I help you?')).toBe(false);
       expect(shouldSkipOutput('Thinking...')).toBe(false);
     });

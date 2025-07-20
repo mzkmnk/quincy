@@ -33,7 +33,6 @@ describe('Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-
       // 1万回の生成が100ms以下で完了すること
       expect(duration).toBeLessThan(100);
     });
@@ -48,7 +47,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
 
       // 1万回の生成が100ms以下で完了すること
       expect(duration).toBeLessThan(100);
@@ -83,7 +81,6 @@ describe('Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-
       // 1万回の処理が50ms以下で完了すること
       expect(duration).toBeLessThan(50);
     });
@@ -100,7 +97,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
 
       // 1000回の処理が1000ms以下で完了すること
       expect(duration).toBeLessThan(1000);
@@ -120,7 +116,6 @@ describe('Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-
       // 100回の検証が適切な時間で完了すること
       expect(duration).toBeLessThan(2000);
     });
@@ -136,7 +131,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
 
       // 100回の検証が適切な時間で完了すること
       expect(duration).toBeLessThan(2000);
@@ -154,7 +148,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
 
       // 10回のチェックが5000ms以下で完了すること
       expect(duration).toBeLessThan(5000);
@@ -174,11 +167,9 @@ describe('Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-
       // 100回の初期化が1000ms以下で完了すること
       expect(duration).toBeLessThan(1000);
     });
-
   });
 
   describe('メモリ使用量テスト', () => {
@@ -212,7 +203,6 @@ describe('Performance Tests', () => {
       const afterMemory = getMemoryUsage();
       const memoryIncrease = afterMemory - initialMemory;
 
-
       // メモリ増加が10MB以下であること
       expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024);
     });
@@ -232,7 +222,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
 
       // 結果の重複チェック
       const uniqueResults = new Set(results);
@@ -255,7 +244,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
 
       // 全て有効なパスなので全てtrueであること
       results.forEach(result => {
@@ -288,7 +276,6 @@ describe('Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-
       // 全てエラーになることが期待される（validateProjectPathは例外を投げずにresultを返す）
       expect(errorCount).toBe(iterations);
 
@@ -317,7 +304,6 @@ describe('Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-
       // 型チェックが500ms以下で完了すること（実際の環境では最適化される）
       expect(duration).toBeLessThan(500);
     });
@@ -335,7 +321,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
 
       // 10万回の呼び出しが500ms以下で完了すること
       expect(duration).toBeLessThan(500);

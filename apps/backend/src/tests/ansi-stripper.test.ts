@@ -97,9 +97,9 @@ describe('ANSI文字列除去ユーティリティ', () => {
     });
 
     it('Unicodeスペースとテキストの処理', () => {
-      const input = '⠀⠀⠀Hello! I\'m Amazon Q⠀⠀⠀';
+      const input = "⠀⠀⠀Hello! I'm Amazon Q⠀⠀⠀";
       const result = stripAnsiCodes(input);
-      expect(result).toBe('Hello! I\'m Amazon Q');
+      expect(result).toBe("Hello! I'm Amazon Q");
     });
 
     it('複数のUnicodeブロック文字の除去', () => {

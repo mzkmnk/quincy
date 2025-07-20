@@ -19,7 +19,7 @@ describe('formatInfoMessage', () => {
     const data = {
       sessionId: 'test-session',
       message: '⢠⣶⣶⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣶⣿⣿⣿⣶⣦⡀⠀',
-      type: 'general'
+      type: 'general',
     };
     const result = formatInfoMessage(data);
     expect(result).toBe(null);
@@ -29,7 +29,7 @@ describe('formatInfoMessage', () => {
     const data = {
       sessionId: 'test-session',
       message: '⠀⠀⠀⣾⡿⢻⣿⡆⠀⠀⠀⢀⣄⡄⢀⣠⣤⣤⡀⢀⣠⣤⣤⡀⠀⠀⢀⣠⣤⣤⣤⣄⠀⠀⢀⣤⣤⣤⣤⣤⣤⡀⠀⠀⣀⣤⣤⣤⣀⠀⠀⠀⢠⣤⡀⣀⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⢠⣿⣿⠀⠀⠀⣿⣿⡆',
-      type: 'general'
+      type: 'general',
     };
     const result = formatInfoMessage(data);
     expect(result).toBe(null);
@@ -39,7 +39,7 @@ describe('formatInfoMessage', () => {
     const data = {
       sessionId: 'test-session',
       message: '⢠⣶ Hello Amazon Q ⣶⣦⠀',
-      type: 'general'
+      type: 'general',
     };
     const result = formatInfoMessage(data);
     expect(result).toBe('💬 Hello Amazon Q');
@@ -76,9 +76,9 @@ describe('formatInfoMessage', () => {
   });
 
   it('一般タイプメッセージのフォーマット', () => {
-    const data = { sessionId: 'test-session', message: 'Hello! I\'m Amazon Q', type: 'general' };
+    const data = { sessionId: 'test-session', message: "Hello! I'm Amazon Q", type: 'general' };
     const result = formatInfoMessage(data);
-    expect(result).toBe('💬 Hello! I\'m Amazon Q');
+    expect(result).toBe("💬 Hello! I'm Amazon Q");
   });
 
   it('タイプ未指定のメッセージのフォーマット', () => {
