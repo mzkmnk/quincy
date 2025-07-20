@@ -29,7 +29,7 @@ import {
   imports: [CommonModule, FormsModule, ButtonModule, TextareaModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="p-4 flex items-center justify-center">
+    <div class="p-4 flex items-center justify-center sticky bottom-20">
       <!-- Input Area -->
       <div
         class="flex gap-2 flex-col w-9/12 bg-[var(--secondary-bg)] border-1 border-[var(--border-color)] rounded-3xl p-2"

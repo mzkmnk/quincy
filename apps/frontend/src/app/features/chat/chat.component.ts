@@ -70,6 +70,7 @@ import {
         @if (appStore.currentQSession() || isActiveChat()) {
           <!-- Active Chat Session -->
           <app-chat-messages
+            class="h-full"
             [isSessionDisabled]="
               isSessionDisabled(appStore.sessionError(), appStore.currentQSession())
             "

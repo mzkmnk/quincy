@@ -29,7 +29,7 @@ import { selectMessages } from './utils';
   imports: [CommonModule, UserMessageComponent, AmazonQMessageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="w-9/12 m-auto pt-5">
+    <div class="h-full w-9/12 m-auto pt-5">
       <div class="space-y-4" #messageContainer>
         @if (messages().length === 0) {
           <!-- Empty conversation state -->

@@ -9,7 +9,7 @@ import { MessageInputComponent } from '../../../../shared/components/message-inp
   imports: [CommonModule, MessageListComponent, MessageInputComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex-1 overflow-y-auto">
+    <div class="h-full">
       <app-message-list></app-message-list>
     </div>
 
