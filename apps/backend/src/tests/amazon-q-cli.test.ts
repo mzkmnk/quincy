@@ -293,48 +293,57 @@ describe('AmazonQCLIService', () => {
   });
 
   describe('イベント処理', () => {
-    it('プロセスの標準出力をq:responseイベントとして発行すること', done => {
+    it('プロセスの標準出力をq:responseイベントとして発行すること', async () => {
       const options: QProcessOptions = { workingDir: '/test/path' };
 
-      service.on('q:response', data => {
-        expect(data.data).toBe('Hello from Q CLI');
-        expect(data.type).toBe('stream');
-        expect(data.sessionId).toMatch(/^q_session_/);
-        done();
+      const promise = new Promise<void>(resolve => {
+        service.on('q:response', data => {
+          expect(data.data).toBe('Hello from Q CLI');
+          expect(data.type).toBe('stream');
+          expect(data.sessionId).toMatch(/^q_session_/);
+          resolve();
+        });
       });
 
-      service.startSession('help', options).then(() => {
-        mockChildProcess.stdout.emit('data', Buffer.from('Hello from Q CLI'));
-      });
+      await service.startSession('help', options);
+      mockChildProcess.stdout.emit('data', Buffer.from('Hello from Q CLI'));
+
+      await promise;
     });
 
-    it('プロセスのエラー出力をq:errorイベントとして発行すること', done => {
+    it('プロセスのエラー出力をq:errorイベントとして発行すること', async () => {
       const options: QProcessOptions = { workingDir: '/test/path' };
 
-      service.on('q:error', data => {
-        expect(data.error).toBe('Error message');
-        expect(data.code).toBe('STDERR');
-        expect(data.sessionId).toMatch(/^q_session_/);
-        done();
+      const promise = new Promise<void>(resolve => {
+        service.on('q:error', data => {
+          expect(data.error).toBe('Error message');
+          expect(data.code).toBe('STDERR');
+          expect(data.sessionId).toMatch(/^q_session_/);
+          resolve();
+        });
       });
 
-      service.startSession('help', options).then(() => {
-        mockChildProcess.stderr.emit('data', Buffer.from('Error message'));
-      });
+      await service.startSession('help', options);
+      mockChildProcess.stderr.emit('data', Buffer.from('Error message'));
+
+      await promise;
     });
 
-    it('プロセス終了をq:completeイベントとして発行すること', done => {
+    it('プロセス終了をq:completeイベントとして発行すること', async () => {
       const options: QProcessOptions = { workingDir: '/test/path' };
 
-      service.on('q:complete', data => {
-        expect(data.exitCode).toBe(0);
-        expect(data.sessionId).toMatch(/^q_session_/);
-        done();
+      const promise = new Promise<void>(resolve => {
+        service.on('q:complete', data => {
+          expect(data.exitCode).toBe(0);
+          expect(data.sessionId).toMatch(/^q_session_/);
+          resolve();
+        });
       });
 
-      service.startSession('help', options).then(() => {
-        mockChildProcess.emit('exit', 0, null);
-      });
+      await service.startSession('help', options);
+      mockChildProcess.emit('exit', 0, null);
+
+      await promise;
     });
   });
 
