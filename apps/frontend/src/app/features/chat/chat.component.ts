@@ -134,7 +134,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   protected websocket = inject(WebSocketService);
 
   // Child component references
-  messageList = viewChild(MessageListComponent);
+  chatMessages = viewChild(ChatMessagesComponent);
   messageInput = viewChild(MessageInputComponent);
 
   // Local state
@@ -237,7 +237,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
 
     // Add user message to chat immediately
-    this.messageList()?.addMessage(event.content, 'user');
+    const messageList = this.chatMessages()?.messageList();
+    if (messageList) {
+      messageList.addMessage(event.content, 'user');
+    }
 
     // Clear any previous streaming message ID
     this.streamingMessageId.set(null);
@@ -282,7 +285,10 @@ export class ChatComponent implements OnInit, OnDestroy {
       // 新しいストリーミングメッセージを開始
       handleStreamingStart(
         content,
-        (content, type) => this.messageList()?.addMessage(content, type) || '',
+        (content, type) => {
+          const messageList = this.chatMessages()?.messageList();
+          return messageList ? messageList.addMessage(content, type) : '';
+        },
         this.streamingMessageId,
         () => this.updateMessageIndexMap()
       );
@@ -294,7 +300,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.messageIndexMap,
         () => this.appStore.chatMessages(),
         (messageId, updates) => this.appStore.updateChatMessage(messageId, updates),
-        () => this.messageList()?.markForScrollUpdate(),
+        () => this.chatMessages()?.messageList()?.markForScrollUpdate(),
         () => this.updateMessageIndexMap()
       );
     }
@@ -304,7 +310,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     // Clear any streaming message
     this.streamingMessageId.set(null);
     // Add error message to chat
-    this.messageList()?.addMessage(`Error: ${error}`, 'assistant');
+    const messageList = this.chatMessages()?.messageList();
+    if (messageList) {
+      messageList.addMessage(`Error: ${error}`, 'assistant');
+    }
   }
 
   private handleInfoMessage(data: { sessionId: string; message: string; type?: string }): void {
@@ -312,7 +321,19 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     if (messageContent) {
       // メッセージリストに情報メッセージを追加
-      this.messageList()?.addMessage(messageContent, 'assistant');
+      const messageList = this.chatMessages()?.messageList();
+      if (messageList) {
+        const messageId = messageList.addMessage(messageContent, 'assistant');
+        console.log('Added info message:', { 
+          messageId, 
+          messageContent, 
+          sessionId: this.appStore.currentQSession()?.sessionId,
+          totalMessages: this.appStore.chatMessages().length,
+          currentSessionMessages: this.appStore.currentSessionMessages().length
+        });
+      } else {
+        console.warn('MessageList component not found');
+      }
     }
   }
 
