@@ -53,6 +53,8 @@ import { selectMessages } from './utils';
                 <app-amazon-q-message
                   [content]="message.content"
                   [isTyping]="message.isTyping || false"
+                  [tools]="message.tools"
+                  [hasToolContent]="message.hasToolContent || false"
                 />
               }
             </div>

@@ -2,6 +2,7 @@ import { signal, computed } from '@angular/core';
 
 import type { MessageId, SessionId, Timestamp } from '../../types/common.types';
 import type { AmazonQMessageSender } from '../../types/amazon-q.types';
+import type { ToolList } from '../../types/tool-display.types';
 
 export interface ChatMessage {
   id: MessageId;
@@ -10,6 +11,8 @@ export interface ChatMessage {
   timestamp: Timestamp;
   isTyping?: boolean;
   sessionId?: SessionId;
+  tools?: ToolList;
+  hasToolContent?: boolean;
 }
 
 export interface ChatState {
