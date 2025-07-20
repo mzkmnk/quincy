@@ -74,6 +74,8 @@ export interface QResponseEvent {
   sessionId: string;
   data: string;
   type: 'stream' | 'complete';
+  tools?: string[];
+  hasToolContent?: boolean;
 }
 
 export interface QErrorEvent {

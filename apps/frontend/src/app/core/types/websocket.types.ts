@@ -53,6 +53,8 @@ export interface QResponseMessage extends BaseWebSocketMessage {
   sessionId: SessionId;
   data: string;
   messageId?: MessageId;
+  tools?: string[];
+  hasToolContent?: boolean;
 }
 
 export interface QErrorMessage extends BaseWebSocketMessage {

@@ -1,6 +1,7 @@
 import { ChildProcess } from 'child_process';
 
 import type { QProcessSession, QProcessOptions, SessionId } from '../../../types';
+import { ToolDetectionBuffer } from '../../amazon-q-message-parser';
 
 export function createSession(
   sessionId: SessionId,
@@ -31,5 +32,9 @@ export function createSession(
     initializationBuffer: [],
     initializationPhase: true,
     initializationTimeout: undefined,
+    // ツール管理フィールドの初期化
+    currentTools: [],
+    toolBuffer: '',
+    toolDetectionBuffer: new ToolDetectionBuffer(),
   };
 }

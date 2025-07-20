@@ -26,7 +26,7 @@ import { EmptyStateComponent } from './components/empty-state/empty-state.compon
 import {
   setupChatWebSocketListeners,
   cleanupChatWebSocketListeners,
-  handleStreamingResponse,
+  handleStreamingResponseWithTools,
   handleErrorResponse,
   handleInfoResponse,
   handleCompletionResponse,
@@ -34,7 +34,7 @@ import {
 } from './services/chat-websocket';
 import {
   handleStreamingStart,
-  handleStreamingUpdate,
+  handleStreamingUpdateWithTools,
   formatInfoMessage,
   shouldDisplayError,
 } from './services/message-streaming';
@@ -70,6 +70,7 @@ import {
         @if (appStore.currentQSession() || isActiveChat()) {
           <!-- Active Chat Session -->
           <app-chat-messages
+            class="h-full"
             [isSessionDisabled]="
               isSessionDisabled(appStore.sessionError(), appStore.currentQSession())
             "
@@ -91,7 +92,7 @@ import {
           ></app-chat-error>
         } @else if (appStore.currentQConversation()) {
           <!-- Amazon Q Conversation History (Read-Only) -->
-          <div class="flex-1 overflow-y-auto">
+          <div class="flex-1">
             @if (appStore.qHistoryLoading()) {
               <div class="text-center py-8">
                 <div class="text-lg text-[var(--text-secondary)]">
@@ -254,8 +255,11 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     const handlers: ChatWebSocketHandlers = {
       onQResponse: data => {
-        handleStreamingResponse(data, currentSession.sessionId, content =>
-          this.handleStreamingResponse(content)
+        handleStreamingResponseWithTools(
+          data,
+          currentSession.sessionId,
+          (content, tools, hasToolContent) =>
+            this.handleStreamingResponse(content, tools, hasToolContent)
         );
       },
       onQError: data => {
@@ -278,7 +282,11 @@ export class ChatComponent implements OnInit, OnDestroy {
     setupChatWebSocketListeners(this.websocket, handlers);
   }
 
-  private handleStreamingResponse(content: string): void {
+  private handleStreamingResponse(
+    content: string,
+    tools?: string[],
+    hasToolContent?: boolean
+  ): void {
     const currentStreamingId = this.streamingMessageId();
 
     if (!currentStreamingId) {
@@ -293,9 +301,11 @@ export class ChatComponent implements OnInit, OnDestroy {
         () => this.updateMessageIndexMap()
       );
     } else {
-      // 既存のストリーミングメッセージを更新
-      handleStreamingUpdate(
+      // 既存のストリーミングメッセージを更新（ツール対応版）
+      handleStreamingUpdateWithTools(
         content,
+        tools,
+        hasToolContent ?? false,
         currentStreamingId,
         this.messageIndexMap,
         () => this.appStore.chatMessages(),

@@ -10,3 +10,4 @@ export { shouldSkipThinking } from './should-skip-thinking';
 export { updateThinkingState } from './update-thinking-state';
 export { shouldSkipDuplicateInfo } from './should-skip-duplicate-info';
 export { setupProcessHandlers } from './setup-process-handlers';
+export { isToolUsageLine } from './is-tool-usage-line';

@@ -28,6 +28,11 @@ export async function abortSession(
     // Thinking状態をリセット
     session.isThinkingActive = false;
 
+    // ツール情報をクリア
+    session.currentTools = [];
+    session.toolBuffer = '';
+    session.toolDetectionBuffer.clear();
+
     // 終了イベントを発行
     emitCallback('session:aborted', {
       sessionId,

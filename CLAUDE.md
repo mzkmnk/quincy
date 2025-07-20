@@ -91,8 +91,18 @@ ng generate component component-name
 - REST API structure with Express Router
 - Includes middleware for CORS, Helmet security, compression, and request logging
 - WebSocket service handles real-time communication with Amazon Q CLI
-- Uses Jest for testing
+- Uses Vitest for testing (migrated from Jest)
 - SQLite3 database for session persistence
+
+#### Amazon Q CLI Tool Display Feature
+
+The system includes advanced tool detection and display capabilities:
+
+- **Tool Detection**: Automatic detection of `[Tool uses: ツール名]` patterns in Amazon Q CLI output
+- **Real-time Processing**: Streaming tool detection with buffering for split patterns
+- **UI Integration**: Clean display format showing "tools: fs_read,github_mcp" separately from AI responses
+- **Type Safety**: Full TypeScript support with comprehensive type definitions
+- **Testing**: 182+ backend tests including tool detection, parsing, and integration scenarios
 
 #### New Modular Architecture (After Refactoring)
 
@@ -108,6 +118,10 @@ The backend has been refactored into a modular, 1-file-1-function architecture:
   - `amazon-q-history/`: History data retrieval functions
   - `amazon-q-history-transformer/`: History data transformation
   - `amazon-q-message-formatter/`: Message formatting for display
+  - `amazon-q-message-parser/`: Tool detection and parsing (NEW)
+    - `parse-tool-usage.ts`: Tool pattern detection with regex `/\[Tool uses: ([^\]]+)\]/g`
+    - `extract-content-and-tools.ts`: Content/tool separation and cleaning
+    - `tool-detection-buffer.ts`: Streaming buffer for split tool patterns
   - `websocket/`: WebSocket functionality with sub-modules:
     - `amazon-q-handler/`: Amazon Q specific WebSocket handlers
     - `connection-manager/`: Connection lifecycle management
@@ -160,18 +174,22 @@ The frontend has been refactored into a modular, 1-file-1-function architecture:
   - `project/`: Project state management with actions and selectors
   - `session/`: Session state management
   - `amazon-q-history/`: Amazon Q history state management
-  - `chat/`: Chat message state management
+  - `chat/`: Chat message state management (extended with tool support)
   - `app.state.ts`: Unified state management with backward compatibility
 
 - **Components** (`src/app/features/chat/`):
   - `components/`: Child components (chat-header, session-start, chat-error, etc.)
-  - `services/`: Component-specific services (chat-websocket, message-streaming, session-manager)
+  - `services/`: Component-specific services including tool-aware handlers:
+    - `chat-websocket/`: WebSocket handlers with tool detection support
+    - `message-streaming/`: Streaming handlers with tool information processing
+    - `session-manager/`: Session management
   - `utils/`: Utility functions (message-index-manager, session-status-checker)
 
 - **Shared Components** (`src/app/shared/components/`):
-  - `message-list/`: Message list with services and utilities
+  - `message-list/`: Message list with services and utilities (tool display support)
   - `path-selector/`: Path selector with validation and session starting
   - `message-input/`: Message input with composition state management
+  - `amazon-q-message/`: Enhanced message component with tool display functionality
 
 - **Utilities** (`src/app/shared/utils/`):
   - `validators/`: Input validation functions
@@ -181,8 +199,9 @@ The frontend has been refactored into a modular, 1-file-1-function architecture:
 
 - **Type Definitions** (`src/app/core/types/` and `src/app/shared/types/`):
   - `common.types.ts`: Common type definitions and type guards
-  - `websocket.types.ts`: WebSocket-related type definitions
+  - `websocket.types.ts`: WebSocket-related type definitions (extended with tool fields)
   - `amazon-q.types.ts`: Amazon Q-specific type definitions
+  - `tool-display.types.ts`: Tool display type definitions and validation (NEW)
   - `ui.types.ts`: UI component type definitions
 
 ## Key Configuration Files
@@ -257,33 +276,43 @@ The frontend has been refactored into a modular, 1-file-1-function architecture:
 
 #### Backend Tests
 
-- **Test Framework**: Jest with TypeScript support
+- **Test Framework**: Vitest with TypeScript support (migrated from Jest)
 - **Test Command**: `pnpm test` or `pnpm test:watch`
-- **Comprehensive Test Coverage**: Full test suite covering all refactored modules
+- **Comprehensive Test Coverage**: Full test suite covering all refactored modules including tool detection
   - **Unit Tests**:
     - `ansi-stripper.test.ts`: ANSI escape code removal
     - `cli-validator.test.ts`: CLI path validation
     - `id-generator.test.ts`: ID generation utilities
     - `path-validator.test.ts`: Path validation and security
+    - `parse-tool-usage.test.ts`: Tool pattern detection and parsing (NEW)
+    - `extract-content-and-tools.test.ts`: Content/tool separation (NEW)
+    - `tool-detection-buffer.test.ts`: Streaming tool detection buffer (NEW)
   - **Integration Tests**:
-    - `amazon-q-cli.integration.test.ts`: Amazon Q CLI service integration
+    - `amazon-q-cli.integration.test.ts`: Amazon Q CLI service integration (with tool detection)
     - `websocket.integration.test.ts`: WebSocket service integration
     - `amazon-q-websocket.integration.test.ts`: Amazon Q + WebSocket integration
+    - `handle-stdout.test.ts`: Tool detection integration in message handlers (NEW)
+    - `is-tool-usage-line.test.ts`: Tool line detection utilities (NEW)
   - **Legacy Tests** (maintained for compatibility):
     - `amazon-q-cli.test.ts`: Original Amazon Q CLI tests
     - `websocket.test.ts`: Original WebSocket tests
   - **End-to-End Tests**:
-    - `end-to-end.test.ts`: Complete workflow testing
+    - `end-to-end.test.ts`: Complete workflow testing (182 total tests, 100% success rate)
 
 #### Frontend Tests
 
-- **Test Framework**: Karma/Jasmine (Angular default)
+- **Test Framework**: Vitest (Node.js environment) + Karma/Jasmine (Angular default)
 - **Test Command**: `pnpm test` or `ng test`
-- **Current Status**: Comprehensive test coverage for refactored modules
-  - **Unit Tests**: All utility functions, services, and components
-  - **Integration Tests**: Component interactions and state management
-  - **Type Safety**: Full TypeScript coverage with strict mode
-  - **Test Structure**: Follows 1-file-1-function testing approach
+- **Current Status**: Comprehensive test coverage for refactored modules including tool display
+  - **Unit Tests**: All utility functions, services, and components including tool-aware handlers
+  - **Integration Tests**: Component interactions, state management, and tool display integration
+    - `chat-websocket-tool-integration.spec.ts`: WebSocket tool integration testing (NEW)
+    - `handle-streaming-response-with-tools.spec.ts`: Tool-aware streaming handlers (NEW)
+    - `handle-streaming-update-with-tools.spec.ts`: Tool information updates (NEW)
+    - `add-message-with-tools.spec.ts`: Tool-aware message creation (NEW)
+  - **Type Safety**: Full TypeScript coverage with strict mode and tool type definitions
+  - **Test Structure**: Follows 1-file-1-function testing approach with TDD methodology
+  - **Test Results**: 292 tests passed (99.3% success rate, tool features 100% success)
 
 You are an expert in TypeScript, Angular, and scalable web application development. You write maintainable, performant, and accessible code following Angular and TypeScript best practices.
 

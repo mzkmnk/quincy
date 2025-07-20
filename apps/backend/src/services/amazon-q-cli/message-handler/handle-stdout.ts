@@ -2,6 +2,7 @@ import type { QResponseEvent } from '@quincy/shared';
 
 import type { QProcessSession } from '../session-manager/types';
 import { stripAnsiCodes } from '../../../utils/ansi-stripper';
+import { parseToolUsage, filterToolOutput } from '../../amazon-q-message-parser';
 
 import { shouldSkipOutput } from './should-skip-output';
 import { isInitializationMessage } from './is-initialization-message';
@@ -41,6 +42,32 @@ export function handleStdout(
       continue;
     }
 
+    // ツール実行の詳細出力をフィルタリング（Phase 3）
+    const filterResult = filterToolOutput(cleanLine);
+    if (filterResult.shouldSkip) {
+      continue;
+    }
+
+    // ツール検出処理
+    const toolDetection = parseToolUsage(cleanLine);
+    if (toolDetection.hasTools) {
+      // ツール情報をセッションに蓄積
+      session.currentTools = [...(session.currentTools || []), ...toolDetection.tools];
+
+      // クリーンな行が空でない場合のみレスポンスイベントを発行
+      if (toolDetection.cleanedLine.trim()) {
+        const responseEvent: QResponseEvent = {
+          sessionId: session.sessionId,
+          data: toolDetection.cleanedLine + '\n',
+          type: 'stream',
+          tools: session.currentTools,
+          hasToolContent: session.currentTools.length > 0,
+        };
+        emitCallback('q:response', responseEvent);
+      }
+      continue; // ツール検出された行は通常処理をスキップ
+    }
+
     // 「Thinking」メッセージの特別処理
     if (isThinkingMessage(cleanLine)) {
       if (shouldSkipThinking(session)) {
@@ -55,6 +82,8 @@ export function handleStdout(
       sessionId: session.sessionId,
       data: cleanLine + '\n', // 改行を復元
       type: 'stream',
+      tools: session.currentTools || [],
+      hasToolContent: (session.currentTools || []).length > 0,
     };
 
     emitCallback('q:response', responseEvent);
