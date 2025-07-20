@@ -1,0 +1,31 @@
+pre-push:
+  jobs:
+    - name: packages audit
+      tags:
+        - frontend
+        - security
+      run: yarn audit
+
+    - name: gems audit
+      tags:
+        - backend
+        - security
+      run: bundle audit
+
+pre-commit:
+  parallel: true
+  commands:
+    prettier:
+      run: |
+        pnpm run format:write
+      stage_fixed: true
+      skip:
+        - merge
+        - rebase
+    eslint:
+      run: |
+        pnpm run lint:fix
+      stage_fixed: true
+      skip:
+        - merge
+        - rebase
