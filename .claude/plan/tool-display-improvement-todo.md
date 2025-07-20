@@ -23,30 +23,30 @@ tools: fs_read,github_mcp
 
 ### TODO リスト
 
-- [ ] ツール検出パーサーモジュールの作成
-  - [ ] `apps/backend/src/services/amazon-q-message-parser/` ディレクトリを作成
-  - [ ] `apps/backend/src/services/amazon-q-message-parser/parse-tool-usage.ts` ファイルを作成
-    - [ ] 正規表現パターン `/\[Tool uses: ([^\]]+)\]/g` による検出機能
-    - [ ] 複数ツールのカンマ区切り対応（例：`fs_read, github_mcp`）
-    - [ ] 不完全なパターンの検出（ストリーミング対応）
-  - [ ] `apps/backend/src/services/amazon-q-message-parser/extract-content-and-tools.ts` ファイルを作成
-    - [ ] メッセージ本文とツール情報の分離機能
-    - [ ] ツール使用行の除去機能
-    - [ ] 改行とフォーマットの適切な処理
-  - [ ] `apps/backend/src/services/amazon-q-message-parser/tool-detection-buffer.ts` ファイルを作成
-    - [ ] ストリーミング用のバッファリング機能
-    - [ ] 不完全なツールパターンの蓄積・検出
-    - [ ] バッファクリア機能
-  - [ ] `apps/backend/src/services/amazon-q-message-parser/index.ts` ファイルを作成（エクスポート集約）
-  - [ ] 各パーサー関数のユニットテストを作成
-    - [ ] 正常系：完全なツールパターンの検出
-    - [ ] 正常系：複数ツールの検出
-    - [ ] 異常系：不完全なパターンの処理
-    - [ ] 異常系：存在しないツールパターン
+- [x] ツール検出パーサーモジュールの作成
+  - [x] `apps/backend/src/services/amazon-q-message-parser/` ディレクトリを作成
+  - [x] `apps/backend/src/services/amazon-q-message-parser/parse-tool-usage.ts` ファイルを作成
+    - [x] 正規表現パターン `/\[Tool uses: ([^\]]+)\]/g` による検出機能
+    - [x] 複数ツールのカンマ区切り対応（例：`fs_read, github_mcp`）
+    - [x] 不完全なパターンの検出（ストリーミング対応）
+  - [x] `apps/backend/src/services/amazon-q-message-parser/extract-content-and-tools.ts` ファイルを作成
+    - [x] メッセージ本文とツール情報の分離機能
+    - [x] ツール使用行の除去機能
+    - [x] 改行とフォーマットの適切な処理
+  - [x] `apps/backend/src/services/amazon-q-message-parser/tool-detection-buffer.ts` ファイルを作成
+    - [x] ストリーミング用のバッファリング機能
+    - [x] 不完全なツールパターンの蓄積・検出
+    - [x] バッファクリア機能
+  - [x] `apps/backend/src/services/amazon-q-message-parser/index.ts` ファイルを作成（エクスポート集約）
+  - [x] 各パーサー関数のユニットテストを作成
+    - [x] 正常系：完全なツールパターンの検出
+    - [x] 正常系：複数ツールの検出
+    - [x] 異常系：不完全なパターンの処理
+    - [x] 異常系：存在しないツールパターン
 
-- [ ] 型定義の拡張
-  - [ ] `apps/backend/src/types/amazon-q.ts` を編集
-    - [ ] `ToolInfo` インターフェースを追加
+- [x] 型定義の拡張
+  - [x] `apps/backend/src/types/amazon-q.ts` を編集
+    - [x] `ToolInfo` インターフェースを追加
       ```typescript
       interface ToolInfo {
         name: string;
@@ -54,7 +54,7 @@ tools: fs_read,github_mcp
         timestamp: number;
       }
       ```
-    - [ ] `QResponseEvent` インターフェースを拡張
+    - [x] `QResponseEvent` インターフェースを拡張
       ```typescript
       interface QResponseEvent {
         sessionId: string;
@@ -64,7 +64,7 @@ tools: fs_read,github_mcp
         hasToolContent?: boolean; // 新規追加
       }
       ```
-    - [ ] `ParsedMessage` インターフェースを追加
+    - [x] `ParsedMessage` インターフェースを追加
       ```typescript
       interface ParsedMessage {
         content: string;
@@ -85,9 +85,9 @@ tools: fs_read,github_mcp
 
 ### TODO リスト
 
-- [ ] セッション管理の拡張
-  - [ ] `apps/backend/src/services/amazon-q-cli/session-manager/types.ts` を編集
-    - [ ] `QProcessSession` インターフェースにツール管理フィールドを追加
+- [x] セッション管理の拡張
+  - [x] `apps/backend/src/services/amazon-q-cli/session-manager/types.ts` を編集
+    - [x] `QProcessSession` インターフェースにツール管理フィールドを追加
       ```typescript
       interface QProcessSession {
         // 既存フィールド...
@@ -97,13 +97,13 @@ tools: fs_read,github_mcp
       }
       ```
 
-- [ ] メッセージハンドラーの更新
-  - [ ] `apps/backend/src/services/amazon-q-cli/message-handler/handle-stdout.ts` を編集
-    - [ ] ツールパーサーの統合
+- [x] メッセージハンドラーの更新
+  - [x] `apps/backend/src/services/amazon-q-cli/message-handler/handle-stdout.ts` を編集
+    - [x] ツールパーサーの統合
       ```typescript
       import { parseToolUsage, extractContentAndTools } from '../../../amazon-q-message-parser';
       ```
-    - [ ] 行処理ループでのツール検出処理を追加（31-61行付近）
+    - [x] 行処理ループでのツール検出処理を追加（31-61行付近）
       ```typescript
       const toolDetection = parseToolUsage(cleanLine);
       if (toolDetection.hasTools) {
@@ -112,7 +112,7 @@ tools: fs_read,github_mcp
         continue;
       }
       ```
-    - [ ] レスポンスイベントにツール情報を含める
+    - [x] レスポンスイベントにツール情報を含める
       ```typescript
       const responseEvent: QResponseEvent = {
         sessionId: session.sessionId,
@@ -122,23 +122,23 @@ tools: fs_read,github_mcp
         hasToolContent: (session.currentTools || []).length > 0
       };
       ```
-  - [ ] `apps/backend/src/services/amazon-q-cli/message-handler/is-tool-usage-line.ts` ファイルを作成
-    - [ ] ツール使用行の判定機能
-    - [ ] ツール行のスキップ判定機能
+  - [x] `apps/backend/src/services/amazon-q-cli/message-handler/is-tool-usage-line.ts` ファイルを作成
+    - [x] ツール使用行の判定機能
+    - [x] ツール行のスキップ判定機能
 
-- [ ] セッション初期化とクリアの更新
-  - [ ] `apps/backend/src/services/amazon-q-cli/session-manager/create-session.ts` を編集
-    - [ ] セッション作成時のツールフィールド初期化
-  - [ ] `apps/backend/src/services/amazon-q-cli/session-manager/abort-session.ts` を編集
-    - [ ] セッション終了時のツール情報クリア
+- [x] セッション初期化とクリアの更新
+  - [x] `apps/backend/src/services/amazon-q-cli/session-manager/create-session.ts` を編集
+    - [x] セッション作成時のツールフィールド初期化
+  - [x] `apps/backend/src/services/amazon-q-cli/session-manager/abort-session.ts` を編集
+    - [x] セッション終了時のツール情報クリア
 
 ## Phase 3: フロントエンド - 型定義とUI表示の拡張
 
 ### TODO リスト
 
-- [ ] フロントエンド型定義の拡張
-  - [ ] `apps/frontend/src/app/core/store/chat/chat.state.ts` を編集
-    - [ ] `ChatMessage` インターフェースにツールフィールドを追加
+- [x] フロントエンド型定義の拡張
+  - [x] `apps/frontend/src/app/core/store/chat/chat.state.ts` を編集
+    - [x] `ChatMessage` インターフェースにツールフィールドを追加
       ```typescript
       export interface ChatMessage {
         id: MessageId;
@@ -151,12 +151,12 @@ tools: fs_read,github_mcp
         hasToolContent?: boolean; // 新規追加
       }
       ```
-  - [ ] `apps/frontend/src/app/core/types/websocket.types.ts` を編集（バックエンドと同期）
-    - [ ] WebSocketイベント型にツール情報を追加
+  - [x] `apps/frontend/src/app/core/types/websocket.types.ts` を編集（バックエンドと同期）
+    - [x] WebSocketイベント型にツール情報を追加
 
-- [ ] UI コンポーネントの更新
-  - [ ] `apps/frontend/src/app/shared/components/amazon-q-message/amazon-q-message.component.html` を編集
-    - [ ] ツール表示セクションを追加
+- [x] UI コンポーネントの更新
+  - [x] `apps/frontend/src/app/shared/components/amazon-q-message/amazon-q-message.component.html` を編集
+    - [x] ツール表示セクションを追加
       ```html
       <!-- 既存のメッセージ内容 -->
       <div class="message-content">
@@ -171,8 +171,8 @@ tools: fs_read,github_mcp
         <span class="tools-list">{{ message.tools.join(',') }}</span>
       </div>
       ```
-  - [ ] `apps/frontend/src/app/shared/components/amazon-q-message/amazon-q-message.component.scss` を編集
-    - [ ] ツール表示のスタイリング追加
+  - [x] `apps/frontend/src/app/shared/components/amazon-q-message/amazon-q-message.component.scss` を編集
+    - [x] ツール表示のスタイリング追加
       ```scss
       .tools-section {
         margin-top: 8px;
@@ -193,16 +193,16 @@ tools: fs_read,github_mcp
         }
       }
       ```
-  - [ ] `apps/frontend/src/app/shared/components/amazon-q-message/amazon-q-message.component.ts` を編集
-    - [ ] ツール情報のプロパティ処理を追加
+  - [x] `apps/frontend/src/app/shared/components/amazon-q-message/amazon-q-message.component.ts` を編集
+    - [x] ツール情報のプロパティ処理を追加
 
-- [ ] ユーティリティ関数の作成
-  - [ ] `apps/frontend/src/app/shared/utils/formatters/` ディレクトリに追加
-    - [ ] `tools-formatter.ts` ファイルを作成
-      - [ ] ツールリストのフォーマット機能
-      - [ ] ツール名の正規化機能
-      - [ ] 表示用ツール名の変換機能
-    - [ ] ユニットテストを作成
+- [x] ユーティリティ関数の作成
+  - [x] `apps/frontend/src/app/shared/utils/formatters/` ディレクトリに追加
+    - [x] `tools-formatter.ts` ファイルを作成
+      - [x] ツールリストのフォーマット機能
+      - [x] ツール名の正規化機能
+      - [x] 表示用ツール名の変換機能
+    - [x] ユニットテストを作成
 
 ## Phase 4: フロントエンド - ストリーミング処理の更新
 

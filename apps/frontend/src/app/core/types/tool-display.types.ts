@@ -47,7 +47,7 @@ export function isQResponseMessageWithTools(
   const msg = message as Record<string, unknown>;
 
   // 基本的なQResponseMessageの要件チェック
-  if (msg.type !== 'q_response') {
+  if (msg['type'] !== 'q_response') {
     return false;
   }
 
@@ -57,12 +57,12 @@ export function isQResponseMessageWithTools(
   }
 
   // tools フィールドの型チェック
-  if (!isValidToolList(msg.tools)) {
+  if (!isValidToolList(msg['tools'])) {
     return false;
   }
 
   // hasToolContent フィールドの型チェック
-  if (typeof msg.hasToolContent !== 'boolean') {
+  if (typeof msg['hasToolContent'] !== 'boolean') {
     return false;
   }
 
