@@ -90,7 +90,7 @@ export function handleDatabaseChangeWithChat(
     }
 
     return true;
-  } catch (error) {
+  } catch {
     // コールバックエラーをキャッチ
     return false;
   }

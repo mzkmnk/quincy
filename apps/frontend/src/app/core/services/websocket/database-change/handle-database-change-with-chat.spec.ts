@@ -139,7 +139,7 @@ describe('handleDatabaseChangeWithChat', () => {
       const mockCallback = vi.fn();
       const invalidData = null;
 
-      const result = handleDatabaseChangeWithChat(invalidData as any, mockCallback);
+      const result = handleDatabaseChangeWithChat(invalidData as unknown, mockCallback);
 
       expect(result).toBe(false);
       expect(mockCallback).not.toHaveBeenCalled();
@@ -151,7 +151,7 @@ describe('handleDatabaseChangeWithChat', () => {
         type: 'database-changed-with-chat',
         timestamp: new Date(),
         // missing filePath and changeType
-      } as any;
+      } as unknown;
 
       const result = handleDatabaseChangeWithChat(incompleteData, mockCallback);
 
@@ -185,7 +185,7 @@ describe('handleDatabaseChangeWithChat', () => {
         filePath: '/test/database.sqlite3',
         changeType: 'modified',
         latestChat: null,
-      } as any;
+      } as unknown;
 
       const result = handleDatabaseChangeWithChat(wrongTypeData, mockCallback);
 
@@ -203,10 +203,10 @@ describe('handleDatabaseChangeWithChat', () => {
         filePath: '/test/database.sqlite3',
         changeType: 'modified',
         latestChat: {
-          userMessage: undefined as any,
-          aiResponse: null as any,
-          timestamp: 123 as any,
-          turnId: {} as any,
+          userMessage: undefined as unknown as string,
+          aiResponse: null as unknown as string,
+          timestamp: 123 as unknown as string,
+          turnId: {} as unknown as string,
         },
       };
 
