@@ -6,8 +6,8 @@ import { createStdioMonitor } from '../../../../services/amazon-q-cli/process-ma
 
 // stdio streamsのモックタイプ定義
 interface MockStream extends EventEmitter {
-  end: MockedFunction<any>;
-  finish: MockedFunction<any>;
+  end: MockedFunction<() => void>;
+  finish: MockedFunction<() => void>;
   readable?: boolean;
   writable?: boolean;
 }
@@ -52,7 +52,7 @@ describe('stdio-monitor', () => {
     it('stdoutのendイベントを監視できる', async () => {
       const onStdoutEnd = vi.fn();
 
-      const monitor = createStdioMonitor(mockProcess, {
+      createStdioMonitor(mockProcess, {
         onStdoutEnd,
         onStderrEnd: vi.fn(),
         onStdinFinish: vi.fn(),
@@ -63,13 +63,17 @@ describe('stdio-monitor', () => {
       mockStdout.emit('end');
 
       expect(onStdoutEnd).toHaveBeenCalledTimes(1);
-      expect(onStdoutEnd).toHaveBeenCalledWith({ stream: 'stdout', timestamp: expect.any(Number) });
+      expect(onStdoutEnd).toHaveBeenCalledWith({
+        processId: 12345,
+        stream: 'stdout',
+        timestamp: expect.any(Number),
+      });
     });
 
     it('stderrのendイベントを監視できる', async () => {
       const onStderrEnd = vi.fn();
 
-      const monitor = createStdioMonitor(mockProcess, {
+      createStdioMonitor(mockProcess, {
         onStdoutEnd: vi.fn(),
         onStderrEnd,
         onStdinFinish: vi.fn(),
@@ -80,13 +84,17 @@ describe('stdio-monitor', () => {
       mockStderr.emit('end');
 
       expect(onStderrEnd).toHaveBeenCalledTimes(1);
-      expect(onStderrEnd).toHaveBeenCalledWith({ stream: 'stderr', timestamp: expect.any(Number) });
+      expect(onStderrEnd).toHaveBeenCalledWith({
+        processId: 12345,
+        stream: 'stderr',
+        timestamp: expect.any(Number),
+      });
     });
 
     it('stdinのfinishイベントを監視できる', async () => {
       const onStdinFinish = vi.fn();
 
-      const monitor = createStdioMonitor(mockProcess, {
+      createStdioMonitor(mockProcess, {
         onStdoutEnd: vi.fn(),
         onStderrEnd: vi.fn(),
         onStdinFinish,
@@ -98,6 +106,7 @@ describe('stdio-monitor', () => {
 
       expect(onStdinFinish).toHaveBeenCalledTimes(1);
       expect(onStdinFinish).toHaveBeenCalledWith({
+        processId: 12345,
         stream: 'stdin',
         timestamp: expect.any(Number),
       });
@@ -108,7 +117,7 @@ describe('stdio-monitor', () => {
     it('全てのstdio streamsが終了したときにonAllStreamsClosed コールバックが呼ばれる', async () => {
       const onAllStreamsClosed = vi.fn();
 
-      const monitor = createStdioMonitor(mockProcess, {
+      createStdioMonitor(mockProcess, {
         onStdoutEnd: vi.fn(),
         onStderrEnd: vi.fn(),
         onStdinFinish: vi.fn(),
@@ -123,6 +132,7 @@ describe('stdio-monitor', () => {
 
       expect(onAllStreamsClosed).toHaveBeenCalledTimes(1);
       expect(onAllStreamsClosed).toHaveBeenCalledWith({
+        processId: 12345,
         completedStreams: ['stdout', 'stderr', 'stdin'],
         timestamp: expect.any(Number),
       });
@@ -131,7 +141,7 @@ describe('stdio-monitor', () => {
     it('ストリームの終了順序が異なっても正しく検出する', async () => {
       const onAllStreamsClosed = vi.fn();
 
-      const monitor = createStdioMonitor(mockProcess, {
+      createStdioMonitor(mockProcess, {
         onStdoutEnd: vi.fn(),
         onStderrEnd: vi.fn(),
         onStdinFinish: vi.fn(),
@@ -154,7 +164,7 @@ describe('stdio-monitor', () => {
 
       vi.useFakeTimers();
 
-      const monitor = createStdioMonitor(mockProcess, {
+      createStdioMonitor(mockProcess, {
         onStdoutEnd: vi.fn(),
         onStderrEnd: vi.fn(),
         onStdinFinish: vi.fn(),
@@ -170,9 +180,11 @@ describe('stdio-monitor', () => {
 
       expect(onTimeout).toHaveBeenCalledTimes(1);
       expect(onTimeout).toHaveBeenCalledWith({
+        processId: 12345,
         completedStreams: ['stdout'],
         pendingStreams: ['stderr', 'stdin'],
         timeout: 1000,
+        reason: 'streams-incomplete',
         timestamp: expect.any(Number),
       });
 
@@ -185,7 +197,7 @@ describe('stdio-monitor', () => {
 
       vi.useFakeTimers();
 
-      const monitor = createStdioMonitor(mockProcess, {
+      createStdioMonitor(mockProcess, {
         onStdoutEnd: vi.fn(),
         onStderrEnd: vi.fn(),
         onStdinFinish: vi.fn(),
@@ -213,7 +225,7 @@ describe('stdio-monitor', () => {
     it('stdio streamsでエラーが発生した場合にエラーコールバックが呼ばれる', async () => {
       const onError = vi.fn();
 
-      const monitor = createStdioMonitor(mockProcess, {
+      createStdioMonitor(mockProcess, {
         onStdoutEnd: vi.fn(),
         onStderrEnd: vi.fn(),
         onStdinFinish: vi.fn(),
@@ -226,8 +238,10 @@ describe('stdio-monitor', () => {
 
       expect(onError).toHaveBeenCalledTimes(1);
       expect(onError).toHaveBeenCalledWith({
+        processId: 12345,
         error: testError,
         stream: 'stdout',
+        source: 'stdout',
         timestamp: expect.any(Number),
       });
     });

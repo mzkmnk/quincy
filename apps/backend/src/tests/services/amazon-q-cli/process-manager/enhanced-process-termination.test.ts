@@ -6,8 +6,8 @@ import { createEnhancedProcessTermination } from '../../../../services/amazon-q-
 
 // stdio streamsのモックタイプ定義
 interface MockStream extends EventEmitter {
-  end: MockedFunction<any>;
-  finish: MockedFunction<any>;
+  end: MockedFunction<() => void>;
+  finish: MockedFunction<() => void>;
   readable?: boolean;
   writable?: boolean;
 }
@@ -56,7 +56,7 @@ describe('enhanced-process-termination', () => {
     it('プロセス終了とストリーム終了を統合して検出する', async () => {
       const onFullyTerminated = vi.fn();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited: vi.fn(),
         onStreamsClosed: vi.fn(),
         onFullyTerminated,
@@ -87,7 +87,7 @@ describe('enhanced-process-termination', () => {
     it('ストリーム完了後にプロセス終了でも正しく検出する', async () => {
       const onFullyTerminated = vi.fn();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited: vi.fn(),
         onStreamsClosed: vi.fn(),
         onFullyTerminated,
@@ -111,7 +111,7 @@ describe('enhanced-process-termination', () => {
     it('プロセス終了時にonProcessExitedが呼ばれる', async () => {
       const onProcessExited = vi.fn();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited,
         onStreamsClosed: vi.fn(),
         onFullyTerminated: vi.fn(),
@@ -134,7 +134,7 @@ describe('enhanced-process-termination', () => {
     it('全ストリーム終了時にonStreamsClosedが呼ばれる', async () => {
       const onStreamsClosed = vi.fn();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited: vi.fn(),
         onStreamsClosed,
         onFullyTerminated: vi.fn(),
@@ -156,7 +156,7 @@ describe('enhanced-process-termination', () => {
     it('個別ストリーム終了時にonStreamEndedが呼ばれる', async () => {
       const onStreamEnded = vi.fn();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited: vi.fn(),
         onStreamsClosed: vi.fn(),
         onFullyTerminated: vi.fn(),
@@ -179,7 +179,7 @@ describe('enhanced-process-termination', () => {
     it('exitイベントが発生しない場合でもcloseイベントで検出する', async () => {
       const onProcessExited = vi.fn();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited,
         onStreamsClosed: vi.fn(),
         onFullyTerminated: vi.fn(),
@@ -201,7 +201,7 @@ describe('enhanced-process-termination', () => {
     it('exitとcloseの両方が発生してもonProcessExitedは一度だけ呼ばれる', async () => {
       const onProcessExited = vi.fn();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited,
         onStreamsClosed: vi.fn(),
         onFullyTerminated: vi.fn(),
@@ -222,7 +222,7 @@ describe('enhanced-process-termination', () => {
 
       vi.useFakeTimers();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited: vi.fn(),
         onStreamsClosed: vi.fn(),
         onFullyTerminated: vi.fn(),
@@ -254,7 +254,7 @@ describe('enhanced-process-termination', () => {
 
       vi.useFakeTimers();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited: vi.fn(),
         onStreamsClosed: vi.fn(),
         onFullyTerminated: vi.fn(),
@@ -286,7 +286,7 @@ describe('enhanced-process-termination', () => {
 
       vi.useFakeTimers();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited: vi.fn(),
         onStreamsClosed: vi.fn(),
         onFullyTerminated: vi.fn(),
@@ -313,7 +313,7 @@ describe('enhanced-process-termination', () => {
     it('プロセスエラー時にonErrorが呼ばれる', async () => {
       const onError = vi.fn();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited: vi.fn(),
         onStreamsClosed: vi.fn(),
         onFullyTerminated: vi.fn(),
@@ -335,7 +335,7 @@ describe('enhanced-process-termination', () => {
     it('ストリームエラー時にonErrorが呼ばれる', async () => {
       const onError = vi.fn();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited: vi.fn(),
         onStreamsClosed: vi.fn(),
         onFullyTerminated: vi.fn(),
@@ -425,7 +425,7 @@ describe('enhanced-process-termination', () => {
     it('SIGKILLによる強制終了を検出する', async () => {
       const onProcessExited = vi.fn();
 
-      const termination = createEnhancedProcessTermination(mockProcess, {
+      createEnhancedProcessTermination(mockProcess, {
         onProcessExited,
         onStreamsClosed: vi.fn(),
         onFullyTerminated: vi.fn(),

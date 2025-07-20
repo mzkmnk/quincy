@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import {
-  createTerminationStateManager,
-} from '../../../../services/amazon-q-cli/process-manager/termination-state-manager';
+import { createTerminationStateManager } from '../../../../services/amazon-q-cli/process-manager/termination-state-manager';
 
 describe('termination-state-manager', () => {
   let stateManager: ReturnType<typeof createTerminationStateManager>;
@@ -17,7 +15,7 @@ describe('termination-state-manager', () => {
 
   describe('初期状態', () => {
     it('初期状態はprocess-runningである', () => {
-      const state = stateManager.getCurrentState();
+      const state = stateManager.getStatus();
       expect(state.current).toBe('process-running');
       expect(state.processId).toBe('test-process-123');
       expect(state.timestamp).toBeTypeOf('number');
@@ -46,7 +44,7 @@ describe('termination-state-manager', () => {
       });
 
       expect(success).toBe(true);
-      expect(stateManager.getCurrentState().current).toBe('process-exited');
+      expect(stateManager.getStatus().current).toBe('process-exited');
       expect(stateManager.isProcessExited()).toBe(true);
       expect(onStateChange).toHaveBeenCalledWith({
         from: 'process-running',
@@ -65,7 +63,7 @@ describe('termination-state-manager', () => {
       });
 
       expect(success).toBe(true);
-      expect(stateManager.getCurrentState().current).toBe('streams-closing');
+      expect(stateManager.getStatus().current).toBe('streams-closing');
     });
 
     it('streams-closing から fully-terminated に遷移できる', () => {
@@ -85,7 +83,7 @@ describe('termination-state-manager', () => {
       });
 
       expect(success).toBe(true);
-      expect(stateManager.getCurrentState().current).toBe('fully-terminated');
+      expect(stateManager.getStatus().current).toBe('fully-terminated');
       expect(stateManager.isFullyTerminated()).toBe(true);
       expect(onFullyTerminated).toHaveBeenCalledWith({
         processId: 'test-process-123',
@@ -102,14 +100,14 @@ describe('termination-state-manager', () => {
       const success = stateManager.transitionTo('fully-terminated', {});
 
       expect(success).toBe(false);
-      expect(stateManager.getCurrentState().current).toBe('process-running');
+      expect(stateManager.getStatus().current).toBe('process-running');
     });
 
     it('process-running から streams-closing への直接遷移は無効', () => {
       const success = stateManager.transitionTo('streams-closing', {});
 
       expect(success).toBe(false);
-      expect(stateManager.getCurrentState().current).toBe('process-running');
+      expect(stateManager.getStatus().current).toBe('process-running');
     });
 
     it('process-exited から fully-terminated への直接遷移は無効', () => {
@@ -118,7 +116,7 @@ describe('termination-state-manager', () => {
       const success = stateManager.transitionTo('fully-terminated', {});
 
       expect(success).toBe(false);
-      expect(stateManager.getCurrentState().current).toBe('process-exited');
+      expect(stateManager.getStatus().current).toBe('process-exited');
     });
 
     it('後方への状態遷移は無効', () => {
@@ -127,7 +125,7 @@ describe('termination-state-manager', () => {
       const success = stateManager.transitionTo('process-running', {});
 
       expect(success).toBe(false);
-      expect(stateManager.getCurrentState().current).toBe('process-exited');
+      expect(stateManager.getStatus().current).toBe('process-exited');
     });
   });
 
@@ -135,7 +133,7 @@ describe('termination-state-manager', () => {
     it('ストリーム完了を記録できる', () => {
       stateManager.markStreamCompleted('stdout');
 
-      const state = stateManager.getCurrentState();
+      const state = stateManager.getStatus();
       expect(state.completedStreams).toContain('stdout');
       expect(stateManager.areStreamsComplete()).toBe(false);
     });
@@ -146,18 +144,14 @@ describe('termination-state-manager', () => {
       stateManager.markStreamCompleted('stdin');
 
       expect(stateManager.areStreamsComplete()).toBe(true);
-      expect(stateManager.getCurrentState().completedStreams).toEqual([
-        'stdout',
-        'stderr',
-        'stdin',
-      ]);
+      expect(stateManager.getStatus().completedStreams).toEqual(['stdout', 'stderr', 'stdin']);
     });
 
     it('重複したストリーム完了の記録は無視される', () => {
       stateManager.markStreamCompleted('stdout');
       stateManager.markStreamCompleted('stdout');
 
-      const state = stateManager.getCurrentState();
+      const state = stateManager.getStatus();
       expect(state.completedStreams.filter(s => s === 'stdout')).toHaveLength(1);
     });
   });
@@ -239,7 +233,7 @@ describe('termination-state-manager', () => {
       stateManager.markStreamCompleted('stderr');
       stateManager.markStreamCompleted('stdin');
 
-      expect(stateManager.getCurrentState().current).toBe('fully-terminated');
+      expect(stateManager.getStatus().current).toBe('fully-terminated');
       expect(onFullyTerminated).toHaveBeenCalled();
     });
 
@@ -256,7 +250,7 @@ describe('termination-state-manager', () => {
       stateManager.markStreamCompleted('stderr');
       stateManager.markStreamCompleted('stdin');
 
-      expect(stateManager.getCurrentState().current).toBe('process-exited');
+      expect(stateManager.getStatus().current).toBe('process-exited');
     });
   });
 
