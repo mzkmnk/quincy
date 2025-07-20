@@ -8,11 +8,17 @@ describe('Performance Tests', () => {
   let service: AmazonQCLIService;
 
   beforeEach(() => {
+    // EventEmitterの最大リスナー数を増加
+    process.setMaxListeners(50);
     service = new AmazonQCLIService();
+    service.setMaxListeners(50);
   });
 
   afterEach(async (): Promise<void> => {
     await service.terminateAllSessions();
+    service.removeAllListeners();
+    // プロセスのリスナー数をリセット
+    process.setMaxListeners(10);
   });
 
   describe('ID生成パフォーマンス', () => {

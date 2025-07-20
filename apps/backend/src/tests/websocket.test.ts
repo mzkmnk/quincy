@@ -17,6 +17,9 @@ describe('WebSocket Server', () => {
   const port = 3001; // Use different port for testing
 
   beforeAll(done => {
+    // EventEmitterの最大リスナー数を増加
+    process.setMaxListeners(20);
+    
     // Create HTTP server for testing
     httpServer = createServer();
     webSocketService = new WebSocketService(httpServer);
@@ -28,8 +31,20 @@ describe('WebSocket Server', () => {
     });
   });
 
-  afterAll(() => {
-    httpServer?.close();
+  afterAll(done => {
+    // クリーンアップ
+    if (clientSocket) {
+      clientSocket.close();
+    }
+    if (httpServer) {
+      httpServer.close(() => {
+        // EventEmitterリスナーをリセット
+        process.setMaxListeners(10);
+        done();
+      });
+    } else {
+      done();
+    }
   });
 
   beforeEach(done => {
@@ -39,7 +54,9 @@ describe('WebSocket Server', () => {
   });
 
   afterEach(() => {
-    clientSocket?.close();
+    if (clientSocket && clientSocket.connected) {
+      clientSocket.close();
+    }
   });
 
   it('should accept client connections', done => {
