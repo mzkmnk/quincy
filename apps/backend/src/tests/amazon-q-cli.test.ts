@@ -5,6 +5,7 @@
 
 import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
+
 import { vi } from 'vitest';
 
 import { AmazonQCLIService, QProcessOptions } from '../services/amazon-q-cli';

@@ -11,6 +11,7 @@ export function shouldSkipOutput(output: string): boolean {
     /^\s*$/, // 空白のみ
     /^\s*[.•●]\s*$/, // ドットやブレットのみ
     /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]\s*$/, // スピナー文字のみ
+    // eslint-disable-next-line no-control-regex
     /^[\x00-\x1F\x7F\s]*$/, // 制御文字のみ（改行文字含む）
     /^[\u2800-\u28FF\s]*$/, // Brailleパターンのみ
     /^[\u2500-\u257F\s]*$/, // Unicodeボックス描画文字のみ

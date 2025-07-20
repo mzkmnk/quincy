@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { formatInfoMessage } from '../format-info-message';
 
 describe('formatInfoMessage', () => {

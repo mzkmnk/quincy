@@ -272,7 +272,6 @@ describe('Performance Tests', () => {
       const startTime = performance.now();
       const iterations = 100; // 非同期なので少し減らす
       let errorCount = 0;
-      let successCount = 0;
 
       for (let i = 0; i < iterations; i++) {
         try {
@@ -280,8 +279,6 @@ describe('Performance Tests', () => {
           const result = await validateProjectPath('');
           if (!result.valid) {
             errorCount++;
-          } else {
-            successCount++;
           }
         } catch {
           errorCount++;
