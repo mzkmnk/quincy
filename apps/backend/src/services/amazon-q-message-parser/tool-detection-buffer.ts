@@ -33,25 +33,11 @@ export class ToolDetectionBuffer {
     // 前回のバッファと結合
     const fullText = this.buffer + chunk;
 
-    // 結合されたテキストでツール検出を試行
-    const detection = parseToolUsage(fullText);
-
-    if (detection.hasTools) {
-      // ツールが検出された場合
-      this.detectedTools.push(...detection.tools);
-      this.buffer = ''; // バッファをクリア
-
-      return {
-        content: detection.cleanedLine,
-        tools: detection.tools,
-      };
-    }
-
-    // ツールが検出されなかった場合、不完全パターンをチェック
+    // 不完全パターンの判定を先に行う
     if (hasIncompleteToolPattern(fullText)) {
       // 不完全なパターンが見つかった場合
       // パターン開始位置を探して、それより前の部分をコンテンツとして返す
-      const incompletePatternStart = fullText.lastIndexOf('[Tool uses:');
+      const incompletePatternStart = fullText.lastIndexOf('🛠️ Using tool:');
 
       if (incompletePatternStart > 0) {
         const contentBeforePattern = fullText.substring(0, incompletePatternStart);
@@ -71,10 +57,24 @@ export class ToolDetectionBuffer {
       }
     }
 
+    // 完全なツール検出を試行
+    const detection = parseToolUsage(fullText);
+
+    if (detection.hasTools) {
+      // ツールが検出された場合
+      this.detectedTools.push(...detection.tools);
+      this.buffer = ''; // バッファをクリア
+
+      return {
+        content: detection.cleanedLine,
+        tools: detection.tools,
+      };
+    }
+
     // 通常のテキストとして処理
     this.buffer = '';
     return {
-      content: chunk,
+      content: fullText,
       tools: [],
     };
   }

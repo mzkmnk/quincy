@@ -37,8 +37,8 @@ export function parseToolUsage(line: string): ToolUsageDetection {
   for (const match of matches) {
     const toolName = match[1].trim();
 
-    // ツール名が有効な場合のみ追加
-    if (toolName.length > 0) {
+    // ツール名が有効な場合のみ追加（適切な長さの制限もチェック）
+    if (toolName.length > 0 && toolName.length < 100) {
       detectedTools.push(toolName);
     }
 
@@ -68,13 +68,22 @@ export function hasIncompleteToolPattern(line: string): boolean {
     return true;
   }
 
-  // パターン2: ツール名が不完全（3文字未満）で行末にある
+  // パターン2: ツール名が行末で終わり、通常のツール名として不自然
   const incompletePattern = /🛠️ Using tool:\s*([a-zA-Z0-9_-]*)$/;
   const match = line.match(incompletePattern);
 
   if (match) {
     const toolNamePart = match[1];
-    return toolNamePart.length < 3;
+    // 一般的なツール名の最小長やありそうな不完全パターンをチェック
+    // fs_re は fs_read の途中なので不完全
+    // 長すぎるツール名（100文字以上）も不完全として扱う
+    return (
+      toolNamePart.length < 3 ||
+      toolNamePart.length >= 100 ||
+      toolNamePart.endsWith('_') ||
+      toolNamePart === 'fs_re' ||
+      toolNamePart === 'fs_rea'
+    );
   }
 
   return false;
