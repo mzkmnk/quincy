@@ -1,4 +1,5 @@
-import type { QResponseEvent } from '../../../types';
+import type { QResponseEvent } from '@quincy/shared';
+
 import type { QProcessSession } from '../session-manager/types';
 import { stripAnsiCodes } from '../../../utils/ansi-stripper';
 import { parseToolUsage } from '../../amazon-q-message-parser';

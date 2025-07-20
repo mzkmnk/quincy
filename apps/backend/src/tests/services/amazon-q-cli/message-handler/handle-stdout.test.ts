@@ -1,9 +1,10 @@
 import type { ChildProcess } from 'child_process';
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import type { QResponseEvent } from '@quincy/shared';
 
 import { handleStdout } from '../../../../services/amazon-q-cli/message-handler/handle-stdout';
-import type { QProcessSession, QResponseEvent, QProcessOptions } from '../../../../types';
+import type { QProcessSession, QProcessOptions, AbsolutePath } from '../../../../types';
 import { ToolDetectionBuffer } from '../../../../services/amazon-q-message-parser';
 
 describe('handleStdout - ツール検出機能', () => {
@@ -12,13 +13,13 @@ describe('handleStdout - ツール検出機能', () => {
   let mockFlushCallback: ReturnType<typeof vi.fn<(session: QProcessSession) => void>>;
 
   beforeEach(() => {
-    const mockProcess: ChildProcess = {
+    const mockProcess = {
       pid: 123,
       connected: false,
       stdin: null,
       stdout: null,
       stderr: null,
-      stdio: [],
+      stdio: [null, null, null, null, null],
       killed: false,
       exitCode: null,
       signalCode: null,
@@ -44,13 +45,12 @@ describe('handleStdout - ツール検出機能', () => {
       removeAllListeners: vi.fn(),
       removeListener: vi.fn(),
       setMaxListeners: vi.fn(),
-    };
+      [Symbol.dispose]: vi.fn(),
+    } as ChildProcess;
 
     const mockOptions: QProcessOptions = {
-      cwd: '/test',
+      workingDir: '/test' as AbsolutePath,
       timeout: 30000,
-      maxBuffer: 1024 * 1024,
-      stdio: 'pipe',
     };
 
     mockSession = {

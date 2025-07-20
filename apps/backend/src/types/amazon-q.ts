@@ -173,6 +173,26 @@ export interface QResponseEvent {
   hasToolContent?: boolean; // 新規追加
 }
 
+// QErrorEvent型（WebSocket用）
+export interface QErrorEvent {
+  sessionId: string;
+  error: string;
+  code?: string;
+}
+
+// QInfoEvent型（WebSocket用）
+export interface QInfoEvent {
+  sessionId: string;
+  message: string;
+  type?: 'thinking' | 'initialization' | 'system' | 'general';
+}
+
+// QCompleteEvent型（WebSocket用）
+export interface QCompleteEvent {
+  sessionId: string;
+  exitCode: number;
+}
+
 // 解析済みメッセージ型
 export interface ParsedMessage {
   content: string;

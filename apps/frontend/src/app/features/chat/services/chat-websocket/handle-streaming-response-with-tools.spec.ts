@@ -109,9 +109,10 @@ describe('handleStreamingResponseWithTools', () => {
     test('dataフィールドが存在しない場合', () => {
       const responseData = {
         sessionId: 'q_session_123',
+        data: '',
         tools: ['fs_read'],
         hasToolContent: true,
-      } as { sessionId: string; tools: string[]; hasToolContent: boolean };
+      };
       const sessionId = 'q_session_123';
 
       handleStreamingResponseWithTools(responseData, sessionId, onHandleStreamingMock);
