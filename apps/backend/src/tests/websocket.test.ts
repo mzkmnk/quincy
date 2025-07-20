@@ -26,7 +26,6 @@ describe('WebSocket Server', () => {
 
     // Start test server
     httpServer.listen(port, () => {
-      console.log(`Test WebSocket server listening on port ${port}`);
       done();
     });
   });
