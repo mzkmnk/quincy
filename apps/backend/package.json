@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
+    "watch": "vitest",
     "lint": "echo 'Lint not configured yet'"
   },
   "dependencies": {
