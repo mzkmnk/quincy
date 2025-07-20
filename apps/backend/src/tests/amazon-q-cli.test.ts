@@ -299,7 +299,7 @@ describe('AmazonQCLIService', () => {
     });
 
     it.skip('プロセスのエラー出力をq:errorイベントとして発行すること（レガシー：SQLite3で代替）', async () => {
-      // このテストはSQLite3変更検知により不要になりました  
+      // このテストはSQLite3変更検知により不要になりました
       // プロセスエラーはq:errorで継続、stderrストリーミングは削除
     });
 

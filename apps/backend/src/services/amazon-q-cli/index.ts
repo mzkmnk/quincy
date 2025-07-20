@@ -235,10 +235,8 @@ export class AmazonQCLIService extends EventEmitter {
 
   private setupProcessHandlers(session: QProcessSession): void {
     // 簡素化されたプロセスハンドラー（SQLite3変更検知により複雑な処理は不要）
-    setupProcessHandlers(
-      session,
-      this.emit.bind(this),
-      sessionId => this.sessions.delete(sessionId)
+    setupProcessHandlers(session, this.emit.bind(this), sessionId =>
+      this.sessions.delete(sessionId)
     );
   }
 
