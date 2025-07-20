@@ -14,8 +14,8 @@ export function isToolUsageLine(line: string): boolean {
     return false;
   }
 
-  // ツール使用パターンの正規表現: [Tool uses: ツール名]
-  const toolPattern = /\[Tool uses: ([^\]]+)\]/;
+  // ツール使用パターンの正規表現: 🛠️ Using tool: ツール名
+  const toolPattern = /🛠️ Using tool: ([^\s(]+)/;
 
   const match = toolPattern.exec(line);
 
@@ -24,13 +24,8 @@ export function isToolUsageLine(line: string): boolean {
   }
 
   // マッチした部分のツール名をチェック
-  const toolsString = match[1];
+  const toolName = match[1].trim();
 
   // ツール名が空でないことを確認
-  const tools = toolsString
-    .split(',')
-    .map(tool => tool.trim())
-    .filter(tool => tool.length > 0);
-
-  return tools.length > 0;
+  return toolName.length > 0;
 }

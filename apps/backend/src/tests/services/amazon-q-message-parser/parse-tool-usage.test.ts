@@ -9,7 +9,7 @@ import {
 describe('parseToolUsage', () => {
   describe('正常系：標準的なツールパターン', () => {
     test('単一ツールを正しく検出する', () => {
-      const input = 'AIの回答です。[Tool uses: fs_read]';
+      const input = 'AIの回答です。🛠️ Using tool: fs_read';
       const result = parseToolUsage(input);
 
       expect(result.hasTools).toBe(true);
@@ -18,18 +18,18 @@ describe('parseToolUsage', () => {
       expect(result.cleanedLine).toBe('AIの回答です。');
     });
 
-    test('複数ツールをカンマ区切りで正しく検出する', () => {
-      const input = '[Tool uses: fs_read, github_mcp, web_search]続きの回答';
+    test('(trusted)付きのツールを正しく検出する', () => {
+      const input = '🛠️ Using tool: fs_read (trusted)続きの回答';
       const result = parseToolUsage(input);
 
       expect(result.hasTools).toBe(true);
-      expect(result.tools).toEqual(['fs_read', 'github_mcp', 'web_search']);
+      expect(result.tools).toEqual(['fs_read']);
       expect(result.originalLine).toBe(input);
       expect(result.cleanedLine).toBe('続きの回答');
     });
 
     test('複数のツール使用行を検出する', () => {
-      const input = '[Tool uses: fs_read][Tool uses: github_mcp]回答内容';
+      const input = '🛠️ Using tool: fs_read🛠️ Using tool: github_mcp回答内容';
       const result = parseToolUsage(input);
 
       expect(result.hasTools).toBe(true);
@@ -37,13 +37,14 @@ describe('parseToolUsage', () => {
       expect(result.cleanedLine).toBe('回答内容');
     });
 
-    test('ツール名の前後のスペースを正しく除去する', () => {
-      const input = '[Tool uses:  fs_read  ,  github_mcp  ]';
+    test('実際のAmazon Q出力形式を正しく処理する', () => {
+      const input =
+        '🛠️ Using tool: fs_read (trusted)\n⋮\n● Reading directory: /Users/mzkmnk/dev with maximum depth of 0\n⋮\n● Completed in 0.1s';
       const result = parseToolUsage(input);
 
       expect(result.hasTools).toBe(true);
-      expect(result.tools).toEqual(['fs_read', 'github_mcp']);
-      expect(result.cleanedLine).toBe('');
+      expect(result.tools).toEqual(['fs_read']);
+      expect(result.cleanedLine).not.toContain('🛠️ Using tool:');
     });
   });
 
@@ -69,7 +70,7 @@ describe('parseToolUsage', () => {
 
   describe('異常系：不正なパターン', () => {
     test('不完全なツールパターンは検出しない', () => {
-      const input = '[Tool uses: fs_read';
+      const input = '🛠️ Using tool:';
       const result = parseToolUsage(input);
 
       expect(result.hasTools).toBe(false);
@@ -77,34 +78,35 @@ describe('parseToolUsage', () => {
       expect(result.cleanedLine).toBe(input);
     });
 
-    test('閉じ括弧がないパターンは検出しない', () => {
-      const input = '[Tool uses: fs_read, github_mcp';
+    test('ツール名がないパターンは検出しない', () => {
+      const input = '🛠️ Using tool: ';
       const result = parseToolUsage(input);
 
       expect(result.hasTools).toBe(false);
       expect(result.tools).toEqual([]);
     });
 
-    test('空のツール名は除外する', () => {
-      const input = '[Tool uses: fs_read, , github_mcp]';
+    test('絵文字なしのパターンは検出しない', () => {
+      const input = 'Using tool: fs_read';
       const result = parseToolUsage(input);
 
-      expect(result.hasTools).toBe(true);
-      expect(result.tools).toEqual(['fs_read', 'github_mcp']);
+      expect(result.hasTools).toBe(false);
+      expect(result.tools).toEqual([]);
+      expect(result.cleanedLine).toBe(input);
     });
   });
 });
 
 describe('hasIncompleteToolPattern', () => {
   test('不完全なツールパターンを正しく検出する', () => {
-    expect(hasIncompleteToolPattern('[Tool uses: fs_read')).toBe(true);
-    expect(hasIncompleteToolPattern('[Tool uses:')).toBe(true);
-    expect(hasIncompleteToolPattern('回答[Tool uses: fs')).toBe(true);
+    expect(hasIncompleteToolPattern('🛠️ Using tool:')).toBe(true);
+    expect(hasIncompleteToolPattern('🛠️ Using tool: fs')).toBe(true);
+    expect(hasIncompleteToolPattern('回答🛠️ Using tool: gi')).toBe(true);
   });
 
   test('完全なツールパターンは不完全として検出しない', () => {
-    expect(hasIncompleteToolPattern('[Tool uses: fs_read]')).toBe(false);
-    expect(hasIncompleteToolPattern('回答[Tool uses: fs_read]')).toBe(false);
+    expect(hasIncompleteToolPattern('🛠️ Using tool: fs_read ')).toBe(false);
+    expect(hasIncompleteToolPattern('回答🛠️ Using tool: fs_read\n')).toBe(false);
   });
 
   test('ツールパターンがない場合は不完全として検出しない', () => {
@@ -115,13 +117,13 @@ describe('hasIncompleteToolPattern', () => {
 
 describe('combineToolPatterns', () => {
   test('分割されたツールパターンを正しく結合する', () => {
-    const previousLine = '回答です[Tool uses: fs_read,';
-    const currentLine = ' github_mcp]続き';
+    const previousLine = '回答です🛠️ Using tool: fs_re';
+    const currentLine = 'ad (trusted)続き';
     const result = combineToolPatterns(previousLine, currentLine);
 
-    expect(result.combinedLine).toBe('回答です[Tool uses: fs_read, github_mcp]続き');
+    expect(result.combinedLine).toBe('回答です🛠️ Using tool: fs_read (trusted)続き');
     expect(result.detection.hasTools).toBe(true);
-    expect(result.detection.tools).toEqual(['fs_read', 'github_mcp']);
+    expect(result.detection.tools).toEqual(['fs_read']);
     expect(result.detection.cleanedLine).toBe('回答です続き');
   });
 

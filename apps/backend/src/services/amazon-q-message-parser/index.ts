@@ -18,3 +18,6 @@ export { extractContentAndTools, type ParsedMessage } from './extract-content-an
 
 // ストリーミング用バッファ機能
 export { ToolDetectionBuffer, type ChunkProcessResult } from './tool-detection-buffer';
+
+// ツール出力フィルタリング機能
+export { filterToolOutput, filterToolOutputLines, type FilterResult } from './filter-tool-output';

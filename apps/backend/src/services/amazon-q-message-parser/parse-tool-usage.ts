@@ -25,8 +25,9 @@ export function parseToolUsage(line: string): ToolUsageDetection {
     };
   }
 
-  // ツール使用パターンの正規表現: [Tool uses: ツール名]
-  const toolPattern = /\[Tool uses: ([^\]]+)\]/g;
+  // ツール使用パターンの正規表現: 🛠️ Using tool: ツール名 (trusted部分も含めて)
+  // ツール名は空白、括弧、または次の🛠️まで
+  const toolPattern = /🛠️ Using tool: ([a-zA-Z0-9_-]+)(?:\s*\([^)]*\))?/g;
 
   const detectedTools: string[] = [];
   let cleanedLine = line;
@@ -34,17 +35,14 @@ export function parseToolUsage(line: string): ToolUsageDetection {
 
   // 全てのマッチを処理
   for (const match of matches) {
-    const toolsString = match[1];
+    const toolName = match[1].trim();
 
-    // カンマ区切りのツールを分離
-    const tools = toolsString
-      .split(',')
-      .map(tool => tool.trim())
-      .filter(tool => tool.length > 0);
+    // ツール名が有効な場合のみ追加
+    if (toolName.length > 0) {
+      detectedTools.push(toolName);
+    }
 
-    detectedTools.push(...tools);
-
-    // マッチした部分を行から除去
+    // マッチした部分を行から除去（正確にマッチした部分のみ削除）
     cleanedLine = cleanedLine.replace(match[0], '');
   }
 
@@ -63,9 +61,23 @@ export function parseToolUsage(line: string): ToolUsageDetection {
  * @returns 不完全パターンの存在
  */
 export function hasIncompleteToolPattern(line: string): boolean {
-  // 不完全なパターンを検出: "[Tool uses:" で始まるが "]" で終わらない
-  const incompletePattern = /\[Tool uses:[^\]]*$/;
-  return incompletePattern.test(line);
+  // 不完全なパターンを検出: "🛠️ Using tool:" で始まるが完全でない
+
+  // パターン1: "🛠️ Using tool:" で終わる（ツール名なし）
+  if (line.trimEnd().endsWith('🛠️ Using tool:')) {
+    return true;
+  }
+
+  // パターン2: ツール名が不完全（3文字未満）で行末にある
+  const incompletePattern = /🛠️ Using tool:\s*([a-zA-Z0-9_-]*)$/;
+  const match = line.match(incompletePattern);
+
+  if (match) {
+    const toolNamePart = match[1];
+    return toolNamePart.length < 3;
+  }
+
+  return false;
 }
 
 /**

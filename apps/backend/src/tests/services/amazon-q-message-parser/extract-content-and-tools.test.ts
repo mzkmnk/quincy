@@ -6,7 +6,7 @@ describe('extractContentAndTools', () => {
   describe('正常系：メッセージ本文とツール情報の分離', () => {
     test('通常のメッセージからツール情報を分離する', () => {
       const input =
-        'ファイルを確認します。[Tool uses: fs_read]\n\nファイルの内容は以下の通りです。';
+        'ファイルを確認します。🛠️ Using tool: fs_read\n\nファイルの内容は以下の通りです。';
       const result = extractContentAndTools(input);
 
       expect(result.content).toBe('ファイルを確認します。\n\nファイルの内容は以下の通りです。');
@@ -17,7 +17,7 @@ describe('extractContentAndTools', () => {
 
     test('複数のツールを含むメッセージを処理する', () => {
       const input =
-        '[Tool uses: fs_read, github_mcp]コードを確認して修正を提案します。\n結果をお伝えします。';
+        '🛠️ Using tool: fs_read🛠️ Using tool: github_mcpコードを確認して修正を提案します。\n結果をお伝えします。';
       const result = extractContentAndTools(input);
 
       expect(result.content).toBe('コードを確認して修正を提案します。\n結果をお伝えします。');
@@ -27,11 +27,11 @@ describe('extractContentAndTools', () => {
 
     test('複数のツール行が散在するメッセージを処理する', () => {
       const input =
-        'まず[Tool uses: fs_read]ファイルを読み込みます。\n次に[Tool uses: github_mcp]GitHubの情報を確認します。\n完了しました。';
+        'まず🛠️ Using tool: fs_read ファイルを読み込みます。\n次に🛠️ Using tool: github_mcp GitHubの情報を確認します。\n完了しました。';
       const result = extractContentAndTools(input);
 
       expect(result.content).toBe(
-        'まずファイルを読み込みます。\n次にGitHubの情報を確認します。\n完了しました。'
+        'まず ファイルを読み込みます。\n次に GitHubの情報を確認します。\n完了しました。'
       );
       expect(result.tools).toEqual(['fs_read', 'github_mcp']);
       expect(result.hasToolContent).toBe(true);
@@ -59,7 +59,7 @@ describe('extractContentAndTools', () => {
 
   describe('正常系：改行とフォーマットの処理', () => {
     test('ツール行削除後の余分な改行を適切に処理する', () => {
-      const input = 'はじめに確認します。\n[Tool uses: fs_read]\n\n\n結果です。';
+      const input = 'はじめに確認します。\n🛠️ Using tool: fs_read\n\n\n結果です。';
       const result = extractContentAndTools(input);
 
       expect(result.content).toBe('はじめに確認します。\n\n結果です。');
@@ -67,7 +67,8 @@ describe('extractContentAndTools', () => {
     });
 
     test('行の先頭や末尾にあるツール情報を正しく除去する', () => {
-      const input = '[Tool uses: fs_read]\nファイルの内容:\nHello World\n[Tool uses: github_mcp]';
+      const input =
+        '🛠️ Using tool: fs_read\nファイルの内容:\nHello World\n🛠️ Using tool: github_mcp';
       const result = extractContentAndTools(input);
 
       expect(result.content).toBe('ファイルの内容:\nHello World');
@@ -75,7 +76,7 @@ describe('extractContentAndTools', () => {
     });
 
     test('連続するツール行を正しく処理する', () => {
-      const input = '[Tool uses: fs_read][Tool uses: github_mcp]\n結果をお知らせします。';
+      const input = '🛠️ Using tool: fs_read🛠️ Using tool: github_mcp\n結果をお知らせします。';
       const result = extractContentAndTools(input);
 
       expect(result.content).toBe('結果をお知らせします。');
@@ -108,7 +109,7 @@ describe('extractContentAndTools', () => {
 
     test('重複するツール名を除去する', () => {
       const input =
-        '[Tool uses: fs_read][Tool uses: fs_read, github_mcp][Tool uses: fs_read]テストです。';
+        '🛠️ Using tool: fs_read🛠️ Using tool: fs_read🛠️ Using tool: github_mcp🛠️ Using tool: fs_readテストです。';
       const result = extractContentAndTools(input);
 
       expect(result.content).toBe('テストです。');
@@ -118,7 +119,8 @@ describe('extractContentAndTools', () => {
 
   describe('正常系：特殊なフォーマット', () => {
     test('ツール名にスペースや特殊文字が含まれる場合', () => {
-      const input = '[Tool uses: fs_read_v2, web-search, api_call_1]処理中です。';
+      const input =
+        '🛠️ Using tool: fs_read_v2🛠️ Using tool: web-search🛠️ Using tool: api_call_1処理中です。';
       const result = extractContentAndTools(input);
 
       expect(result.content).toBe('処理中です。');
@@ -126,7 +128,7 @@ describe('extractContentAndTools', () => {
     });
 
     test('マルチバイト文字を含むメッセージを正しく処理する', () => {
-      const input = 'こんにちは[Tool uses: fs_read]ファイルを確認しました。日本語のテストです。';
+      const input = 'こんにちは🛠️ Using tool: fs_readファイルを確認しました。日本語のテストです。';
       const result = extractContentAndTools(input);
 
       expect(result.content).toBe('こんにちはファイルを確認しました。日本語のテストです。');

@@ -6,16 +6,11 @@ import type { ToolUse } from '../amazon-q-history-types';
 
 export function formatToolsUsed(toolsUsed: ToolUse[]): string {
   if (toolsUsed.length === 0) {
-    return 'ツールは使用されませんでした';
+    return '';
   }
 
-  const toolSummary = toolsUsed
-    .map(tool => {
-      const argsSummary =
-        Object.keys(tool.args).length > 0 ? ` (${Object.keys(tool.args).length}個の引数)` : '';
-      return `• ${tool.name}${argsSummary}`;
-    })
-    .join('\n');
+  // 重複を除去しつつ順序を保持
+  const uniqueToolNames = Array.from(new Set(toolsUsed.map(tool => tool.name)));
 
-  return `🔧 使用されたツール:\n${toolSummary}`;
+  return `tools: ${uniqueToolNames.join(', ')}`;
 }

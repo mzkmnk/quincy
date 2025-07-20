@@ -2,7 +2,7 @@ import type { QResponseEvent } from '@quincy/shared';
 
 import type { QProcessSession } from '../session-manager/types';
 import { stripAnsiCodes } from '../../../utils/ansi-stripper';
-import { parseToolUsage } from '../../amazon-q-message-parser';
+import { parseToolUsage, filterToolOutput } from '../../amazon-q-message-parser';
 
 import { shouldSkipOutput } from './should-skip-output';
 import { isInitializationMessage } from './is-initialization-message';
@@ -39,6 +39,12 @@ export function handleStdout(
 
     // 初期化フェーズで初期化メッセージはスキップ（stderrで処理）
     if (session.initializationPhase && isInitializationMessage(cleanLine)) {
+      continue;
+    }
+
+    // ツール実行の詳細出力をフィルタリング（Phase 3）
+    const filterResult = filterToolOutput(cleanLine);
+    if (filterResult.shouldSkip) {
       continue;
     }
 

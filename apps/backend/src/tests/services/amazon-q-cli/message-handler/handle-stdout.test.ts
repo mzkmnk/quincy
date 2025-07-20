@@ -85,7 +85,7 @@ describe('handleStdout - ツール検出機能', () => {
 
   describe('TDD Red: ツール検出機能のテスト', () => {
     test('ツール使用行を検出してツール情報を含むレスポンスイベントを発行する', () => {
-      const data = Buffer.from('[Tool uses: fs_read]\n');
+      const data = Buffer.from('🛠️ Using tool: fs_read\n');
 
       handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
 
@@ -95,18 +95,20 @@ describe('handleStdout - ツール検出機能', () => {
       expect(mockEmitCallback).not.toHaveBeenCalled();
     });
 
-    test('複数ツールを含む行を正しく処理する', () => {
-      const data = Buffer.from('[Tool uses: fs_read, github_mcp]\n');
+    test('(trusted)付きツールを正しく処理する', () => {
+      const data = Buffer.from('🛠️ Using tool: fs_read (trusted)\n');
 
       handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
 
-      expect(mockSession.currentTools).toEqual(['fs_read', 'github_mcp']);
+      expect(mockSession.currentTools).toEqual(['fs_read']);
       // ツール行のみの場合はクリーンな行が空なのでレスポンスイベントは発行されない
       expect(mockEmitCallback).not.toHaveBeenCalled();
     });
 
     test('ツール行とテキストが混在する場合', () => {
-      const data = Buffer.from('ファイルを確認します[Tool uses: fs_read]\n結果をお知らせします\n');
+      const data = Buffer.from(
+        'ファイルを確認します🛠️ Using tool: fs_read\n結果をお知らせします\n'
+      );
 
       handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
 
@@ -153,7 +155,7 @@ describe('handleStdout - ツール検出機能', () => {
       // 事前にツールを設定
       mockSession.currentTools = ['existing_tool'];
 
-      const data = Buffer.from('[Tool uses: fs_read]\n');
+      const data = Buffer.from('🛠️ Using tool: fs_read\n');
 
       handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
 
@@ -163,7 +165,7 @@ describe('handleStdout - ツール検出機能', () => {
     });
 
     test('ツール行をスキップして表示しない機能', () => {
-      const data = Buffer.from('前の行\n[Tool uses: fs_read]\n後の行\n');
+      const data = Buffer.from('前の行\n🛠️ Using tool: fs_read\n後の行\n');
 
       handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
 
@@ -187,8 +189,8 @@ describe('handleStdout - ツール検出機能', () => {
       );
     });
 
-    test('空のツール行や不正なツール行を適切に処理する', () => {
-      const data = Buffer.from('[Tool uses: ]\n[Tool uses: fs_read, ]\n不正な[Tool uses形式\n');
+    test('空のツール名や不正なツール行を適切に処理する', () => {
+      const data = Buffer.from('🛠️ Using tool: \n🛠️ Using tool: fs_read\n不正なUsing tool形式\n');
 
       handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
 
@@ -199,7 +201,7 @@ describe('handleStdout - ツール検出機能', () => {
       expect(mockEmitCallback).toHaveBeenCalledWith(
         'q:response',
         expect.objectContaining({
-          data: '不正な[Tool uses形式\n',
+          data: '不正なUsing tool形式\n',
         })
       );
     });
@@ -209,7 +211,7 @@ describe('handleStdout - ツール検出機能', () => {
     test('初期化フェーズ中のツール検出', () => {
       mockSession.initializationPhase = true;
 
-      const data = Buffer.from('[Tool uses: fs_read]\n初期化メッセージ\n');
+      const data = Buffer.from('🛠️ Using tool: fs_read\n初期化メッセージ\n');
 
       handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
 
@@ -218,7 +220,7 @@ describe('handleStdout - ツール検出機能', () => {
     });
 
     test('Thinkingメッセージとツール検出の組み合わせ', () => {
-      const data = Buffer.from('Thinking...\n[Tool uses: fs_read]\n');
+      const data = Buffer.from('Thinking...\n🛠️ Using tool: fs_read\n');
 
       handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
 

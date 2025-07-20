@@ -6,7 +6,7 @@ describe('ToolDetectionBuffer', () => {
   describe('正常系：ストリーミング用のバッファリング', () => {
     test('完全なツールパターンを一度に検出する', () => {
       const buffer = new ToolDetectionBuffer();
-      const result = buffer.processChunk('ファイルを確認します[Tool uses: fs_read]');
+      const result = buffer.processChunk('ファイルを確認します🛠️ Using tool: fs_read');
 
       expect(result.content).toBe('ファイルを確認します');
       expect(result.tools).toEqual(['fs_read']);
@@ -17,26 +17,26 @@ describe('ToolDetectionBuffer', () => {
       const buffer = new ToolDetectionBuffer();
 
       // 第1チャンク：不完全なパターン
-      const result1 = buffer.processChunk('開始します[Tool uses: fs_read,');
+      const result1 = buffer.processChunk('開始します🛠️ Using tool: fs_re');
       expect(result1.content).toBe('開始します');
       expect(result1.tools).toEqual([]);
       expect(buffer.hasIncompletePattern()).toBe(true);
 
       // 第2チャンク：パターン完成
-      const result2 = buffer.processChunk(' github_mcp]完了');
+      const result2 = buffer.processChunk('ad完了');
       expect(result2.content).toBe('完了');
-      expect(result2.tools).toEqual(['fs_read', 'github_mcp']);
+      expect(result2.tools).toEqual(['fs_read']);
       expect(buffer.hasIncompletePattern()).toBe(false);
     });
 
     test('複数チャンクにわたるパターンを処理する', () => {
       const buffer = new ToolDetectionBuffer();
 
-      const result1 = buffer.processChunk('まず[Tool uses:');
+      const result1 = buffer.processChunk('まず🛠️ Using tool:');
       expect(result1.content).toBe('まず');
       expect(result1.tools).toEqual([]);
 
-      const result2 = buffer.processChunk(' fs_read]を実行します');
+      const result2 = buffer.processChunk(' fs_readを実行します');
       expect(result2.content).toBe('を実行します');
       expect(result2.tools).toEqual(['fs_read']);
     });
@@ -56,7 +56,7 @@ describe('ToolDetectionBuffer', () => {
       const buffer = new ToolDetectionBuffer();
 
       // バッファに不完全パターンを蓄積
-      buffer.processChunk('テスト[Tool uses: fs');
+      buffer.processChunk('テスト🛠️ Using tool: fs');
       expect(buffer.hasIncompletePattern()).toBe(true);
 
       // クリア実行
@@ -64,15 +64,15 @@ describe('ToolDetectionBuffer', () => {
       expect(buffer.hasIncompletePattern()).toBe(false);
 
       // 新しい処理が正常に動作することを確認
-      const result = buffer.processChunk('[Tool uses: github_mcp]');
+      const result = buffer.processChunk('🛠️ Using tool: github_mcp');
       expect(result.tools).toEqual(['github_mcp']);
     });
 
     test('getDetectedTools()で蓄積されたツールを取得する', () => {
       const buffer = new ToolDetectionBuffer();
 
-      buffer.processChunk('[Tool uses: fs_read]');
-      buffer.processChunk('[Tool uses: github_mcp]');
+      buffer.processChunk('🛠️ Using tool: fs_read');
+      buffer.processChunk('🛠️ Using tool: github_mcp');
 
       const allTools = buffer.getDetectedTools();
       expect(allTools).toEqual(['fs_read', 'github_mcp']);
@@ -81,9 +81,9 @@ describe('ToolDetectionBuffer', () => {
     test('getBufferContent()で現在のバッファ内容を取得する', () => {
       const buffer = new ToolDetectionBuffer();
 
-      buffer.processChunk('不完全[Tool uses: fs');
+      buffer.processChunk('不完全🛠️ Using tool: fs');
 
-      expect(buffer.getBufferContent()).toBe('[Tool uses: fs');
+      expect(buffer.getBufferContent()).toBe('🛠️ Using tool: fs');
       expect(buffer.hasIncompletePattern()).toBe(true);
     });
   });
@@ -114,7 +114,7 @@ describe('ToolDetectionBuffer', () => {
 
     test('非常に長い不完全パターンを処理する', () => {
       const buffer = new ToolDetectionBuffer();
-      const longIncomplete = '[Tool uses: ' + 'a'.repeat(1000);
+      const longIncomplete = '🛠️ Using tool: ' + 'a'.repeat(1000);
 
       const result = buffer.processChunk(longIncomplete);
       expect(result.content).toBe('');
@@ -127,19 +127,21 @@ describe('ToolDetectionBuffer', () => {
     test('重複するツール名を自動的に除去する', () => {
       const buffer = new ToolDetectionBuffer();
 
-      buffer.processChunk('[Tool uses: fs_read]');
-      buffer.processChunk('[Tool uses: fs_read, github_mcp]');
-      buffer.processChunk('[Tool uses: fs_read]');
+      buffer.processChunk('🛠️ Using tool: fs_read');
+      buffer.processChunk('🛠️ Using tool: github_mcp');
+      buffer.processChunk('🛠️ Using tool: fs_read');
 
       const allTools = buffer.getDetectedTools();
       expect(allTools).toEqual(['fs_read', 'github_mcp']);
     });
 
-    test('空のツール名を除外する', () => {
+    test('複数ツールを個別に処理する', () => {
       const buffer = new ToolDetectionBuffer();
-      const result = buffer.processChunk('[Tool uses: fs_read, , github_mcp, ]');
+      const result1 = buffer.processChunk('🛠️ Using tool: fs_read');
+      const result2 = buffer.processChunk('🛠️ Using tool: github_mcp');
 
-      expect(result.tools).toEqual(['fs_read', 'github_mcp']);
+      expect(result1.tools).toEqual(['fs_read']);
+      expect(result2.tools).toEqual(['github_mcp']);
     });
   });
 
@@ -148,11 +150,11 @@ describe('ToolDetectionBuffer', () => {
       const buffer = new ToolDetectionBuffer();
 
       // シンプルなストリーミング分割パターン
-      const result1 = buffer.processChunk('ファイルを確認しています[Tool uses:');
+      const result1 = buffer.processChunk('ファイルを確認しています🛠️ Using tool:');
       expect(result1.content).toBe('ファイルを確認しています');
       expect(result1.tools).toEqual([]);
 
-      const result2 = buffer.processChunk(' fs_read]完了しました');
+      const result2 = buffer.processChunk(' fs_read完了しました');
       expect(result2.content).toBe('完了しました');
       expect(result2.tools).toEqual(['fs_read']);
 
