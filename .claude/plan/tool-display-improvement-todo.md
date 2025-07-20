@@ -72,6 +72,13 @@ tools: fs_read,github_mcp
         hasToolContent: boolean;
         originalMessage: string;
       }
+      
+      interface ToolDetectionBuffer {
+        buffer: string;
+        detectedTools: string[];
+        processChunk(chunk: string): { content: string; tools: string[] };
+        clear(): void;
+      }
       ```
 
 ## Phase 2: バックエンド - メッセージハンドラーの更新
@@ -86,7 +93,7 @@ tools: fs_read,github_mcp
         // 既存フィールド...
         currentTools: string[]; // 新規追加
         toolBuffer: string; // 新規追加
-        toolDetectionBuffer: any; // 新規追加
+        toolDetectionBuffer: ToolDetectionBuffer; // 新規追加
       }
       ```
 
@@ -237,7 +244,7 @@ tools: fs_read,github_mcp
     - [ ] バックエンドからのツール情報を処理
       ```typescript
       export function handleStreamingResponse(
-        data: any,
+        data: QResponseEvent,
         // ... 既存パラメータ
       ): void {
         // 既存の処理...
