@@ -38,6 +38,10 @@ export interface QProcessSession {
   initializationBuffer: string[];
   initializationPhase: boolean;
   initializationTimeout?: NodeJS.Timeout;
+  // ツール管理用フィールド（新規追加）
+  currentTools: string[];
+  toolBuffer: string;
+  toolDetectionBuffer: IToolDetectionBuffer;
 }
 
 // Amazon Q プロセスオプション型
@@ -85,6 +89,8 @@ export interface QResponseEventData {
   content: string;
   type: 'stdout' | 'stderr' | 'info' | 'error' | 'complete';
   timestamp: Timestamp;
+  tools?: string[]; // 新規追加
+  hasToolContent?: boolean; // 新規追加
 }
 
 // Amazon Q エラーイベント型
@@ -150,6 +156,39 @@ export type MessageClassification =
 
 // 情報メッセージタイプ型
 export type InfoMessageType = 'thinking' | 'initialization' | 'system' | 'general' | 'other';
+
+// ツール情報型
+export interface ToolInfo {
+  name: string;
+  detected: boolean;
+  timestamp: number;
+}
+
+// QResponseEvent型（WebSocket用）
+export interface QResponseEvent {
+  sessionId: string;
+  data: string;
+  type: 'stream' | 'error' | 'info' | 'completion';
+  tools?: string[]; // 新規追加
+  hasToolContent?: boolean; // 新規追加
+}
+
+// 解析済みメッセージ型
+export interface ParsedMessage {
+  content: string;
+  tools: string[];
+  hasToolContent: boolean;
+  originalMessage: string;
+}
+
+// ツール検出バッファインターフェース
+export interface IToolDetectionBuffer {
+  processChunk(chunk: string): { content: string; tools: string[] };
+  clear(): void;
+  hasIncompletePattern(): boolean;
+  getDetectedTools(): string[];
+  getBufferContent(): string;
+}
 
 // 型ガード関数
 export function isQProcessSession(obj: unknown): obj is QProcessSession {
