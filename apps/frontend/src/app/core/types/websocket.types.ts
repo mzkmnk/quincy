@@ -20,7 +20,8 @@ export type WebSocketEventType =
   | 'session_failed'
   | 'project_history'
   | 'all_projects_history'
-  | 'project_history_detailed';
+  | 'project_history_detailed'
+  | 'database-changed-with-chat';
 
 // WebSocketメッセージ基底型
 export interface BaseWebSocketMessage {
@@ -94,6 +95,22 @@ export interface SessionFailedMessage extends BaseWebSocketMessage {
   projectPath?: string;
 }
 
+// 最後のチャットメッセージ
+export interface LastChatMessage {
+  userMessage: string;
+  aiResponse: string;
+  timestamp: string;
+  turnId: string;
+}
+
+// データベース変更イベント（チャット内容付き）
+export interface DatabaseChangeEventWithChat extends BaseWebSocketMessage {
+  type: 'database-changed-with-chat';
+  filePath: string;
+  changeType: 'add' | 'modified' | 'deleted';
+  latestChat: LastChatMessage | null;
+}
+
 // WebSocketメッセージのユニオン型
 export type WebSocketMessage =
   | WebSocketErrorMessage
@@ -102,7 +119,8 @@ export type WebSocketMessage =
   | QInfoMessage
   | QCompletionMessage
   | SessionStartedMessage
-  | SessionFailedMessage;
+  | SessionFailedMessage
+  | DatabaseChangeEventWithChat;
 
 // WebSocketイベントリスナー型
 export type WebSocketEventListener<T extends WebSocketMessage = WebSocketMessage> = (
@@ -153,4 +171,10 @@ export function isSessionStartedMessage(
 
 export function isSessionFailedMessage(message: WebSocketMessage): message is SessionFailedMessage {
   return message.type === 'session_failed';
+}
+
+export function isDatabaseChangeEventWithChat(
+  message: WebSocketMessage
+): message is DatabaseChangeEventWithChat {
+  return message.type === 'database-changed-with-chat';
 }

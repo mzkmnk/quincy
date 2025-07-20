@@ -14,6 +14,7 @@ import { AppStore } from '../../core/store/app.state';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { MessageListComponent } from '../../shared/components/message-list/message-list.component';
 import { MessageInputComponent } from '../../shared/components/message-input/message-input.component';
+import { ChatNotificationComponent } from '../../shared/components/chat-notification/chat-notification.component';
 
 import { ChatHeaderComponent } from './components/chat-header/chat-header.component';
 import {
@@ -47,6 +48,7 @@ import {
   getProjectName,
   getProjectPathFromConversation,
 } from './utils';
+import { DatabaseChangeHandlerService } from './services/chat-websocket/setup-database-change-handlers';
 
 @Component({
   selector: 'app-chat',
@@ -58,6 +60,7 @@ import {
     ChatErrorComponent,
     ChatMessagesComponent,
     EmptyStateComponent,
+    ChatNotificationComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -127,12 +130,16 @@ import {
           <app-empty-state class="h-full"></app-empty-state>
         }
       </div>
+
+      <!-- Chat Notification (Global) -->
+      <app-chat-notification></app-chat-notification>
     </div>
   `,
 })
 export class ChatComponent implements OnInit, OnDestroy {
   protected appStore = inject(AppStore);
   protected websocket = inject(WebSocketService);
+  private databaseChangeHandler = inject(DatabaseChangeHandlerService);
 
   // Child component references
   chatMessages = viewChild(ChatMessagesComponent);
@@ -196,6 +203,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Cleanup WebSocket listeners
     cleanupChatWebSocketListeners(this.websocket);
+    // Cleanup database change handlers
+    this.databaseChangeHandler.cleanup();
   }
 
   ngOnInit(): void {
@@ -203,6 +212,9 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (!this.websocket.connected()) {
       this.websocket.connect();
     }
+
+    // Setup database change handlers
+    this.databaseChangeHandler.setupHandlers();
   }
 
   clearSessionError(): void {

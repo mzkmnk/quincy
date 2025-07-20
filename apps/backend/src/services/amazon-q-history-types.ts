@@ -127,12 +127,25 @@ export function isResponse(
   return 'Response' in content;
 }
 
+// 新しいAPIでの会話ターン型定義
+export interface ConversationTurnSimple {
+  turn_id: string;
+  user_message: {
+    message: string;
+    timestamp: string;
+  };
+  ai_response: {
+    message: string;
+    timestamp: string;
+  };
+}
+
 // 拡張された AmazonQConversation 型定義
 export interface AmazonQConversationWithHistory {
   conversation_id: string;
   model: string;
-  history?: HistoryData;
-  tools: string[];
-  context_manager: Record<string, unknown>;
-  latest_summary: string | null;
+  history?: HistoryData | ConversationTurnSimple[] | null;
+  tools?: string[];
+  context_manager?: Record<string, unknown>;
+  latest_summary?: string | null;
 }
