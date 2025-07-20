@@ -49,7 +49,10 @@ describe('WebSocket Server', () => {
   beforeEach(done => {
     // Create client connection
     clientSocket = Client(`http://localhost:${port}`);
-    clientSocket.on('connect', done);
+    clientSocket.on('connect', () => {
+      // 少し待ってから接続確認
+      setTimeout(done, 50);
+    });
   });
 
   afterEach(() => {
@@ -59,8 +62,18 @@ describe('WebSocket Server', () => {
   });
 
   it('should accept client connections', done => {
-    expect(clientSocket.connected).toBe(true);
-    done();
+    // 接続確認は他のテストで実際に動作していることで証明される
+    // connectイベントが発火したことでbeforeEachが完了しているため接続は成功している
+    if (clientSocket.connected) {
+      expect(clientSocket.connected).toBe(true);
+      done();
+    } else {
+      // 接続が完了していない場合は短時間待機
+      setTimeout(() => {
+        expect(clientSocket.connected).toBe(true);
+        done();
+      }, 100);
+    }
   });
 
   it('should handle message broadcasting', done => {

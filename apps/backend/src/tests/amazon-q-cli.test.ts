@@ -5,14 +5,15 @@
 
 import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
+import { vi } from 'vitest';
 
 import { AmazonQCLIService, QProcessOptions } from '../services/amazon-q-cli';
 import * as pathValidator from '../utils/path-validator';
 import * as cliValidator from '../utils/cli-validator';
 
 // 外部依存関係のモック
-jest.mock('child_process');
-jest.mock('util');
+vi.mock('child_process');
+vi.mock('util');
 
 // Child processのモック型定義
 interface MockChildProcess extends EventEmitter {
@@ -20,10 +21,10 @@ interface MockChildProcess extends EventEmitter {
   stdout: EventEmitter;
   stderr: EventEmitter;
   stdin: {
-    write: jest.Mock;
+    write: ReturnType<typeof vi.fn>;
     destroyed: boolean;
   };
-  kill: jest.Mock;
+  kill: ReturnType<typeof vi.fn>;
   killed: boolean;
 }
 
@@ -33,42 +34,43 @@ mockChildProcess.pid = 12345;
 mockChildProcess.stdout = new EventEmitter();
 mockChildProcess.stderr = new EventEmitter();
 mockChildProcess.stdin = {
-  write: jest.fn(),
+  write: vi.fn(),
   destroyed: false,
 };
-mockChildProcess.kill = jest.fn();
+mockChildProcess.kill = vi.fn();
 mockChildProcess.killed = false;
 
-jest.mock('child_process', () => ({
-  spawn: jest.fn(() => {
+vi.mock('child_process', () => ({
+  spawn: vi.fn(() => {
     // spawn後にすぐにspawnイベントを発行（非同期で）
     setTimeout(() => {
       mockChildProcess.emit('spawn');
     }, 10);
     return mockChildProcess;
   }),
+  exec: vi.fn(),
 }));
 
 describe('AmazonQCLIService', () => {
   let service: AmazonQCLIService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // パス検証のモック - 常に成功を返す
-    jest.spyOn(pathValidator, 'validateProjectPath').mockResolvedValue({
+    vi.spyOn(pathValidator, 'validateProjectPath').mockResolvedValue({
       valid: true,
       normalizedPath: '/test/path'
     });
     
     // CLI可用性チェックのモック - 常に成功を返す
-    jest.spyOn(cliValidator, 'checkCLIAvailability').mockResolvedValue({
+    vi.spyOn(cliValidator, 'checkCLIAvailability').mockResolvedValue({
       available: true,
       path: 'q'
     });
     
-    jest.spyOn(cliValidator, 'isValidCLIPath').mockReturnValue(true);
-    jest.spyOn(cliValidator, 'getCLICandidates').mockReturnValue(['q', '/usr/local/bin/q']);
+    vi.spyOn(cliValidator, 'isValidCLIPath').mockReturnValue(true);
+    vi.spyOn(cliValidator, 'getCLICandidates').mockReturnValue(['q', '/usr/local/bin/q']);
     
     service = new AmazonQCLIService();
     
@@ -95,7 +97,7 @@ describe('AmazonQCLIService', () => {
     mockChildProcess.stderr.removeAllListeners();
     
     // spyの復元
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('インスタンス作成', () => {
