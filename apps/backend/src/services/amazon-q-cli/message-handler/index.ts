@@ -1,13 +1,3 @@
-export { handleStdout } from './handle-stdout';
-export { handleStderr } from './handle-stderr';
-export { classifyStderrMessage } from './classify-stderr-message';
-export { getInfoMessageType } from './get-info-message-type';
-export { shouldSkipOutput } from './should-skip-output';
-export { isThinkingMessage } from './is-thinking-message';
-export { isInitializationMessage } from './is-initialization-message';
-export { isInitializationComplete } from './is-initialization-complete';
-export { shouldSkipThinking } from './should-skip-thinking';
-export { updateThinkingState } from './update-thinking-state';
-export { shouldSkipDuplicateInfo } from './should-skip-duplicate-info';
+// 簡素化されたメッセージハンドラー（SQLite3変更検知により大幅削減）
 export { setupProcessHandlers } from './setup-process-handlers';
-export { isToolUsageLine } from './is-tool-usage-line';
+export { isThinkingMessage } from './is-thinking-message';
