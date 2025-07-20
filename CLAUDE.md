@@ -104,31 +104,52 @@ The system includes advanced tool detection and display capabilities:
 - **Type Safety**: Full TypeScript support with comprehensive type definitions
 - **Testing**: 182+ backend tests including tool detection, parsing, and integration scenarios
 
-#### New Modular Architecture (After Refactoring)
+#### SQLite3-Centric Architecture (Latest)
 
-The backend has been refactored into a modular, 1-file-1-function architecture:
+The system has been transformed into a SQLite3-centric architecture with simplified child_process management:
 
-- **Services** (`src/services/`):
-  - `amazon-q-cli/`: Amazon Q CLI integration with sub-modules:
-    - `buffer-manager/`: Output buffer management functions
-    - `cli-checker/`: CLI availability validation
-    - `message-handler/`: Message processing and classification
-    - `process-manager/`: Process lifecycle management
-    - `session-manager/`: Session state management
-  - `amazon-q-history/`: History data retrieval functions
-  - `amazon-q-history-transformer/`: History data transformation
-  - `amazon-q-message-formatter/`: Message formatting for display
-  - `amazon-q-message-parser/`: Tool detection and parsing (NEW)
-    - `parse-tool-usage.ts`: Tool pattern detection with regex `/\[Tool uses: ([^\]]+)\]/g`
-    - `extract-content-and-tools.ts`: Content/tool separation and cleaning
-    - `tool-detection-buffer.ts`: Streaming buffer for split tool patterns
-  - `websocket/`: WebSocket functionality with sub-modules:
-    - `amazon-q-handler/`: Amazon Q specific WebSocket handlers
-    - `connection-manager/`: Connection lifecycle management
-    - `error-handler/`: Error handling utilities
-    - `event-setup/`: Event handler setup
-    - `message-handler/`: Message processing
-    - `room-manager/`: Room management functionality
+- **Core Architecture Principle**: Database-first approach using Amazon Q's official SQLite3 storage
+- **Data Flow**: SQLite3 changes → Real-time detection → WebSocket notification → UI update
+- **Performance**: 1,115 lines of code reduced through stream processing elimination
+
+**Services** (`src/services/`):
+
+- `amazon-q-cli/`: Simplified Amazon Q CLI integration:
+  - `cli-checker/`: CLI availability validation
+  - `message-handler/`: Minimal process monitoring (2 functions only)
+    - `setup-process-handlers.ts`: Basic process lifecycle monitoring
+    - `is-thinking-message.ts`: Thinking state detection
+  - `process-manager/`: Essential process lifecycle management
+  - `session-manager/`: Session state management
+- `amazon-q-history/`: **SQLite3-centric data retrieval**:
+  - `database-watcher/`: **Real-time SQLite3 change detection**
+    - `watch-database.ts`: chokidar v4.0.3 file monitoring with 200ms debounce
+    - `database-change-handler-with-chat.ts`: Change detection + latest chat extraction
+    - `database-change-handler.ts`: Basic change notification
+  - `get-latest-conversation-entry.ts`: Latest conversation retrieval from SQLite3
+  - `extract-last-chat-message.ts`: Chat message extraction and formatting
+  - Core history data retrieval functions
+- `amazon-q-history-transformer/`: History data transformation
+- `amazon-q-message-formatter/`: Message formatting for display
+- `amazon-q-message-parser/`: Tool detection and parsing
+  - `parse-tool-usage.ts`: Tool pattern detection with regex `/\[Tool uses: ([^\]]+)\]/g`
+  - `extract-content-and-tools.ts`: Content/tool separation and cleaning
+  - `tool-detection-buffer.ts`: Streaming buffer for split tool patterns
+- `websocket/`: **Optimized WebSocket functionality**:
+  - `amazon-q-handler/`: Minimal Amazon Q WebSocket handlers
+    - `setup-q-cli-event-handlers.ts`: Essential events only (`q:error`, `q:complete`, `session:aborted`)
+  - `connection-manager/`: Connection lifecycle management
+  - `error-handler/`: Error handling utilities
+  - `event-setup/`: Event handler setup
+  - `message-handler/`: Message processing
+  - `room-manager/`: Room management functionality
+
+**Eliminated Components** (SQLite3 migration):
+
+- ~~`buffer-manager/`~~: Complex stdout/stderr buffering (deleted)
+- ~~`message-handler/handle-stdout.ts`~~: Stream processing (deleted)
+- ~~`message-handler/handle-stderr.ts`~~: Error stream processing (deleted)
+- ~~WebSocket events~~: `q:response`, `q:info` (replaced by SQLite3 polling)
 
 - **Utilities** (`src/utils/`):
   - `ansi-stripper/`: ANSI escape code removal
@@ -159,29 +180,32 @@ The backend has been refactored into a modular, 1-file-1-function architecture:
 - Uses Karma/Jasmine for testing
 - Standard Angular CLI project structure
 
-#### New Modular Architecture (After Refactoring)
+#### SQLite3-Integrated Frontend Architecture
 
-The frontend has been refactored into a modular, 1-file-1-function architecture:
+The frontend has been enhanced to work seamlessly with the SQLite3-centric backend:
 
 - **Core Services** (`src/app/core/services/`):
-  - `websocket/`: WebSocket service with sub-modules:
+  - `websocket/`: **SQLite3-aware WebSocket service**:
     - `connection/`: Connection lifecycle management
     - `amazon-q-history/`: History data retrieval functions
     - `chat/`: Chat message handling
     - `project-session/`: Project session management
+    - `database-change/`: **SQLite3 change detection handlers**
+      - `handle-database-change-with-chat.ts`: Real-time database change processing
+      - `database-change.spec.ts`: Comprehensive integration tests
 
 - **State Management** (`src/app/core/store/`):
   - `project/`: Project state management with actions and selectors
   - `session/`: Session state management
   - `amazon-q-history/`: Amazon Q history state management
-  - `chat/`: Chat message state management (extended with tool support)
-  - `app.state.ts`: Unified state management with backward compatibility
+  - `chat/`: **Enhanced chat state management** (SQLite3 notifications + tool support)
+  - `app.state.ts`: Unified state management with SQLite3 change integration
 
 - **Components** (`src/app/features/chat/`):
   - `components/`: Child components (chat-header, session-start, chat-error, etc.)
-  - `services/`: Component-specific services including tool-aware handlers:
-    - `chat-websocket/`: WebSocket handlers with tool detection support
-    - `message-streaming/`: Streaming handlers with tool information processing
+  - `services/`: **Optimized component services**:
+    - `chat-websocket/`: Simplified WebSocket handlers (SQLite3-focused)
+    - `message-streaming/`: Reduced streaming handlers (tool information processing only)
     - `session-manager/`: Session management
   - `utils/`: Utility functions (message-index-manager, session-status-checker)
 
@@ -190,6 +214,7 @@ The frontend has been refactored into a modular, 1-file-1-function architecture:
   - `path-selector/`: Path selector with validation and session starting
   - `message-input/`: Message input with composition state management
   - `amazon-q-message/`: Enhanced message component with tool display functionality
+  - `chat-notification/`: **Real-time SQLite3 change notifications**
 
 - **Utilities** (`src/app/shared/utils/`):
   - `validators/`: Input validation functions
@@ -199,10 +224,19 @@ The frontend has been refactored into a modular, 1-file-1-function architecture:
 
 - **Type Definitions** (`src/app/core/types/` and `src/app/shared/types/`):
   - `common.types.ts`: Common type definitions and type guards
-  - `websocket.types.ts`: WebSocket-related type definitions (extended with tool fields)
+  - `websocket.types.ts`: **Extended WebSocket types** (database change events + tools)
+    - `DatabaseChangeEventWithChat`: SQLite3 change notification with chat data
+    - `LastChatMessage`: Extracted chat message format
   - `amazon-q.types.ts`: Amazon Q-specific type definitions
-  - `tool-display.types.ts`: Tool display type definitions and validation (NEW)
+  - `tool-display.types.ts`: Tool display type definitions and validation
   - `ui.types.ts`: UI component type definitions
+
+**SQLite3 Integration Features**:
+
+- **Real-time Notifications**: Automatic UI updates when SQLite3 database changes
+- **Optimized Data Flow**: Direct database polling instead of complex streaming
+- **Reduced Complexity**: Simplified event handling with focused WebSocket events
+- **Enhanced Reliability**: Database-first approach ensures data consistency
 
 ## Key Configuration Files
 
