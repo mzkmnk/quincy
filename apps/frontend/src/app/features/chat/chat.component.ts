@@ -92,7 +92,7 @@ import {
           ></app-chat-error>
         } @else if (appStore.currentQConversation()) {
           <!-- Amazon Q Conversation History (Read-Only) -->
-          <div class="flex-1 overflow-y-auto">
+          <div class="flex-1">
             @if (appStore.qHistoryLoading()) {
               <div class="text-center py-8">
                 <div class="text-lg text-[var(--text-secondary)]">
