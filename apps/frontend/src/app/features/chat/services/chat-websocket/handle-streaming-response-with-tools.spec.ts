@@ -111,7 +111,7 @@ describe('handleStreamingResponseWithTools', () => {
         sessionId: 'q_session_123',
         tools: ['fs_read'],
         hasToolContent: true,
-      } as Record<string, unknown>;
+      } as { sessionId: string; tools: string[]; hasToolContent: boolean };
       const sessionId = 'q_session_123';
 
       handleStreamingResponseWithTools(responseData, sessionId, onHandleStreamingMock);

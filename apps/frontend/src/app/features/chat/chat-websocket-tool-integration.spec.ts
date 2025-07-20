@@ -36,9 +36,9 @@ describe('チャットWebSocketツール統合', () => {
             }
           );
         },
-        onError: vi.fn(),
-        onInfo: vi.fn(),
-        onCompletion: vi.fn(),
+        onQError: vi.fn(),
+        onQInfo: vi.fn(),
+        onQCompletion: vi.fn(),
       };
 
       handlers.onQResponse(responseData);
@@ -66,9 +66,9 @@ describe('チャットWebSocketツール統合', () => {
             }
           );
         },
-        onError: vi.fn(),
-        onInfo: vi.fn(),
-        onCompletion: vi.fn(),
+        onQError: vi.fn(),
+        onQInfo: vi.fn(),
+        onQCompletion: vi.fn(),
       };
 
       handlers.onQResponse(responseData);
@@ -98,9 +98,9 @@ describe('チャットWebSocketツール統合', () => {
             }
           );
         },
-        onError: vi.fn(),
-        onInfo: vi.fn(),
-        onCompletion: vi.fn(),
+        onQError: vi.fn(),
+        onQInfo: vi.fn(),
+        onQCompletion: vi.fn(),
       };
 
       handlers.onQResponse(responseData);

@@ -18,7 +18,7 @@ describe('addMessageWithTools', () => {
     mockAppStore = {
       currentQSession: () => mockCurrentSession,
       addChatMessage: vi.fn(),
-    } as AppStore;
+    } as unknown as AppStore;
 
     mockScrollToBottomRequest = {
       set: vi.fn(),
@@ -101,7 +101,7 @@ describe('addMessageWithTools', () => {
     });
 
     test('セッションIDがない場合の処理', () => {
-      mockAppStore.currentQSession = () => null;
+      (mockAppStore as unknown as { currentQSession: () => null }).currentQSession = () => null;
       const content = 'テストメッセージ';
 
       const messageId = addMessageWithTools(
