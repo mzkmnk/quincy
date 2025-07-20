@@ -3,35 +3,35 @@
 
 # Paths to ignore completely
 paths-ignore:
-  - "**/*.lock"  # Package lock files often contain dependency names that trigger false positives
-  - "**/node_modules/**"
-  - "**/dist/**"
-  - "**/build/**"
-  - "**/coverage/**"
+  - '**/*.lock' # Package lock files often contain dependency names that trigger false positives
+  - '**/node_modules/**'
+  - '**/dist/**'
+  - '**/build/**'
+  - '**/coverage/**'
 
 # Specific patterns to ignore as false positives
 detectors:
   # Ignore npm package names that contain 'password' keyword
-  - name: "npm-password-packages"
-    match: "@inquirer/password"
-    comment: "Inquirer.js password input package - legitimate dependency"
-  
+  - name: 'npm-password-packages'
+    match: '@inquirer/password'
+    comment: 'Inquirer.js password input package - legitimate dependency'
+
   # Common false positives in lock files
-  - name: "dependency-false-positives"
-    match: "password.*(@types/node|inquirer)"
+  - name: 'dependency-false-positives'
+    match: 'password.*(@types/node|inquirer)'
     comment: "TypeScript types and inquirer dependencies with 'password' in name"
 
 # File-specific ignores
 files-ignore:
-  - path: "pnpm-lock.yaml"
+  - path: 'pnpm-lock.yaml'
     detectors:
-      - "generic-password"
-    comment: "Package lock file contains dependency names, not actual secrets"
-  
-  - path: "package-lock.json"
+      - 'generic-password'
+    comment: 'Package lock file contains dependency names, not actual secrets'
+
+  - path: 'package-lock.json'
     detectors:
-      - "generic-password" 
-    comment: "Package lock file contains dependency names, not actual secrets"
+      - 'generic-password'
+    comment: 'Package lock file contains dependency names, not actual secrets'
 
 # Global settings
 ignore-known-secrets: true
