@@ -72,7 +72,7 @@ export function setupProcessHandlers(
 
     const completeEvent: QCompleteEvent = {
       sessionId: session.sessionId,
-      exitCode: code || -1,
+      exitCode: code ?? -1,
     };
 
     emitCallback('q:complete', completeEvent);

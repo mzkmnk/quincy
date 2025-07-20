@@ -8,11 +8,17 @@ describe('Performance Tests', () => {
   let service: AmazonQCLIService;
 
   beforeEach(() => {
+    // EventEmitterの最大リスナー数を増加
+    process.setMaxListeners(50);
     service = new AmazonQCLIService();
+    service.setMaxListeners(50);
   });
 
   afterEach(async (): Promise<void> => {
     await service.terminateAllSessions();
+    service.removeAllListeners();
+    // プロセスのリスナー数をリセット
+    process.setMaxListeners(10);
   });
 
   describe('ID生成パフォーマンス', () => {
@@ -26,8 +32,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
-      console.log(`Generated ${iterations} message IDs in ${duration.toFixed(2)}ms`);
 
       // 1万回の生成が100ms以下で完了すること
       expect(duration).toBeLessThan(100);
@@ -43,8 +47,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
-      console.log(`Generated ${iterations} session IDs in ${duration.toFixed(2)}ms`);
 
       // 1万回の生成が100ms以下で完了すること
       expect(duration).toBeLessThan(100);
@@ -79,8 +81,6 @@ describe('Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      console.log(`Stripped ANSI codes from ${iterations} short texts in ${duration.toFixed(2)}ms`);
-
       // 1万回の処理が50ms以下で完了すること
       expect(duration).toBeLessThan(50);
     });
@@ -97,8 +97,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
-      console.log(`Stripped ANSI codes from ${iterations} long texts in ${duration.toFixed(2)}ms`);
 
       // 1000回の処理が1000ms以下で完了すること
       expect(duration).toBeLessThan(1000);
@@ -118,8 +116,6 @@ describe('Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      console.log(`Validated ${iterations} valid paths in ${duration.toFixed(2)}ms`);
-
       // 100回の検証が適切な時間で完了すること
       expect(duration).toBeLessThan(2000);
     });
@@ -135,8 +131,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
-      console.log(`Validated ${iterations} invalid paths in ${duration.toFixed(2)}ms`);
 
       // 100回の検証が適切な時間で完了すること
       expect(duration).toBeLessThan(2000);
@@ -154,8 +148,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
-      console.log(`Checked CLI availability ${iterations} times in ${duration.toFixed(2)}ms`);
 
       // 10回のチェックが5000ms以下で完了すること
       expect(duration).toBeLessThan(5000);
@@ -175,17 +167,8 @@ describe('Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      console.log(
-        `Initialized Amazon Q CLI service ${iterations} times in ${duration.toFixed(2)}ms`
-      );
-
       // 100回の初期化が1000ms以下で完了すること
       expect(duration).toBeLessThan(1000);
-    });
-
-    it.skip('WebSocketサービスの初期化が高速に実行されること (requires HTTP server)', () => {
-      // WebSocketServiceはHTTPサーバーが必要なため、単体テストではスキップ
-      console.log('WebSocketサービスの初期化テストはHTTPサーバーが必要なためスキップしました');
     });
   });
 
@@ -220,10 +203,6 @@ describe('Performance Tests', () => {
       const afterMemory = getMemoryUsage();
       const memoryIncrease = afterMemory - initialMemory;
 
-      console.log(`Initial memory: ${(initialMemory / 1024 / 1024).toFixed(2)} MB`);
-      console.log(`After memory: ${(afterMemory / 1024 / 1024).toFixed(2)} MB`);
-      console.log(`Memory increase: ${(memoryIncrease / 1024 / 1024).toFixed(2)} MB`);
-
       // メモリ増加が10MB以下であること
       expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024);
     });
@@ -243,8 +222,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
-      console.log(`Generated ${iterations} message IDs concurrently in ${duration.toFixed(2)}ms`);
 
       // 結果の重複チェック
       const uniqueResults = new Set(results);
@@ -268,8 +245,6 @@ describe('Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      console.log(`Validated ${iterations} paths concurrently in ${duration.toFixed(2)}ms`);
-
       // 全て有効なパスなので全てtrueであること
       results.forEach(result => {
         expect(result.valid).toBe(true);
@@ -285,7 +260,6 @@ describe('Performance Tests', () => {
       const startTime = performance.now();
       const iterations = 100; // 非同期なので少し減らす
       let errorCount = 0;
-      let successCount = 0;
 
       for (let i = 0; i < iterations; i++) {
         try {
@@ -293,8 +267,6 @@ describe('Performance Tests', () => {
           const result = await validateProjectPath('');
           if (!result.valid) {
             errorCount++;
-          } else {
-            successCount++;
           }
         } catch {
           errorCount++;
@@ -303,10 +275,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
-      console.log(
-        `Handled ${errorCount} errors and ${successCount} successes in ${duration.toFixed(2)}ms`
-      );
 
       // 全てエラーになることが期待される（validateProjectPathは例外を投げずにresultを返す）
       expect(errorCount).toBe(iterations);
@@ -336,8 +304,6 @@ describe('Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      console.log(`Performed ${iterations} type checks in ${duration.toFixed(2)}ms`);
-
       // 型チェックが500ms以下で完了すること（実際の環境では最適化される）
       expect(duration).toBeLessThan(500);
     });
@@ -355,8 +321,6 @@ describe('Performance Tests', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
-
-      console.log(`Called stripAnsiCodes ${iterations} times in ${duration.toFixed(2)}ms`);
 
       // 10万回の呼び出しが500ms以下で完了すること
       expect(duration).toBeLessThan(500);

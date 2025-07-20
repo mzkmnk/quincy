@@ -28,6 +28,10 @@ Thumbs.db
 .vscode
 .idea
 
+# Cache directories
+.claude
+.angular
+
 # Temporary files
 *.tmp
 *.temp

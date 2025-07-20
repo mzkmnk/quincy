@@ -9,11 +9,18 @@ export function classifyStderrMessage(message: string): 'info' | 'error' | 'skip
   // 完全にスキップすべきパターン
   const skipPatterns = [
     /^\s*$/, // 空白のみ
-    /^\s*\p{Cc}\s*$/u, // 制御文字のみ（Unicode対応）
+    // eslint-disable-next-line no-control-regex
+    /^[\x00-\x1F\x7F\s]*$/, // 制御文字のみ（改行文字含む）
     /^\s*[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏⠿⠾⠽⠻⠺⠯⠟⠞⠜⠛⠚⠉⠈⠁]\s*$/, // スピナー文字のみ
     /^\s*\d+\s*\d*\s*$/, // 数字のみの断片
     /^\s*[[{]+\s*$/u, // 開いた括弧のみ
-    /^\s*m\p{Cc}*\s*$/u, // エスケープ文字の残骸
+    // eslint-disable-next-line no-control-regex
+    /^\s*m[\x00-\x1F\x7F]*\s*$/u, // エスケープ文字の残骸
+    /^[\u2800-\u28FF\s]*$/, // Brailleパターンのみ
+    /^[\u2500-\u257F\s]*$/, // Unicodeボックス描画文字のみ
+    /^[\u23C0-\u23FF\s]*$/, // CJK統合漢字拡張（装飾文字）のみ
+    /^[▁▂▃▄▅▆▇█░▒▓■□▪▫▬▭▮▯―\s]*$/, // プログレスバー文字のみ
+    /^[\u00A0\u1680\u2000-\u200B\u202F\u205F\u3000\uFEFF\s]*$/, // Unicodeスペース文字のみ
   ];
 
   if (skipPatterns.some(pattern => pattern.test(trimmed))) {

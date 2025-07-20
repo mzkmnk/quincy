@@ -17,6 +17,7 @@
     "build": "pnpm build:shared && pnpm build:backend && pnpm build:frontend",
     "preview:docs": "pnpm --filter docs preview",
     "test:backend": "pnpm --filter backend test",
+    "test:backend:watch": "pnpm --filter backend test:watch",
     "test:frontend": "pnpm --filter frontend test",
     "test:frontend:watch": "pnpm --filter frontend test --watch",
     "test": "pnpm test:backend && pnpm test:frontend",

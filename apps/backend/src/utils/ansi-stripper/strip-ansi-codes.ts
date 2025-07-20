@@ -32,44 +32,55 @@ export function stripAnsiCodes(text: string): string {
   cleanText = cleanText.replace(/\x1b[NOPVWXYZ\\^_]/g, '');
   cleanText = cleanText.replace(/\x1b[#()*/+-]/g, '');
 
-  // 2. スピナー文字を除去（より包括的）
-  const spinnerRegex = /[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏⠿⠾⠽⠻⠺⠯⠟⠞⠜⠛⠚⠉⠈⠁]/g;
-  cleanText = cleanText.replace(spinnerRegex, '');
+  // 2. スピナー文字を除去（より包括的 - Brailleパターン全体）
+  // Brailleパターン（U+2800-U+28FF）を完全に除去
+  cleanText = cleanText.replace(/[\u2800-\u28FF]/g, '');
 
   // 3. プログレスバー文字を除去
   cleanText = cleanText.replace(/[▁▂▃▄▅▆▇█░▒▓■□▪▫▬▭▮▯―]/g, '');
 
-  // 4. その他の特殊文字
+  // 4. Unicodeボックス描画文字（U+2500-U+257F）を除去
+  cleanText = cleanText.replace(/[\u2500-\u257F]/g, '');
+
+  // 5. CJK統合漢字拡張（装飾文字）の一部を除去
+  // ⣀-⣿ (U+23C0-U+23FF) の範囲を除去
+  cleanText = cleanText.replace(/[\u23C0-\u23FF]/g, '');
+
+  // 6. その他の特殊文字
   cleanText = cleanText.replace(/[♠♣♥♦♪♫]/g, '');
 
-  // 5. 制御文字を除去（改行文字は除く）
+  // 7. Unicodeスペース文字（通常のスペース以外）を除去
+  // ⠀ (U+2800) などのBrailleスペースを含む
+  cleanText = cleanText.replace(/[\u00A0\u1680\u2000-\u200B\u202F\u205F\u3000\uFEFF]/g, '');
+
+  // 8. 制御文字を除去（改行文字は除く）
   cleanText = cleanText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
-  // 6. 文字列の始まりや終わりにある不完全なエスケープシーケンス
+  // 9. 文字列の始まりや終わりにある不完全なエスケープシーケンス
   cleanText = cleanText.replace(/^\x1b.*?(?=[a-zA-Z0-9]|$)/g, '');
   cleanText = cleanText.replace(/\x1b[^a-zA-Z]*$/g, '');
 
-  // 7. ANSIカラーコードの残骸（数字の断片）を除去
+  // 10. ANSIカラーコードの残骸（数字の断片）を除去
   // "787878"や"78"のような数字の並びがテキストの前に現れる場合
   cleanText = cleanText.replace(/^[\d;]+(?=\S)/g, '');
 
-  // 8. 数字のみの断片（"7 8"のような）を除去
+  // 11. 数字のみの断片（"7 8"のような）を除去
   cleanText = cleanText.replace(/^\s*\d+\s*\d*\s*$/g, '');
 
-  // 9. 開いた括弧のみ（"[[[" のような）を除去
+  // 12. 開いた括弧のみ（"[[[" のような）を除去
   cleanText = cleanText.replace(/^\s*[\[{]+\s*$/g, '');
 
-  // 10. 連続する数字の断片をテキストから除去（より積極的）
+  // 13. 連続する数字の断片をテキストから除去（より積極的）
   cleanText = cleanText.replace(/(\d{2,})\s*(?=[\u2713\u2717✓✗])/g, ''); // チェックマーク前の数字
   cleanText = cleanText.replace(/^(\d+)\s*(\S)/g, '$2'); // 行の先頭の数字を除去
 
-  // 11. 重複するThinkingを統合（行内に複数のThinkingがある場合）
+  // 14. 重複するThinkingを統合（行内に複数のThinkingがある場合）
   cleanText = cleanText.replace(/(thinking\.?\.?\.?\s*){2,}/gi, 'Thinking...');
 
-  // 12. バックスペースとカリッジリターンを正規化
+  // 15. バックスペースとカリッジリターンを正規化
   cleanText = cleanText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-  // 13. 余分な空白を正規化（ただし、意味のある構造は保持）
+  // 16. 余分な空白を正規化（ただし、意味のある構造は保持）
   cleanText = cleanText.replace(/[ \t]+/g, ' ');
   cleanText = cleanText.replace(/\n\s+\n/g, '\n\n');
   cleanText = cleanText.replace(/^\s+|\s+$/g, '');

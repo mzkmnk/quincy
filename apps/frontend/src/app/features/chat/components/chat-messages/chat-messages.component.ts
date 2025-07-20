@@ -1,4 +1,4 @@
-import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { MessageListComponent } from '../../../../shared/components/message-list/message-list.component';
@@ -44,4 +44,7 @@ export class ChatMessagesComponent {
 
   messageSent = output<{ content: string }>();
   clearError = output<void>();
+
+  // Child component reference
+  messageList = viewChild(MessageListComponent);
 }

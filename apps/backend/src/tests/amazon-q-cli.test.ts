@@ -6,11 +6,15 @@
 import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
 
-import { AmazonQCLIService, QProcessOptions } from '../services/amazon-q-cli';
+import { vi } from 'vitest';
 
-// child_processとutilのモック
-jest.mock('child_process');
-jest.mock('util');
+import { AmazonQCLIService, QProcessOptions } from '../services/amazon-q-cli';
+import * as pathValidator from '../utils/path-validator';
+import * as cliValidator from '../utils/cli-validator';
+
+// 外部依存関係のモック
+vi.mock('child_process');
+vi.mock('util');
 
 // Child processのモック型定義
 interface MockChildProcess extends EventEmitter {
@@ -18,10 +22,10 @@ interface MockChildProcess extends EventEmitter {
   stdout: EventEmitter;
   stderr: EventEmitter;
   stdin: {
-    write: jest.Mock;
+    write: ReturnType<typeof vi.fn>;
     destroyed: boolean;
   };
-  kill: jest.Mock;
+  kill: ReturnType<typeof vi.fn>;
   killed: boolean;
 }
 
@@ -31,36 +35,70 @@ mockChildProcess.pid = 12345;
 mockChildProcess.stdout = new EventEmitter();
 mockChildProcess.stderr = new EventEmitter();
 mockChildProcess.stdin = {
-  write: jest.fn(),
+  write: vi.fn(),
   destroyed: false,
 };
-mockChildProcess.kill = jest.fn();
+mockChildProcess.kill = vi.fn();
 mockChildProcess.killed = false;
 
-jest.mock('child_process', () => ({
-  spawn: jest.fn(() => {
+vi.mock('child_process', () => ({
+  spawn: vi.fn(() => {
     // spawn後にすぐにspawnイベントを発行（非同期で）
     setTimeout(() => {
       mockChildProcess.emit('spawn');
     }, 10);
     return mockChildProcess;
   }),
+  exec: vi.fn(),
 }));
 
 describe('AmazonQCLIService', () => {
   let service: AmazonQCLIService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
+
+    // パス検証のモック - 常に成功を返す
+    vi.spyOn(pathValidator, 'validateProjectPath').mockResolvedValue({
+      valid: true,
+      normalizedPath: '/test/path',
+    });
+
+    // CLI可用性チェックのモック - 常に成功を返す
+    vi.spyOn(cliValidator, 'checkCLIAvailability').mockResolvedValue({
+      available: true,
+      path: 'q',
+    });
+
+    vi.spyOn(cliValidator, 'isValidCLIPath').mockReturnValue(true);
+    vi.spyOn(cliValidator, 'getCLICandidates').mockReturnValue(['q', '/usr/local/bin/q']);
+
     service = new AmazonQCLIService();
+
+    // EventEmitterの最大リスナー数を増加
+    service.setMaxListeners(20);
 
     // モック状態のリセット
     mockChildProcess.killed = false;
     mockChildProcess.stdin.destroyed = false;
+
+    // EventEmitterのリセット
+    mockChildProcess.removeAllListeners();
+    mockChildProcess.stdout.removeAllListeners();
+    mockChildProcess.stderr.removeAllListeners();
   });
 
   afterEach(async (): Promise<void> => {
     await service.terminateAllSessions();
+
+    // EventEmitterのクリーンアップ
+    service.removeAllListeners();
+    mockChildProcess.removeAllListeners();
+    mockChildProcess.stdout.removeAllListeners();
+    mockChildProcess.stderr.removeAllListeners();
+
+    // spyの復元
+    vi.restoreAllMocks();
   });
 
   describe('インスタンス作成', () => {
@@ -255,48 +293,57 @@ describe('AmazonQCLIService', () => {
   });
 
   describe('イベント処理', () => {
-    it('プロセスの標準出力をq:responseイベントとして発行すること', done => {
+    it('プロセスの標準出力をq:responseイベントとして発行すること', async () => {
       const options: QProcessOptions = { workingDir: '/test/path' };
 
-      service.on('q:response', data => {
-        expect(data.data).toBe('Hello from Q CLI');
-        expect(data.type).toBe('stream');
-        expect(data.sessionId).toMatch(/^q_session_/);
-        done();
+      const promise = new Promise<void>(resolve => {
+        service.on('q:response', data => {
+          expect(data.data).toBe('Hello from Q CLI');
+          expect(data.type).toBe('stream');
+          expect(data.sessionId).toMatch(/^q_session_/);
+          resolve();
+        });
       });
 
-      service.startSession('help', options).then(() => {
-        mockChildProcess.stdout.emit('data', Buffer.from('Hello from Q CLI'));
-      });
+      await service.startSession('help', options);
+      mockChildProcess.stdout.emit('data', Buffer.from('Hello from Q CLI'));
+
+      await promise;
     });
 
-    it('プロセスのエラー出力をq:errorイベントとして発行すること', done => {
+    it('プロセスのエラー出力をq:errorイベントとして発行すること', async () => {
       const options: QProcessOptions = { workingDir: '/test/path' };
 
-      service.on('q:error', data => {
-        expect(data.error).toBe('Error message');
-        expect(data.code).toBe('STDERR');
-        expect(data.sessionId).toMatch(/^q_session_/);
-        done();
+      const promise = new Promise<void>(resolve => {
+        service.on('q:error', data => {
+          expect(data.error).toBe('Error message');
+          expect(data.code).toBe('STDERR');
+          expect(data.sessionId).toMatch(/^q_session_/);
+          resolve();
+        });
       });
 
-      service.startSession('help', options).then(() => {
-        mockChildProcess.stderr.emit('data', Buffer.from('Error message'));
-      });
+      await service.startSession('help', options);
+      mockChildProcess.stderr.emit('data', Buffer.from('Error message'));
+
+      await promise;
     });
 
-    it('プロセス終了をq:completeイベントとして発行すること', done => {
+    it('プロセス終了をq:completeイベントとして発行すること', async () => {
       const options: QProcessOptions = { workingDir: '/test/path' };
 
-      service.on('q:complete', data => {
-        expect(data.exitCode).toBe(0);
-        expect(data.sessionId).toMatch(/^q_session_/);
-        done();
+      const promise = new Promise<void>(resolve => {
+        service.on('q:complete', data => {
+          expect(data.exitCode).toBe(0);
+          expect(data.sessionId).toMatch(/^q_session_/);
+          resolve();
+        });
       });
 
-      service.startSession('help', options).then(() => {
-        mockChildProcess.emit('exit', 0, null);
-      });
+      await service.startSession('help', options);
+      mockChildProcess.emit('exit', 0, null);
+
+      await promise;
     });
   });
 

@@ -76,5 +76,36 @@ describe('ANSI文字列除去ユーティリティ', () => {
       const result = stripAnsiCodes(input);
       expect(result).toBe('ncomplete sequence text');
     });
+
+    // 実際のログで見つかったUnicode文字混在メッセージのテストケース
+    it('実際のAmazon Qスピナー文字を完全に除去する', () => {
+      const input = '⢠⣶⣶⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣶⣿⣿⣿⣶⣦⡀⠀';
+      const result = stripAnsiCodes(input);
+      expect(result).toBe('');
+    });
+
+    it('Unicode装飾文字を含むメッセージを正しく処理する', () => {
+      const input = '⠀⠀⠀⣾⡿⢻⣿⡆⠀⠀⠀⢀⣄⡄⢀⣠⣤⣤⡀⢀⣠⣤⣤⡀⠀⠀⢀⣠⣤⣤⣤⣄⠀⠀⢀⣤⣤⣤⣤⣤⣤⡀⠀⠀⣀⣤⣤⣤⣀⠀⠀⠀⢠⣤⡀⣀⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⢠⣿⣿⠀⠀⠀⣿⣿⡆';
+      const result = stripAnsiCodes(input);
+      expect(result).toBe('');
+    });
+
+    it('Unicode文字とテキストが混在する場合の処理', () => {
+      const input = '⢠⣶ Hello Amazon Q ⣶⣦⠀';
+      const result = stripAnsiCodes(input);
+      expect(result).toBe('Hello Amazon Q');
+    });
+
+    it('Unicodeスペースとテキストの処理', () => {
+      const input = "⠀⠀⠀Hello! I'm Amazon Q⠀⠀⠀";
+      const result = stripAnsiCodes(input);
+      expect(result).toBe("Hello! I'm Amazon Q");
+    });
+
+    it('複数のUnicodeブロック文字の除去', () => {
+      const input = '█▓▒░⣿⣶⣦⡀';
+      const result = stripAnsiCodes(input);
+      expect(result).toBe('');
+    });
   });
 });

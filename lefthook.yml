@@ -1,0 +1,17 @@
+pre-commit:
+  parallel: true
+  commands:
+    prettier:
+      run: |
+        pnpm run format:write
+      stage_fixed: true
+      skip:
+        - merge
+        - rebase
+    eslint:
+      run: |
+        pnpm run lint:fix
+      stage_fixed: true
+      skip:
+        - merge
+        - rebase
