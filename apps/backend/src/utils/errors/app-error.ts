@@ -32,7 +32,7 @@ export abstract class AppError extends Error {
   /**
    * エラーのJSON表現を取得
    */
-  toJSON() {
+  toJSON(): Record<string, unknown> {
     return {
       name: this.name,
       code: this.code,
@@ -40,22 +40,25 @@ export abstract class AppError extends Error {
       statusCode: this.statusCode,
       details: this.details,
       timestamp: this.timestamp,
-      stack: this.stack
+      stack: this.stack,
     };
   }
 
   /**
    * クライアント向けのエラーレスポンスを取得
    */
-  toClientResponse() {
+  toClientResponse(): {
+    success: false;
+    error: { code: ErrorCode; message: string; details?: unknown; timestamp: string };
+  } {
     return {
       success: false,
       error: {
         code: this.code,
         message: this.message,
-        details: this.details
+        details: this.details,
+        timestamp: new Date(this.timestamp).toISOString(),
       },
-      timestamp: this.timestamp
     };
   }
 }

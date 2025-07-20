@@ -9,7 +9,9 @@
  * @returns ランダムな英数字文字列
  */
 export function generateRandomString(length: number = 9): string {
-  return Math.random().toString(36).substring(2, 2 + length);
+  return Math.random()
+    .toString(36)
+    .substring(2, 2 + length);
 }
 
 /**

@@ -4,14 +4,14 @@ export const routes: Routes = [
   {
     path: '',
     redirectTo: '/chat',
-    pathMatch: 'full'
+    pathMatch: 'full',
   },
   {
     path: 'chat',
-    loadComponent: () => import('./features/chat/chat.component').then(m => m.ChatComponent)
+    loadComponent: () => import('./features/chat/chat.component').then(m => m.ChatComponent),
   },
   {
     path: '**',
-    redirectTo: '/chat'
-  }
+    redirectTo: '/chat',
+  },
 ];

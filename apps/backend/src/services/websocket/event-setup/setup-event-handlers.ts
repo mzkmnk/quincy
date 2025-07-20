@@ -1,19 +1,19 @@
 import type { Server as SocketIOServer } from 'socket.io';
-import type { 
-  ClientToServerEvents, 
-  ServerToClientEvents, 
-  InterServerEvents, 
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
   SocketData,
   MessageSendEvent,
   RoomData,
   QCommandEvent,
   QMessageEvent,
   QAbortEvent,
-  QProjectStartEvent
+  QProjectStartEvent,
 } from '@quincy/shared';
+
 import type { AmazonQCLIService } from '../../amazon-q-cli';
 import type { AmazonQHistoryService } from '../../amazon-q-history';
-
 // Import handlers
 import { handleConnection, handleDisconnection } from '../connection-manager';
 import { handleRoomJoin, handleRoomLeave, userRooms } from '../room-manager';
@@ -28,7 +28,7 @@ import {
   handleQProjects,
   handleQResume,
   handleQProjectStart,
-  cleanupSocketFromSessions
+  cleanupSocketFromSessions,
 } from '../amazon-q-handler';
 
 export function setupEventHandlers(
@@ -42,16 +42,16 @@ export function setupEventHandlers(
       // Initialize socket data
       socket.data = {
         rooms: [],
-        sessionId: undefined
+        sessionId: undefined,
       };
-      
+
       next();
-    } catch (error) {
+    } catch {
       next(new Error('Connection validation failed'));
     }
   });
 
-  io.on('connection', (socket) => {
+  io.on('connection', socket => {
     handleConnection(socket);
 
     // Handle message sending
@@ -75,9 +75,15 @@ export function setupEventHandlers(
     });
 
     // Handle Amazon Q message sending
-    socket.on('q:message', async (data: QMessageEvent, ack?: (response: { success: boolean; error?: string }) => void) => {
-      await handleQMessage(socket, data, qCliService, sendError, ack);
-    });
+    socket.on(
+      'q:message',
+      async (
+        data: QMessageEvent,
+        ack?: (response: { success: boolean; error?: string }) => void
+      ) => {
+        await handleQMessage(socket, data, qCliService, sendError, ack);
+      }
+    );
 
     // Handle Amazon Q CLI abort
     socket.on('q:abort', (data: QAbortEvent) => {
@@ -115,16 +121,16 @@ export function setupEventHandlers(
     });
 
     // Handle disconnection
-    socket.on('disconnect', (reason) => {
+    socket.on('disconnect', () => {
       handleDisconnection(socket, userRooms, cleanupSocketFromSessions);
     });
 
     // Handle connection errors
-    socket.on('error', (error) => {
+    socket.on('error', () => {
       sendError(socket, 'SOCKET_ERROR', 'WebSocket connection error');
     });
   });
-  
+
   // グローバルエラーハンドリングを設定
   setupGlobalErrorHandling(io);
 }

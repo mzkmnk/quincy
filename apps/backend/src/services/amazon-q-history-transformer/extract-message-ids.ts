@@ -7,7 +7,7 @@ import { isToolUseResponse, isResponse } from '../amazon-q-history-types';
 
 export function extractMessageIds(entries: HistoryEntry[]): string[] {
   const messageIds: string[] = [];
-  
+
   for (const entry of entries) {
     const [, responseMessage] = entry;
     if (isToolUseResponse(responseMessage)) {
@@ -16,6 +16,6 @@ export function extractMessageIds(entries: HistoryEntry[]): string[] {
       messageIds.push(responseMessage.Response.message_id);
     }
   }
-  
+
   return messageIds;
 }

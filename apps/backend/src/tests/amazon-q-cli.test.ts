@@ -3,9 +3,10 @@
  * TDD approach: テストファーストで実装
  */
 
-import { AmazonQCLIService, QProcessOptions, QProcessSession } from '../services/amazon-q-cli';
+import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import { ChildProcess } from 'child_process';
+
+import { AmazonQCLIService, QProcessOptions } from '../services/amazon-q-cli';
 
 // child_processとutilのモック
 jest.mock('child_process');
@@ -31,7 +32,7 @@ mockChildProcess.stdout = new EventEmitter();
 mockChildProcess.stderr = new EventEmitter();
 mockChildProcess.stdin = {
   write: jest.fn(),
-  destroyed: false
+  destroyed: false,
 };
 mockChildProcess.kill = jest.fn();
 mockChildProcess.killed = false;
@@ -43,10 +44,8 @@ jest.mock('child_process', () => ({
       mockChildProcess.emit('spawn');
     }, 10);
     return mockChildProcess;
-  })
+  }),
 }));
-
-const { spawn } = require('child_process');
 
 describe('AmazonQCLIService', () => {
   let service: AmazonQCLIService;
@@ -54,13 +53,13 @@ describe('AmazonQCLIService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     service = new AmazonQCLIService();
-    
+
     // モック状態のリセット
     mockChildProcess.killed = false;
     mockChildProcess.stdin.destroyed = false;
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     await service.terminateAllSessions();
   });
 
@@ -74,7 +73,7 @@ describe('AmazonQCLIService', () => {
   describe('startSession', () => {
     it('基本的なコマンドでセッションを開始できること', async () => {
       const options: QProcessOptions = {
-        workingDir: '/test/path'
+        workingDir: '/test/path',
       };
 
       const sessionId = await service.startSession('help', options);
@@ -85,20 +84,22 @@ describe('AmazonQCLIService', () => {
         stdio: ['pipe', 'pipe', 'pipe'],
         env: expect.objectContaining({
           AWS_PAGER: '',
-          NO_COLOR: '1'
-        })
+          NO_COLOR: '1',
+        }),
       });
     });
 
     it('modelオプション付きでセッションを開始できること', async () => {
       const options: QProcessOptions = {
         workingDir: '/test/path',
-        model: 'claude-3-sonnet'
+        model: 'claude-3-sonnet',
       };
 
       await service.startSession('chat "Hello"', options);
 
-      expect(spawn).toHaveBeenCalledWith('q', ['--model', 'claude-3-sonnet', 'chat', '"Hello"'], 
+      expect(spawn).toHaveBeenCalledWith(
+        'q',
+        ['--model', 'claude-3-sonnet', 'chat', '"Hello"'],
         expect.objectContaining({ cwd: '/test/path' })
       );
     });
@@ -106,12 +107,14 @@ describe('AmazonQCLIService', () => {
     it('resumeオプション付きでセッションを開始できること', async () => {
       const options: QProcessOptions = {
         workingDir: '/test/path',
-        resume: true
+        resume: true,
       };
 
       await service.startSession('status', options);
 
-      expect(spawn).toHaveBeenCalledWith('q', ['--resume', 'status'],
+      expect(spawn).toHaveBeenCalledWith(
+        'q',
+        ['--resume', 'status'],
         expect.objectContaining({ cwd: '/test/path' })
       );
     });
@@ -120,12 +123,14 @@ describe('AmazonQCLIService', () => {
       const options: QProcessOptions = {
         workingDir: '/test/path',
         model: 'claude-3-sonnet',
-        resume: true
+        resume: true,
       };
 
       await service.startSession('chat test', options);
 
-      expect(spawn).toHaveBeenCalledWith('q', ['--model', 'claude-3-sonnet', '--resume', 'chat', 'test'],
+      expect(spawn).toHaveBeenCalledWith(
+        'q',
+        ['--model', 'claude-3-sonnet', '--resume', 'chat', 'test'],
         expect.objectContaining({ cwd: '/test/path' })
       );
     });
@@ -161,7 +166,7 @@ describe('AmazonQCLIService', () => {
     it('実行中セッションに入力を送信できること', async () => {
       const options: QProcessOptions = { workingDir: '/test/path' };
       const sessionId = await service.startSession('help', options);
-      
+
       // セッションを手動で実行中状態に設定
       const session = service.getSession(sessionId);
       if (session) {
@@ -182,7 +187,7 @@ describe('AmazonQCLIService', () => {
     it('実行中ではないセッションへの入力はfalseを返すこと', async () => {
       const options: QProcessOptions = { workingDir: '/test/path' };
       const sessionId = await service.startSession('help', options);
-      
+
       // セッションを完了状態に設定
       const session = service.getSession(sessionId);
       if (session) {
@@ -197,7 +202,7 @@ describe('AmazonQCLIService', () => {
   describe('セッション管理', () => {
     it('アクティブセッション一覧を取得できること', async () => {
       const options: QProcessOptions = { workingDir: '/test/path' };
-      
+
       const sessionId1 = await service.startSession('help', options);
       const sessionId2 = await service.startSession('status', options);
 
@@ -209,9 +214,9 @@ describe('AmazonQCLIService', () => {
     });
 
     it('指定セッションの情報を取得できること', async () => {
-      const options: QProcessOptions = { 
+      const options: QProcessOptions = {
         workingDir: '/test/path',
-        model: 'claude-3-sonnet'
+        model: 'claude-3-sonnet',
       };
       const sessionId = await service.startSession('help', options);
 
@@ -237,7 +242,7 @@ describe('AmazonQCLIService', () => {
         status: expect.stringMatching(/^(starting|running)$/), // starting または running を許可
         workingDir: '/test/path',
         command: 'help',
-        isActive: true
+        isActive: true,
       });
       expect(typeof stats?.runtime).toBe('number');
       expect(stats?.runtime).toBeGreaterThanOrEqual(0);
@@ -250,10 +255,10 @@ describe('AmazonQCLIService', () => {
   });
 
   describe('イベント処理', () => {
-    it('プロセスの標準出力をq:responseイベントとして発行すること', (done) => {
+    it('プロセスの標準出力をq:responseイベントとして発行すること', done => {
       const options: QProcessOptions = { workingDir: '/test/path' };
 
-      service.on('q:response', (data) => {
+      service.on('q:response', data => {
         expect(data.data).toBe('Hello from Q CLI');
         expect(data.type).toBe('stream');
         expect(data.sessionId).toMatch(/^q_session_/);
@@ -265,10 +270,10 @@ describe('AmazonQCLIService', () => {
       });
     });
 
-    it('プロセスのエラー出力をq:errorイベントとして発行すること', (done) => {
+    it('プロセスのエラー出力をq:errorイベントとして発行すること', done => {
       const options: QProcessOptions = { workingDir: '/test/path' };
 
-      service.on('q:error', (data) => {
+      service.on('q:error', data => {
         expect(data.error).toBe('Error message');
         expect(data.code).toBe('STDERR');
         expect(data.sessionId).toMatch(/^q_session_/);
@@ -280,10 +285,10 @@ describe('AmazonQCLIService', () => {
       });
     });
 
-    it('プロセス終了をq:completeイベントとして発行すること', (done) => {
+    it('プロセス終了をq:completeイベントとして発行すること', done => {
       const options: QProcessOptions = { workingDir: '/test/path' };
 
-      service.on('q:complete', (data) => {
+      service.on('q:complete', data => {
         expect(data.exitCode).toBe(0);
         expect(data.sessionId).toMatch(/^q_session_/);
         done();
@@ -298,7 +303,7 @@ describe('AmazonQCLIService', () => {
   describe('リソース管理', () => {
     it('全セッションを終了できること', async () => {
       const options: QProcessOptions = { workingDir: '/test/path' };
-      
+
       await service.startSession('help', options);
       await service.startSession('status', options);
 
@@ -308,7 +313,7 @@ describe('AmazonQCLIService', () => {
 
       // 少し待ってkillが呼ばれたことを確認
       await new Promise(resolve => setTimeout(resolve, 50));
-      
+
       expect(mockChildProcess.kill).toHaveBeenCalledTimes(2);
     });
   });

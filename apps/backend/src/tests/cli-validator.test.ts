@@ -23,8 +23,8 @@ describe('CLI検証ユーティリティ', () => {
     });
 
     it('null/undefinedを拒否する', () => {
-      expect(isValidCLIPath(null as any)).toBe(false);
-      expect(isValidCLIPath(undefined as any)).toBe(false);
+      expect(isValidCLIPath(null as unknown as string)).toBe(false);
+      expect(isValidCLIPath(undefined as unknown as string)).toBe(false);
     });
 
     it('危険な文字を含むパスを拒否する', () => {
@@ -66,10 +66,10 @@ describe('CLI検証ユーティリティ', () => {
   describe('checkCLIAvailability', () => {
     it('利用可能性チェック結果を返す', async () => {
       const result = await checkCLIAvailability();
-      
+
       expect(result).toHaveProperty('available');
       expect(typeof result.available).toBe('boolean');
-      
+
       if (result.available) {
         expect(result).toHaveProperty('path');
         expect(typeof result.path).toBe('string');
@@ -82,7 +82,7 @@ describe('CLI検証ユーティリティ', () => {
     it('CLIが見つからない場合、適切なエラーメッセージを返す', async () => {
       // 実際のシステムに依存するため、CLIが見つからない場合のテスト
       const result = await checkCLIAvailability();
-      
+
       if (!result.available) {
         expect(result.error).toContain('Amazon Q CLI not found');
         expect(result.error).toContain('Tried paths:');

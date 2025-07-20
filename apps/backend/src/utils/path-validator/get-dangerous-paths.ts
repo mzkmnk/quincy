@@ -17,7 +17,7 @@ export const DANGEROUS_PATHS: readonly string[] = [
   '/var',
   '/tmp',
   '/System',
-  '/Applications'
+  '/Applications',
 ] as const;
 
 /**

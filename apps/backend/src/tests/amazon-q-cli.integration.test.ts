@@ -3,14 +3,13 @@
  * 複数のコンポーネントを組み合わせた統合テスト
  */
 
+import { EventEmitter } from 'events';
+import { promisify } from 'util';
+
 import { AmazonQCLIService } from '../services/amazon-q-cli';
 import { validateProjectPath } from '../utils/path-validator';
-import { generateSessionId } from '../utils/id-generator';
 import { stripAnsiCodes } from '../utils/ansi-stripper';
 import { checkCLIAvailability } from '../utils/cli-validator';
-import { EventEmitter } from 'events';
-import { ChildProcess } from 'child_process';
-import path from 'path';
 
 // 統合テスト用のモック設定
 jest.mock('child_process');
@@ -18,13 +17,25 @@ jest.mock('fs');
 jest.mock('util');
 
 // 統合テスト用のモック設定
-const mockChildProcess = new EventEmitter() as any;
+interface MockChildProcess extends EventEmitter {
+  pid: number;
+  stdout: EventEmitter;
+  stderr: EventEmitter;
+  stdin: {
+    write: jest.Mock;
+    destroyed: boolean;
+  };
+  kill: jest.Mock;
+  killed: boolean;
+}
+
+const mockChildProcess = new EventEmitter() as MockChildProcess;
 mockChildProcess.pid = 12345;
 mockChildProcess.stdout = new EventEmitter();
 mockChildProcess.stderr = new EventEmitter();
 mockChildProcess.stdin = {
   write: jest.fn(),
-  destroyed: false
+  destroyed: false,
 };
 mockChildProcess.kill = jest.fn();
 mockChildProcess.killed = false;
@@ -35,21 +46,19 @@ jest.mock('child_process', () => ({
       mockChildProcess.emit('spawn');
     }, 10);
     return mockChildProcess;
-  })
+  }),
 }));
 
 // fs.existsSync のモック
 const mockExistsSync = jest.fn();
 jest.mock('fs', () => ({
-  existsSync: mockExistsSync
+  existsSync: mockExistsSync,
 }));
 
 // util.promisify のモック
 jest.mock('util', () => ({
-  promisify: jest.fn(() => 
-    jest.fn().mockResolvedValue({ stdout: 'q version 1.0.0', stderr: '' })
-  ),
-  deprecate: jest.fn((fn, message) => fn)
+  promisify: jest.fn(() => jest.fn().mockResolvedValue({ stdout: 'q version 1.0.0', stderr: '' })),
+  deprecate: jest.fn(fn => fn),
 }));
 
 describe('Amazon Q CLI Service Integration Test', () => {
@@ -60,16 +69,16 @@ describe('Amazon Q CLI Service Integration Test', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     service = new AmazonQCLIService();
-    
+
     // モックの基本設定
     mockChildProcess.killed = false;
     mockChildProcess.stdin.destroyed = false;
     mockExistsSync.mockReturnValue(true);
-    
+
     // モックの基本設定をリセット
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     await service.terminateAllSessions();
   });
 
@@ -82,7 +91,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
       // 2. セッション作成
       const sessionId = await service.startSession(testCommand, {
         workingDir: testWorkingDir,
-        model: 'claude-3-sonnet'
+        model: 'claude-3-sonnet',
       });
 
       // セッションIDの形式確認
@@ -108,7 +117,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
 
       // 2. セッション作成
       const sessionId = await service.startSession('help', {
-        workingDir: testWorkingDir
+        workingDir: testWorkingDir,
       });
 
       // 3. ANSI文字列を含む出力のシミュレーション
@@ -124,7 +133,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
         status: expect.stringMatching(/^(starting|running)$/),
         workingDir: testWorkingDir,
         command: 'help',
-        isActive: true
+        isActive: true,
       });
     });
 
@@ -133,7 +142,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
       const sessionIds = await Promise.all([
         service.startSession('help', { workingDir: testWorkingDir }),
         service.startSession('status', { workingDir: testWorkingDir }),
-        service.startSession('chat "test"', { workingDir: testWorkingDir })
+        service.startSession('chat "test"', { workingDir: testWorkingDir }),
       ]);
 
       // 2. 全セッションの確認
@@ -147,7 +156,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
 
       // 4. 全セッション終了
       await service.terminateAllSessions();
-      
+
       // 少し待ってkillが呼ばれたことを確認
       await new Promise(resolve => setTimeout(resolve, 50));
       expect(mockChildProcess.kill).toHaveBeenCalled();
@@ -157,22 +166,23 @@ describe('Amazon Q CLI Service Integration Test', () => {
   describe('エラーハンドリング統合テスト', () => {
     it('無効なパスでのセッション作成時にエラーが適切に処理されること', async () => {
       mockExistsSync.mockReturnValue(false);
-      
+
       const invalidPath = '/invalid/path';
       const pathValidation = await validateProjectPath(invalidPath);
       expect(pathValidation.valid).toBe(false);
       expect(pathValidation.error).toContain('does not exist');
 
       // セッション作成時のエラー処理
-      await expect(service.startSession(testCommand, {
-        workingDir: invalidPath
-      })).rejects.toThrow();
+      await expect(
+        service.startSession(testCommand, {
+          workingDir: invalidPath,
+        })
+      ).rejects.toThrow();
     });
 
     it('CLIが利用不可能な場合のエラー処理が統合的に動作すること', async () => {
       // CLI検証の失敗をシミュレート
-      const { promisify } = require('util');
-      promisify.mockReturnValueOnce(
+      (promisify as unknown as jest.Mock).mockReturnValueOnce(
         jest.fn().mockRejectedValue(new Error('q: command not found'))
       );
 
@@ -183,12 +193,12 @@ describe('Amazon Q CLI Service Integration Test', () => {
 
     it('プロセスエラーとイベント発行の統合処理が正常に動作すること', async () => {
       const sessionId = await service.startSession(testCommand, {
-        workingDir: testWorkingDir
+        workingDir: testWorkingDir,
       });
 
       // エラーイベントのリスナー設定
-      return new Promise<void>((resolve) => {
-        service.on('q:error', (data) => {
+      return new Promise<void>(resolve => {
+        service.on('q:error', data => {
           expect(data.sessionId).toBe(sessionId);
           expect(data.error).toBe('Process error');
           expect(data.code).toBe('STDERR');
@@ -205,7 +215,7 @@ describe('Amazon Q CLI Service Integration Test', () => {
     it('セッション作成からクリーンアップまでのリソース管理が適切に動作すること', async () => {
       // 1. セッション作成
       const sessionId = await service.startSession(testCommand, {
-        workingDir: testWorkingDir
+        workingDir: testWorkingDir,
       });
 
       // 2. セッション実行時のリソース確認
@@ -214,11 +224,11 @@ describe('Amazon Q CLI Service Integration Test', () => {
       expect(sessionBeforeComplete?.pid).toBe(12345);
 
       // 3. セッション完了イベントの発行
-      return new Promise<void>((resolve) => {
-        service.on('q:complete', (data) => {
+      return new Promise<void>(resolve => {
+        service.on('q:complete', data => {
           expect(data.sessionId).toBe(sessionId);
           expect(data.exitCode).toBe(0);
-          
+
           // 4. セッション完了後のクリーンアップ確認
           setTimeout(() => {
             const sessionAfterComplete = service.getSession(sessionId);
@@ -234,14 +244,14 @@ describe('Amazon Q CLI Service Integration Test', () => {
 
     it('異常終了時のリソースクリーンアップが統合的に動作すること', async () => {
       const sessionId = await service.startSession(testCommand, {
-        workingDir: testWorkingDir
+        workingDir: testWorkingDir,
       });
 
-      return new Promise<void>((resolve) => {
-        service.on('q:error', (data) => {
+      return new Promise<void>(resolve => {
+        service.on('q:error', data => {
           expect(data.sessionId).toBe(sessionId);
           expect(data.code).toBe('PROCESS_ERROR');
-          
+
           // 異常終了後のセッション状態確認
           setTimeout(() => {
             const session = service.getSession(sessionId);
@@ -258,8 +268,8 @@ describe('Amazon Q CLI Service Integration Test', () => {
 
   describe('イベント統合テスト', () => {
     it('複数のイベントが順序立てて発行されること', async () => {
-      const sessionId = await service.startSession(testCommand, {
-        workingDir: testWorkingDir
+      service.startSession('test message', {
+        workingDir: testWorkingDir,
       });
 
       const events: string[] = [];
@@ -269,11 +279,11 @@ describe('Amazon Q CLI Service Integration Test', () => {
       service.on('q:error', () => events.push('error'));
       service.on('q:complete', () => events.push('complete'));
 
-      return new Promise<void>((resolve) => {
+      return new Promise<void>(resolve => {
         let eventCount = 0;
         const expectedEvents = 3;
 
-        const checkComplete = () => {
+        const checkComplete = (): void => {
           eventCount++;
           if (eventCount === expectedEvents) {
             expect(events).toEqual(['response', 'error', 'complete']);
@@ -289,11 +299,11 @@ describe('Amazon Q CLI Service Integration Test', () => {
         setTimeout(() => {
           mockChildProcess.stdout.emit('data', Buffer.from('Output'));
         }, 10);
-        
+
         setTimeout(() => {
           mockChildProcess.stderr.emit('data', Buffer.from('Warning'));
         }, 20);
-        
+
         setTimeout(() => {
           mockChildProcess.emit('exit', 0, null);
         }, 30);

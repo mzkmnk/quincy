@@ -3,13 +3,17 @@
  */
 
 import Database from 'better-sqlite3';
+
 import type { AmazonQConversationWithHistory } from '../amazon-q-history-types';
+
 import { DB_PATH, SQL_QUERIES } from './constants';
 
-export async function findByConversationId(conversationId: string): Promise<{ projectPath: string; conversation: AmazonQConversationWithHistory } | null> {
+export async function findByConversationId(
+  conversationId: string
+): Promise<{ projectPath: string; conversation: AmazonQConversationWithHistory } | null> {
   try {
     const db = new Database(DB_PATH, { readonly: true });
-    
+
     try {
       const stmt = db.prepare(SQL_QUERIES.GET_ALL_CONVERSATIONS);
       const results = stmt.all() as { key: string; value: string }[];
@@ -20,10 +24,10 @@ export async function findByConversationId(conversationId: string): Promise<{ pr
           if (conversation.conversation_id === conversationId) {
             return {
               projectPath: row.key,
-              conversation
+              conversation,
             };
           }
-        } catch (parseError) {
+        } catch {
           // パースエラーは無視して次の行を処理
         }
       }
@@ -32,7 +36,7 @@ export async function findByConversationId(conversationId: string): Promise<{ pr
     } finally {
       db.close();
     }
-  } catch (error) {
+  } catch {
     return null;
   }
 }

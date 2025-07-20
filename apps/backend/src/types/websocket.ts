@@ -97,18 +97,18 @@ export interface WebSocketEvents {
   // 接続関連
   connection: (socketId: string) => void;
   disconnection: (socketId: string, reason?: string) => void;
-  
+
   // メッセージ関連
   'message:send': (data: MessageSendEventData) => void;
   'message:broadcast': (data: MessageData) => void;
   'message:received': (data: MessageData) => void;
-  
+
   // ルーム関連
   'room:join': (data: RoomData) => void;
   'room:leave': (data: RoomData) => void;
   'room:joined': (data: RoomJoinedEventData) => void;
   'room:left': (data: RoomLeftEventData) => void;
-  
+
   // システム関連
   ping: () => void;
   pong: () => void;
@@ -137,7 +137,9 @@ export function isConnectionInfo(obj: unknown): obj is ConnectionInfo {
 }
 
 export function isMessageData(obj: unknown): obj is MessageData {
-  return typeof obj === 'object' && obj !== null && 'id' in obj && 'content' in obj && 'senderId' in obj;
+  return (
+    typeof obj === 'object' && obj !== null && 'id' in obj && 'content' in obj && 'senderId' in obj
+  );
 }
 
 export function isRoomData(obj: unknown): obj is RoomData {

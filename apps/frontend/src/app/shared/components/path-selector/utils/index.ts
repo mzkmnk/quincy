@@ -1,0 +1,6 @@
+export {
+  adjustTextareaHeight,
+  handleKeyDown,
+  toggleResumeOption,
+  selectFolder,
+} from './textarea-utils';

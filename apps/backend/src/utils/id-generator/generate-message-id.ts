@@ -2,8 +2,9 @@
  * メッセージID生成ユーティリティ
  */
 
-import { generateId } from './generate-id';
 import type { MessageId } from '../../types';
+
+import { generateId } from './generate-id';
 
 /**
  * メッセージ用のユニークなIDを生成する

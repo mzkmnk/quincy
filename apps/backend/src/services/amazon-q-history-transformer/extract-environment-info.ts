@@ -10,10 +10,10 @@ export function extractEnvironmentInfo(entries: HistoryEntry[]): EnvironmentStat
     const [inputMessage] = entries[0];
     return inputMessage.env_context.env_state;
   }
-  
+
   return {
     operating_system: 'unknown',
     current_working_directory: 'unknown',
-    environment_variables: []
+    environment_variables: [],
   };
 }

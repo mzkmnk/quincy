@@ -1,4 +1,5 @@
 import { ChildProcess } from 'child_process';
+
 import type { QProcessSession, QProcessOptions, SessionId } from '../../../types';
 
 export function createSession(
@@ -29,6 +30,6 @@ export function createSession(
     lastThinkingTime: 0,
     initializationBuffer: [],
     initializationPhase: true,
-    initializationTimeout: undefined
+    initializationTimeout: undefined,
   };
 }

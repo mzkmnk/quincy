@@ -3,7 +3,12 @@
  * 1ファイル1関数アーキテクチャによる再構築
  */
 
-import type { ConversationTurn, DisplayMessage, EnvironmentState, ToolUse } from '../amazon-q-history-types';
+import type {
+  ConversationTurn,
+  DisplayMessage,
+  EnvironmentState,
+  ToolUse,
+} from '../amazon-q-history-types';
 
 // 分離した関数をインポート
 import { convertToDisplayMessages } from './convert-to-display-messages';
@@ -71,7 +76,7 @@ export class MessageFormatter {
    * 表示設定に基づいてメッセージをフィルタリング
    */
   filterMessages(
-    messages: DisplayMessage[], 
+    messages: DisplayMessage[],
     options: {
       showThinking?: boolean;
       showEnvironmentInfo?: boolean;
@@ -95,5 +100,5 @@ export {
   formatStats,
   truncateContent,
   formatMarkdown,
-  filterMessages
+  filterMessages,
 };

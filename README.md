@@ -99,6 +99,7 @@ Amazon Q Developer UIは、Amazon Q Developer CLIの機能をブラウザから�
 ## 技術スタック
 
 ### フロントエンド
+
 - **Angular 20**: 最新のWebフレームワーク
 - **TypeScript**: 型安全な開発
 - **RxJS**: リアクティブプログラミング
@@ -108,6 +109,7 @@ Amazon Q Developer UIは、Amazon Q Developer CLIの機能をブラウザから�
 - **Socket.io Client**: WebSocket通信
 
 ### バックエンド
+
 - **Express.js**: Node.jsのWebフレームワーク
 - **Node.js**: JavaScriptランタイム
 - **TypeScript**: 型安全な開発
@@ -119,6 +121,7 @@ Amazon Q Developer UIは、Amazon Q Developer CLIの機能をブラウザから�
 ## セキュリティ
 
 ### 認証フロー
+
 ```
 ユーザー ─────► Amazon Q UI ─────► Amazon Q CLI ─────► AWS IAM Identity Center
                     │                    │
@@ -128,6 +131,7 @@ Amazon Q Developer UIは、Amazon Q Developer CLIの機能をブラウザから�
 ```
 
 ### セキュリティ原則
+
 1. **認証の委譲**: すべての認証はAmazon Q CLIに委譲
 2. **認証情報の非保持**: UIは認証情報を一切保持しない
 3. **プロセス分離**: 各セッションは独立したプロセスで実行
@@ -165,12 +169,14 @@ pnpm --filter frontend start
 ## 使用方法
 
 1. Amazon Q CLIが認証済みであることを確認
+
    ```bash
    q --version  # CLIがインストールされていることを確認
    q chat       # 認証状態を確認（正常に動作すること）
    ```
 
 2. アプリケーションを起動
+
    ```bash
    # 別々のターミナルで実行
    pnpm dev:backend
@@ -184,6 +190,7 @@ pnpm --filter frontend start
 ## 開発
 
 ### プロジェクト構造
+
 ```
 quincy/
 ├── apps/
@@ -231,6 +238,7 @@ pnpm --filter frontend lint
 ## トラブルシューティング
 
 ### Amazon Q CLIが見つからない
+
 ```bash
 # CLIのインストール
 brew install amazon-q  # macOS
@@ -241,13 +249,14 @@ q configure
 ```
 
 ### WebSocket接続エラー
+
 - バックエンドが起動していることを確認
 - ポート3000が使用されていないことを確認
 - CORSの設定を確認
 
 ### セッションが保存されない
+
 - プロジェクトディレクトリの書き込み権限を確認
 - ディスク容量を確認
-
 
 問題が発生した場合は、[Issues](https://github.com/yourusername/quincy/issues)で報告してください。

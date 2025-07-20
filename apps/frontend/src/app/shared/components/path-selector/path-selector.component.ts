@@ -1,13 +1,26 @@
-import { Component, signal, ViewChild, ElementRef, inject, ChangeDetectionStrategy, output } from '@angular/core';
+import {
+  Component,
+  signal,
+  ViewChild,
+  ElementRef,
+  inject,
+  ChangeDetectionStrategy,
+  output,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 import { TextareaModule } from 'primeng/textarea';
 import { CheckboxModule } from 'primeng/checkbox';
+import { Router } from '@angular/router';
+
 import { AppStore } from '../../../core/store/app.state';
 import { WebSocketService } from '../../../core/services/websocket.service';
-import { Router } from '@angular/router';
+
+import { validatePath, isValidPath, canStartProject } from './services/path-validator';
+import { startProject } from './services/session-starter';
+import { adjustTextareaHeight, handleKeyDown, toggleResumeOption, selectFolder } from './utils';
 
 export interface PathSelection {
   path: string;
@@ -19,20 +32,22 @@ export interface PathSelection {
   imports: [CommonModule, FormsModule, ButtonModule, TextareaModule, CheckboxModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: "min-w-full"
+    class: 'min-w-full',
   },
   template: `
     <div class="flex items-center justify-center">
-      <div class="flex w-8/12"> 
+      <div class="flex w-8/12">
         <!-- Path Input Area -->
-        <div class="flex gap-4 flex-col w-full bg-[var(--secondary-bg)] border-1 border-[var(--border-color)] rounded-3xl p-4 mb-4">
+        <div
+          class="flex gap-4 flex-col w-full bg-[var(--secondary-bg)] border-1 border-[var(--border-color)] rounded-3xl p-4 mb-4"
+        >
           <!-- Path Input -->
           <div>
             <textarea
               #pathTextarea
               [(ngModel)]="projectPath"
               (keydown)="onKeyDown($event)"
-              (input)="validatePath()"
+              (input)="onValidatePath()"
               placeholder="プロジェクトのパスを入力してください（例: /Users/username/my-project）"
               class="w-full focus:outline-none resize-none placeholder:text-[var(--text-muted)] border-0 p-2 bg-transparent text-[var(--text-primary)]"
               [class.border-red-300]="pathError()"
@@ -43,18 +58,16 @@ export interface PathSelection {
             }
           </div>
 
-
           <!-- Input Footer -->
           <div class="flex w-full justify-between">
-
             <!-- resume button -->
             <p-button
-              (onClick)="toggleResumeOption()"
+              (onClick)="onToggleResumeOption()"
               icon="pi pi-history"
               [style]="{
                 'background-color': 'transparent',
                 'border-color': 'transparent',
-                'color': resumeSession() ? 'var(--accent-blue)' : 'var(--text-muted)'
+                color: resumeSession() ? 'var(--accent-blue)' : 'var(--text-muted)',
               }"
               [text]="true"
               size="small"
@@ -64,7 +77,7 @@ export interface PathSelection {
 
             <!-- submit button  -->
             <p-button
-              (onClick)="startProject()"
+              (onClick)="onStartProject()"
               [disabled]="!canStart()"
               [loading]="starting()"
               icon="pi pi-arrow-right"
@@ -78,7 +91,7 @@ export interface PathSelection {
         </div>
       </div>
     </div>
-  `
+  `,
 })
 export class PathSelectorComponent {
   @ViewChild('pathTextarea') pathTextarea!: ElementRef<HTMLTextAreaElement>;
@@ -96,134 +109,48 @@ export class PathSelectorComponent {
   resumeSession = signal<boolean>(false);
   pathError = signal<string | null>(null);
 
-  canStart(): boolean {
-    return this.isValidPath() && !this.starting();
-  }
+  // 分離されたサービス関数をコンポーネントメソッドとして公開
+  canStart = (): boolean => {
+    return canStartProject(this.projectPath(), this.pathError(), this.starting());
+  };
 
-  isValidPath(): boolean {
-    return this.projectPath().trim().length > 0 && !this.pathError();
-  }
+  isValidPath = (): boolean => {
+    return isValidPath(this.projectPath(), this.pathError());
+  };
 
-  validatePath(): void {
-    const path = this.projectPath().trim();
+  onValidatePath = (): void => {
+    const path = this.projectPath();
+    const error = validatePath(path);
+    this.pathError.set(error);
+  };
 
-    if (!path) {
-      this.pathError.set('パスを入力してください');
-      return;
-    }
-
-    if (path.length < 2) {
-      this.pathError.set('有効なパスを入力してください');
-      return;
-    }
-
-    // 絶対パスチェック（Unix/Linux/Mac）
-    if (!path.startsWith('/') && !path.match(/^[A-Za-z]:\\/)) {
-      this.pathError.set('絶対パスを入力してください（例: /Users/username/project）');
-      return;
-    }
-
-    // 危険な文字列チェック
-    if (path.includes('..') || path.includes('//')) {
-      this.pathError.set('無効な文字が含まれています');
-      return;
-    }
-
-    this.pathError.set(null);
-  }
-
-  async startProject(): Promise<void> {
+  onStartProject = async (): Promise<void> => {
     if (!this.canStart()) return;
 
-    const path = this.projectPath().trim();
-    this.starting.set(true);
+    await startProject(
+      this.projectPath(),
+      this.resumeSession(),
+      this.websocket,
+      this.appStore,
+      this.messageService,
+      this.router,
+      this.starting
+    );
+  };
 
-    try {
-      console.log('Starting project session:', path);
+  onToggleResumeOption = (): void => {
+    toggleResumeOption(this.resumeSession(), this.resumeSession);
+  };
 
-      // WebSocket接続を確認
-      this.websocket.connect();
+  selectFolder = (): void => {
+    selectFolder(this.messageService);
+  };
 
-      // 現在の表示状態をクリアしてセッション開始状態をセット
-      this.appStore.clearCurrentView();
-      this.appStore.setSessionStarting(true);
+  onKeyDown = (event: KeyboardEvent): void => {
+    handleKeyDown(event, this.onStartProject, () => this.adjustTextareaHeight());
+  };
 
-      // プロジェクトセッションを開始
-      this.websocket.startProjectSession(path, this.resumeSession());
-
-      // セッション開始の通知を受け取るリスナーを設定
-      this.websocket.setupProjectSessionListeners((data) => {
-        console.log('Amazon Q session started:', data);
-
-        // アクティブセッションモードに切り替え
-        this.appStore.switchToActiveSession(data);
-
-        // チャット画面に移動
-        this.router.navigate(['/chat']);
-      });
-
-      // エラーハンドリングのリスナーを設定
-      this.websocket.on('error', (error: { code?: string; message?: string;[key: string]: unknown }) => {
-        console.error('WebSocket error:', error);
-
-        let userMessage = 'セッションの開始中にエラーが発生しました。';
-
-        if (error.code === 'Q_CLI_NOT_AVAILABLE' || error.code === 'Q_CLI_NOT_FOUND') {
-          userMessage = 'Amazon Q CLIが見つかりません。Amazon Q CLIをインストールしてから再度お試しください。';
-        } else if (error.code === 'Q_CLI_PERMISSION_ERROR') {
-          userMessage = 'Amazon Q CLIの実行権限がありません。ファイルの権限を確認してください。';
-        } else if (error.code === 'Q_CLI_SPAWN_ERROR') {
-          userMessage = 'Amazon Q CLIプロセスの起動に失敗しました。インストールを確認してください。';
-        }
-
-        // エラー状態をストアに保存
-        this.appStore.setSessionError(userMessage);
-        this.starting.set(false);
-      });
-
-    } catch (error) {
-      console.error('Error starting project session:', error);
-      this.appStore.setSessionError('プロジェクトセッションの開始中にエラーが発生しました。');
-      this.messageService.add({
-        severity: 'error',
-        summary: 'エラー',
-        detail: 'プロジェクトの開始に失敗しました',
-        life: 5000
-      });
-      this.starting.set(false);
-    }
-  }
-
-  toggleResumeOption(): void {
-    this.resumeSession.set(!this.resumeSession());
-  }
-
-  selectFolder(): void {
-    // ブラウザ環境では直接フォルダ選択はできないため、
-    // ユーザーに手動入力を促すメッセージを表示
-    this.messageService.add({
-      severity: 'info',
-      summary: '情報',
-      detail: 'プロジェクトフォルダの絶対パスを入力してください',
-      life: 3000
-    });
-  }
-
-  onKeyDown(event: KeyboardEvent): void {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      this.startProject();
-    } else if (event.key === 'Enter' && event.shiftKey) {
-      // Allow new line
-      setTimeout(() => this.adjustTextareaHeight(), 0);
-    }
-  }
-
-  private adjustTextareaHeight(): void {
-    if (this.pathTextarea) {
-      const textarea = this.pathTextarea.nativeElement;
-      textarea.style.height = 'auto';
-      textarea.style.height = Math.min(textarea.scrollHeight, 128) + 'px';
-    }
-  }
+  private adjustTextareaHeight = (): void => {
+    adjustTextareaHeight(this.pathTextarea);
+  };
 }
