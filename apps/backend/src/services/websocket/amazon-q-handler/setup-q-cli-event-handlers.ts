@@ -15,35 +15,30 @@ export function setupQCLIEventHandlers(
   io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>,
   qCliService: AmazonQCLIService
 ): void {
-  // Amazon Q CLIサービスからのイベントをWebSocketクライアントに転送
-  qCliService.on('q:response', data => {
-    // セッションに紐付いたソケットのみに配信
-    emitToSession(io, data.sessionId, 'q:response', data);
-  });
+  // SQLite3変更検知アーキテクチャに最適化されたイベントハンドラー
+  // リアルタイムレスポンスは無効化、必要最小限のイベントのみ処理
 
+  // プロセスエラーイベント（必須：プロセス起動失敗などの通知）
   qCliService.on('q:error', data => {
-    // セッションに紐付いたソケットのみに配信
     emitToSession(io, data.sessionId, 'q:error', data);
   });
 
-  qCliService.on('q:info', data => {
-    // セッションに紐付いたソケットのみに配信
-    emitToSession(io, data.sessionId, 'q:info', data);
-  });
-
+  // プロセス完了イベント（必須：セッション終了通知）
   qCliService.on('q:complete', data => {
-    // セッションに紐付いたソケットのみに配信
     emitToSession(io, data.sessionId, 'q:complete', data);
-    // セッション終了時にマッピングをクリーンアップ
     cleanupSession(data.sessionId);
   });
 
+  // セッション中止イベント（必須：強制終了通知）
   qCliService.on('session:aborted', data => {
     emitToSession(io, data.sessionId, 'q:complete', {
       sessionId: data.sessionId,
       exitCode: data.exitCode || 0,
     });
-    // セッション終了時にマッピングをクリーンアップ
     cleanupSession(data.sessionId);
   });
+
+  // レガシーイベント（SQLite3変更検知により無効化）
+  // q:response -> SQLite3からのデータ取得に置き換え
+  // q:info -> 初期化情報は不要（SQLite3で会話履歴取得）
 }
