@@ -53,9 +53,15 @@ importers:
       '@quincy/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@types/chokidar':
+        specifier: ^2.1.7
+        version: 2.1.7
       better-sqlite3:
         specifier: ^12.2.0
         version: 12.2.0
+      chokidar:
+        specifier: ^4.0.3
+        version: 4.0.3
       compression:
         specifier: ^1.8.0
         version: 1.8.0
@@ -2103,6 +2109,10 @@ packages:
 
   '@types/chai@5.2.2':
     resolution: {integrity: sha512-8kB30R7Hwqf40JPiKhVzodJs2Qc1ZJ5zuT3uzw5Hq/dhNCl3G3l83jfpdI1e20BP348+fV7VIL/+FxaXkqBmWg==}
+
+  '@types/chokidar@2.1.7':
+    resolution: {integrity: sha512-A7/MFHf6KF7peCzjEC1BBTF8jpmZTokb3vr/A0NxRGfwRLK3Ws+Hq6ugVn6cJIMfM6wkCak/aplWrxbTcu8oig==}
+    deprecated: This is a stub types definition. chokidar provides its own type definitions, so you do not need this installed.
 
   '@types/compression@1.8.1':
     resolution: {integrity: sha512-kCFuWS0ebDbmxs0AXYn6e2r2nrGAb5KwQhknjSPSPgJcGd8+HVSILlUyFhGqML2gk39HcG7D1ydW9/qpYkN00Q==}
@@ -6908,6 +6918,10 @@ snapshots:
   '@types/chai@5.2.2':
     dependencies:
       '@types/deep-eql': 4.0.2
+
+  '@types/chokidar@2.1.7':
+    dependencies:
+      chokidar: 4.0.3
 
   '@types/compression@1.8.1':
     dependencies:

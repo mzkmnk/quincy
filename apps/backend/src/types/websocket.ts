@@ -4,6 +4,7 @@
  */
 
 import { MessageId, SessionId, Timestamp, ConnectionStatus, ErrorCode } from './common';
+import type { DatabaseChangeEvent } from './database-watcher';
 
 // 接続情報型
 export interface ConnectionInfo {
@@ -108,6 +109,9 @@ export interface WebSocketEvents {
   'room:leave': (data: RoomData) => void;
   'room:joined': (data: RoomJoinedEventData) => void;
   'room:left': (data: RoomLeftEventData) => void;
+
+  // データベース変更関連
+  'database-changed': (data: DatabaseChangeEvent) => void;
 
   // システム関連
   ping: () => void;
