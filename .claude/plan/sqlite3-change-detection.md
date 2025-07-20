@@ -46,25 +46,25 @@ Amazon Q履歴データベース（data.sqlite3）の変更をリアルタイム
 - [x] `apps/backend/src/tests/types/database-watcher-types.test.ts`: 型定義テスト（10テスト）
 - [x] 全275テストが成功（100%成功率）
 
-### 5. SQLite3中心システムの実装 🆕
-- [ ] `get-latest-conversation-entry.ts`: 最新の会話エントリを取得
-- [ ] `extract-last-chat-message.ts`: 最後のチャットメッセージを抽出
-- [ ] `database-change-handler.ts`の拡張：最新チャット情報付きの通知
-- [ ] WebSocket通知データの拡張（チャット内容を含む）
-- [ ] child_processハンドラーの簡素化（入力送信のみ）
+### 5. SQLite3中心システムの実装 ✅
+- [x] `get-latest-conversation-entry.ts`: 最新の会話エントリを取得（10テスト）
+- [x] `extract-last-chat-message.ts`: 最後のチャットメッセージを抽出（13テスト）
+- [x] `database-change-handler-with-chat.ts`: 最新チャット情報付きの通知（10テスト）
+- [x] WebSocket通知データの拡張（チャット内容を含む）
+- [x] 新しい型定義とWebSocketイベント追加
 
-### 6. フロントエンド：SQLite3ベース表示システム
-- [ ] `apps/frontend/src/app/core/services/websocket/`に新しいハンドラーを追加
-- [ ] `database-change/`ディレクトリを作成
-- [ ] `handle-database-change-with-chat.ts`: チャット内容付き通知の受信処理
-- [ ] チャット履歴の自動リフレッシュ機能
-- [ ] `apps/frontend/src/app/core/types/websocket.types.ts`に型定義を追加
+### 6. フロントエンド：SQLite3ベース表示システム ✅
+- [x] `apps/frontend/src/app/core/services/websocket/database-change/`ディレクトリ作成
+- [x] `handle-database-change-with-chat.ts`: チャット内容付き通知の受信処理（14テスト）
+- [x] `DatabaseChangeHandlerService`: WebSocketイベント統合サービス
+- [x] `apps/frontend/src/app/core/types/websocket.types.ts`に型定義を追加
+- [x] 型ガード関数`isDatabaseChangeEventWithChat`追加
 
-### 7. フロントエンド：シンプルなUI更新
-- [ ] SQLite3データベースを主要データソースとするコンポーネント更新
-- [ ] リアルタイムチャット表示機能
-- [ ] 新しいチャット通知表示
-- [ ] 状態管理（@ngrx/signals）の簡素化
+### 7. フロントエンド：シンプルなUI更新 ✅
+- [x] @ngrx/signals状態管理の拡張（通知・データベース変更情報）
+- [x] `ChatNotificationComponent`: リアルタイムチャット通知UI
+- [x] チャット状態アクション（通知管理・既読管理）
+- [x] `ChatComponent`への統合（データベース変更ハンドラー組み込み）
 
 ### 8. child_processシステムの簡素化
 - [ ] stdout/stderrストリーミング処理の削除
@@ -90,11 +90,11 @@ Amazon Q履歴データベース（data.sqlite3）の変更をリアルタイム
 - ✅ 完全な型安全性（TypeScript + ESLint準拠）
 - ✅ 包括的テスト（275テスト、100%成功率）
 
-### **Phase 2: SQLite3中心アーキテクチャ**（計画中）
-- 🔄 SQLite3をメインデータソースとするシステム構築
-- 🔄 変更検知時の最新会話取得・表示
-- 🔄 child_processストリーミングの簡素化
-- 🔄 シンプルで保守性の高いアーキテクチャ実現
+### **Phase 2: SQLite3中心アーキテクチャ**（完了）
+- ✅ SQLite3をメインデータソースとするシステム構築
+- ✅ 変更検知時の最新会話取得・表示
+- ✅ フロントエンド統合とリアルタイム通知
+- ✅ シンプルで保守性の高いアーキテクチャ実現
 
 ## 技術的考慮事項
 
@@ -127,13 +127,16 @@ Amazon Q履歴データベース（data.sqlite3）の変更をリアルタイム
 2. ✅ バックエンドの監視サービス作成
 3. ✅ WebSocket通知機能の実装
 4. ✅ 包括的テストの作成（22新規テスト）
+5. ✅ 最新チャット取得機能の拡張（33新規テスト）
+6. ✅ フロントエンド受信処理の実装（14新規テスト）
+7. ✅ UI更新機能の実装（リアルタイム通知）
+8. ✅ フロントエンド統合テストの完成
 
 ### 🔄 **次期実装予定**
-5. 🔄 最新チャット取得機能の拡張
-6. 🔄 フロントエンド受信処理の実装
-7. 🔄 UI更新機能の実装
-8. 🔄 フロントエンドテストの作成
-9. 🔄 ドキュメント更新
+8. 🔄 child_processシステムの簡素化
+9. 🔄 統合テストとE2Eテストの拡張
+10. 🔄 パフォーマンス最適化
+11. 🔄 ドキュメント更新
 
 ## 期待される効果
 

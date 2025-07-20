@@ -293,40 +293,14 @@ describe('AmazonQCLIService', () => {
   });
 
   describe('イベント処理', () => {
-    it('プロセスの標準出力をq:responseイベントとして発行すること', async () => {
-      const options: QProcessOptions = { workingDir: '/test/path' };
-
-      const promise = new Promise<void>(resolve => {
-        service.on('q:response', data => {
-          expect(data.data).toBe('Hello from Q CLI');
-          expect(data.type).toBe('stream');
-          expect(data.sessionId).toMatch(/^q_session_/);
-          resolve();
-        });
-      });
-
-      await service.startSession('help', options);
-      mockChildProcess.stdout.emit('data', Buffer.from('Hello from Q CLI'));
-
-      await promise;
+    it.skip('プロセスの標準出力をq:responseイベントとして発行すること（レガシー：SQLite3で代替）', async () => {
+      // このテストはSQLite3変更検知により不要になりました
+      // 代わりにSQLite3から最新の会話内容を取得する仕組みに変更
     });
 
-    it('プロセスのエラー出力をq:errorイベントとして発行すること', async () => {
-      const options: QProcessOptions = { workingDir: '/test/path' };
-
-      const promise = new Promise<void>(resolve => {
-        service.on('q:error', data => {
-          expect(data.error).toBe('Error message');
-          expect(data.code).toBe('STDERR');
-          expect(data.sessionId).toMatch(/^q_session_/);
-          resolve();
-        });
-      });
-
-      await service.startSession('help', options);
-      mockChildProcess.stderr.emit('data', Buffer.from('Error message'));
-
-      await promise;
+    it.skip('プロセスのエラー出力をq:errorイベントとして発行すること（レガシー：SQLite3で代替）', async () => {
+      // このテストはSQLite3変更検知により不要になりました  
+      // プロセスエラーはq:errorで継続、stderrストリーミングは削除
     });
 
     it('プロセス終了をq:completeイベントとして発行すること', async () => {

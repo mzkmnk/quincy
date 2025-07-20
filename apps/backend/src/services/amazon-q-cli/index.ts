@@ -29,13 +29,6 @@ import {
   abortSession,
 } from './session-manager';
 import { setupProcessHandlers } from './message-handler';
-import {
-  flushIncompleteOutputLine,
-  flushIncompleteErrorLine,
-  flushOutputBuffer,
-  addToInitializationBuffer,
-  flushInitializationBuffer,
-} from './buffer-manager';
 import { checkCLIAvailabilityService, buildCommandArgs } from './cli-checker';
 
 export class AmazonQCLIService extends EventEmitter {
@@ -241,22 +234,10 @@ export class AmazonQCLIService extends EventEmitter {
   }
 
   private setupProcessHandlers(session: QProcessSession): void {
+    // 簡素化されたプロセスハンドラー（SQLite3変更検知により複雑な処理は不要）
     setupProcessHandlers(
       session,
       this.emit.bind(this),
-      session => flushIncompleteOutputLine(session, this.emit.bind(this)),
-      session =>
-        flushIncompleteErrorLine(session, this.emit.bind(this), (session, message) =>
-          addToInitializationBuffer(session, message, session =>
-            flushInitializationBuffer(session, this.emit.bind(this))
-          )
-        ),
-      (session, message) =>
-        addToInitializationBuffer(session, message, session =>
-          flushInitializationBuffer(session, this.emit.bind(this))
-        ),
-      session => flushInitializationBuffer(session, this.emit.bind(this)),
-      session => flushOutputBuffer(session, this.emit.bind(this)),
       sessionId => this.sessions.delete(sessionId)
     );
   }
