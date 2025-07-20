@@ -39,13 +39,6 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
               ></path>
             </svg>
           </button>
-          <h1
-            class="text-xl font-semibold text-[var(--text-primary)] ml-2 transition-opacity duration-300"
-            [class.opacity-0]="sidebarCollapsed()"
-            [class.hidden]="sidebarCollapsed()"
-          >
-            Quincy
-          </h1>
         </div>
 
         <!-- Sidebar Content -->
