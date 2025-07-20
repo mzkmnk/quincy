@@ -15,6 +15,8 @@ import { findByConversationId } from './find-by-conversation-id';
 import { getProjectHistoryDetailed } from './get-project-history-detailed';
 import { getConversationStats } from './get-conversation-stats';
 import { getAllProjectsHistoryDetailed } from './get-all-projects-history-detailed';
+import { getLatestConversationEntry } from './get-latest-conversation-entry';
+import { extractLastChatMessage } from './extract-last-chat-message';
 
 export class AmazonQHistoryService {
   /**
@@ -82,6 +84,20 @@ export class AmazonQHistoryService {
   > {
     return getAllProjectsHistoryDetailed();
   }
+
+  /**
+   * データベースから最新の会話エントリを取得
+   */
+  async getLatestConversationEntry(dbPath: string): Promise<AmazonQConversationWithHistory | null> {
+    return getLatestConversationEntry(dbPath);
+  }
+
+  /**
+   * 会話履歴から最後のチャットメッセージを抽出
+   */
+  extractLastChatMessage(conversation: AmazonQConversationWithHistory) {
+    return extractLastChatMessage(conversation);
+  }
 }
 
 // 個別関数のエクスポート（必要に応じて直接使用可能）
@@ -93,4 +109,6 @@ export {
   getProjectHistoryDetailed,
   getConversationStats,
   getAllProjectsHistoryDetailed,
+  getLatestConversationEntry,
+  extractLastChatMessage,
 };
