@@ -7,8 +7,10 @@ import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
 
 import { AmazonQCLIService, QProcessOptions } from '../services/amazon-q-cli';
+import * as pathValidator from '../utils/path-validator';
+import * as cliValidator from '../utils/cli-validator';
 
-// child_processとutilのモック
+// 外部依存関係のモック
 jest.mock('child_process');
 jest.mock('util');
 
@@ -52,15 +54,48 @@ describe('AmazonQCLIService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // パス検証のモック - 常に成功を返す
+    jest.spyOn(pathValidator, 'validateProjectPath').mockResolvedValue({
+      valid: true,
+      normalizedPath: '/test/path'
+    });
+    
+    // CLI可用性チェックのモック - 常に成功を返す
+    jest.spyOn(cliValidator, 'checkCLIAvailability').mockResolvedValue({
+      available: true,
+      path: 'q'
+    });
+    
+    jest.spyOn(cliValidator, 'isValidCLIPath').mockReturnValue(true);
+    jest.spyOn(cliValidator, 'getCLICandidates').mockReturnValue(['q', '/usr/local/bin/q']);
+    
     service = new AmazonQCLIService();
+    
+    // EventEmitterの最大リスナー数を増加
+    service.setMaxListeners(20);
 
     // モック状態のリセット
     mockChildProcess.killed = false;
     mockChildProcess.stdin.destroyed = false;
+    
+    // EventEmitterのリセット
+    mockChildProcess.removeAllListeners();
+    mockChildProcess.stdout.removeAllListeners();
+    mockChildProcess.stderr.removeAllListeners();
   });
 
   afterEach(async (): Promise<void> => {
     await service.terminateAllSessions();
+    
+    // EventEmitterのクリーンアップ
+    service.removeAllListeners();
+    mockChildProcess.removeAllListeners();
+    mockChildProcess.stdout.removeAllListeners();
+    mockChildProcess.stderr.removeAllListeners();
+    
+    // spyの復元
+    jest.restoreAllMocks();
   });
 
   describe('インスタンス作成', () => {
