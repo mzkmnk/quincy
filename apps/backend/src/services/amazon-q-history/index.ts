@@ -1,122 +1,59 @@
 /**
- * Amazon Q History サービス
- * 1ファイル1関数アーキテクチャによる再構築
+ * Amazon Q History サービス（SQLite3機能削除版）
+ * WebSocketハンドラーとの互換性を保つため最小限の実装を残す
  */
 
-import type { ConversationMetadata } from '@quincy/shared';
-
-import type { DisplayMessage, AmazonQConversationWithHistory } from '../amazon-q-history-types';
-
-// 分離した関数をインポート
-import { isDatabaseAvailable } from './is-database-available';
-import { getProjectHistory } from './get-project-history';
-import { getAllProjectsHistory } from './get-all-projects-history';
-import { findByConversationId } from './find-by-conversation-id';
-import { getProjectHistoryDetailed } from './get-project-history-detailed';
-import { getConversationStats } from './get-conversation-stats';
-import { getAllProjectsHistoryDetailed } from './get-all-projects-history-detailed';
-import { getLatestConversationEntry } from './get-latest-conversation-entry';
-import { extractLastChatMessage } from './extract-last-chat-message';
-
+// 型定義のみエクスポート（実装なし）
 export class AmazonQHistoryService {
   /**
-   * データベースの可用性を総合的にチェック
+   * データベースの可用性をチェック（常にfalseを返す）
    */
   isDatabaseAvailable(): boolean {
-    return isDatabaseAvailable();
+    return false;
   }
 
   /**
-   * プロジェクトの会話履歴を取得
+   * プロジェクトの会話履歴を取得（常にnullを返す）
    */
-  async getProjectHistory(projectPath: string): Promise<AmazonQConversationWithHistory | null> {
-    return getProjectHistory(projectPath);
+  async getProjectHistory(): Promise<null> {
+    return null;
   }
 
   /**
-   * 全プロジェクトの会話メタデータを取得
+   * 全プロジェクトの会話メタデータを取得（常に空配列を返す）
    */
-  async getAllProjectsHistory(): Promise<ConversationMetadata[]> {
-    return getAllProjectsHistory();
+  async getAllProjectsHistory(): Promise<unknown[]> {
+    return [];
   }
 
   /**
-   * 特定のconversation_idで履歴を検索
+   * 特定のconversation_idで履歴を検索（常にnullを返す）
    */
-  async findByConversationId(
-    conversationId: string
-  ): Promise<{ projectPath: string; conversation: AmazonQConversationWithHistory } | null> {
-    return findByConversationId(conversationId);
+  async findByConversationId(): Promise<null> {
+    return null;
   }
 
   /**
-   * プロジェクトの詳細履歴を取得してUI表示用に変換
+   * プロジェクトの詳細履歴を取得（常に空配列を返す）
    */
-  async getProjectHistoryDetailed(projectPath: string): Promise<DisplayMessage[]> {
-    return getProjectHistoryDetailed(projectPath);
+  async getProjectHistoryDetailed(): Promise<unknown[]> {
+    return [];
   }
 
   /**
-   * 会話ターンの統計情報を取得
+   * 会話ターンの統計情報を取得（常にnullを返す）
    */
-  async getConversationStats(projectPath: string): Promise<{
-    totalEntries: number;
-    totalTurns: number;
-    averageToolUsesPerTurn: number;
-    totalToolUses: number;
-  } | null> {
-    return getConversationStats(projectPath);
+  async getConversationStats(): Promise<null> {
+    return null;
   }
 
   /**
-   * 全プロジェクトの履歴をhistoryデータ付きで取得
+   * 全プロジェクトの履歴をhistoryデータ付きで取得（常に空配列を返す）
    */
-  async getAllProjectsHistoryDetailed(): Promise<
-    {
-      projectPath: string;
-      conversation_id: string;
-      hasHistoryData: boolean;
-      messageCount: number;
-      turnCount: number;
-      lastUpdated: Date;
-      model: string;
-    }[]
-  > {
-    return getAllProjectsHistoryDetailed();
-  }
-
-  /**
-   * データベースから最新の会話エントリを取得
-   */
-  async getLatestConversationEntry(dbPath: string): Promise<AmazonQConversationWithHistory | null> {
-    return getLatestConversationEntry(dbPath);
-  }
-
-  /**
-   * 会話履歴から最後のチャットメッセージを抽出
-   */
-  extractLastChatMessage(conversation: AmazonQConversationWithHistory) {
-    return extractLastChatMessage(conversation);
+  async getAllProjectsHistoryDetailed(): Promise<unknown[]> {
+    return [];
   }
 }
 
-// 個別関数のエクスポート（必要に応じて直接使用可能）
-export {
-  isDatabaseAvailable,
-  getProjectHistory,
-  getAllProjectsHistory,
-  findByConversationId,
-  getProjectHistoryDetailed,
-  getConversationStats,
-  getAllProjectsHistoryDetailed,
-  getLatestConversationEntry,
-  extractLastChatMessage,
-};
-
-// 新しいconversation_id管理機能のエクスポート
-export { extractConversationIdFromDatabase } from './extract-conversation-id-from-sqlite';
-export { trackActiveConversation, ConversationTracker } from './track-active-conversation';
-export {
-  monitorConversationTranscript,
-  TranscriptMonitor,
-} from './monitor-conversation-transcript';
+// SQLite3関連の機能は削除されました
+// WebSocketハンドラーとの互換性のため空の実装を残しています

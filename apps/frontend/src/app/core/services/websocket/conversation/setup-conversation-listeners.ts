@@ -40,9 +40,11 @@ export function setupConversationListeners(
     return;
   }
 
+  console.log('[conversation-listeners] リスナーを設定します');
+
   // conversation:ready - conversation_id確定通知
   socket.on('conversation:ready', data => {
-    console.log('Conversation ready:', data);
+    console.log('[conversation-listeners] Conversation ready イベント受信:', data);
     listeners.onConversationReady(data);
   });
 
@@ -75,10 +77,12 @@ export function removeConversationListeners(socket: Socket | null): void {
     return;
   }
 
+  console.log('[conversation-listeners] 既存のリスナーを削除します');
+
   socket.off('conversation:ready');
   socket.off('conversation:transcript-update');
   socket.off('conversation:tool-activity');
   socket.off('conversation:timeout');
 
-  console.log('Conversation listeners removed');
+  console.log('[conversation-listeners] リスナーの削除が完了しました');
 }

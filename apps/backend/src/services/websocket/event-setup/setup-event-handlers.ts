@@ -112,7 +112,7 @@ export function setupEventHandlers(
 
     // Handle Amazon Q project start
     socket.on('q:project:start', async (data: QProjectStartEvent) => {
-      await handleQProjectStart(socket, data, qCliService, sendError);
+      await handleQProjectStart(socket, data, qCliService, sendError, io);
     });
 
     // Handle ping

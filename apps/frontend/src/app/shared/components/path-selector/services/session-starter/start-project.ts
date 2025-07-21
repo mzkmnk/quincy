@@ -46,6 +46,8 @@ export async function startProject(
       // アクティブセッションモードに切り替え
       appStore.switchToActiveSession(data);
 
+      console.log('[start-project] conversationリスナーを設定します');
+
       // conversation_idリスナーを設定
       websocket.setupConversationListeners(
         // onConversationReady - conversation_id確定時の処理

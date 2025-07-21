@@ -30,17 +30,8 @@ export async function handleQResume(
       return;
     }
 
-    // Check if conversation exists
-    const conversation = await qHistoryService.getProjectHistory(data.projectPath);
-    if (!conversation) {
-      sendErrorCallback(
-        socket,
-        'Q_RESUME_NO_HISTORY',
-        'No conversation history found for this project'
-      );
-      socket.emit('q:session:failed', { error: 'No conversation history' });
-      return;
-    }
+    // SQLite3機能は削除されており、履歴チェックはスキップ
+    // stdout/stderr監視によるリアルタイム処理に移行
 
     // Start Amazon Q CLI with resume option
     const commandData: QCommandEvent = {

@@ -144,7 +144,7 @@ describe('startProject', () => {
       // conversation:readyイベントをシミュレート
       const conversationCalls = (
         mockWebSocket.setupConversationListeners as unknown as {
-          mock: { calls: [(data: any) => void, any, any, any][] };
+          mock: { calls: [(data: unknown) => void, unknown, unknown, unknown][] };
         }
       ).mock.calls;
       const conversationReadyCallback = conversationCalls[0][0];

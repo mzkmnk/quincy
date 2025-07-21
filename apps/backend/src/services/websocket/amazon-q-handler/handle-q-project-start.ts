@@ -53,6 +53,13 @@ export async function handleQProjectStart(
     // セッションIDとソケットIDを紐付け
     addSocketToSession(sessionId, socket.id);
 
+    // ソケットをセッションIDのルームに参加させる
+    socket.join(sessionId);
+    console.log('[handle-q-project-start] ソケットをルームに参加させました:', {
+      socketId: socket.id,
+      roomId: sessionId,
+    });
+
     // セッション開始の通知
     const sessionStartedEvent: QSessionStartedEvent = {
       sessionId,
@@ -64,6 +71,12 @@ export async function handleQProjectStart(
     socket.emit('session:created', {
       sessionId,
       projectId: socket.data.sessionId || 'unknown',
+    });
+
+    // stdout/stderr監視はsetup-process-handlersで自動的に開始される
+    console.log('[handle-q-project-start] プロジェクトセッションが開始されました:', {
+      sessionId,
+      projectPath: data.projectPath,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

@@ -4,7 +4,6 @@ import type {
   ServerToClientEvents,
   InterServerEvents,
   SocketData,
-  AmazonQConversation,
 } from '@quincy/shared';
 
 import type { AmazonQHistoryService } from '../../amazon-q-history';
@@ -25,7 +24,7 @@ export async function handleQHistory(
       return;
     }
 
-    const conversation = await qHistoryService.getProjectHistory(data.projectPath);
+    const conversation = await qHistoryService.getProjectHistory();
 
     if (!conversation) {
       socket.emit('q:history:data', {
@@ -45,12 +44,11 @@ export async function handleQHistory(
     //   messageCount = Array.isArray(conversation.history) ? conversation.history.length : 0;
     // }
 
-    // AmazonQConversation型に合わせて変換（historyフィールドを除外）
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
-    const { history, ...conversationForClient } = conversation;
+    // 常に空のレスポンスを返す
     socket.emit('q:history:data', {
       projectPath: data.projectPath,
-      conversation: conversationForClient as AmazonQConversation,
+      conversation: null,
+      message: 'History service disabled - migrated to stdout/stderr monitoring',
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
