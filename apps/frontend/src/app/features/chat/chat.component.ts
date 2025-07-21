@@ -9,6 +9,7 @@ import {
   effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 
 import { AppStore } from '../../core/store/app.state';
 import { WebSocketService } from '../../core/services/websocket.service';
@@ -140,6 +141,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   protected appStore = inject(AppStore);
   protected websocket = inject(WebSocketService);
   private databaseChangeHandler = inject(DatabaseChangeHandlerService);
+  private route = inject(ActivatedRoute);
+
+  // URL parameters
+  conversationId = signal<string | null>(null);
 
   // Child component references
   chatMessages = viewChild(ChatMessagesComponent);
@@ -215,6 +220,57 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     // Setup database change handlers
     this.databaseChangeHandler.setupHandlers();
+
+    // Subscribe to route params to get conversation_id
+    this.route.paramMap.subscribe(params => {
+      const conversationId = params.get('conversation_id');
+      this.conversationId.set(conversationId);
+
+      if (conversationId) {
+        console.log('Chat component initialized with conversation_id:', conversationId);
+
+        // conversation_idがあるが履歴データがない場合、履歴を取得
+        const currentConversation = this.appStore.currentQConversation();
+        if (!currentConversation || currentConversation.conversation_id !== conversationId) {
+          // conversation_idに対応する履歴を検索・取得
+          this.loadConversationHistory(conversationId);
+        }
+      } else {
+        console.log('Chat component initialized without conversation_id (New Project mode)');
+      }
+    });
+  }
+
+  /**
+   * conversation_idに基づいて履歴を取得
+   */
+  private loadConversationHistory(conversationId: string): void {
+    console.log('Loading conversation history for ID:', conversationId);
+
+    // まず履歴リストから該当するプロジェクトを検索
+    const projects = this.appStore.amazonQHistory();
+    const targetProject = projects.find(p => p.conversation_id === conversationId);
+
+    if (targetProject) {
+      // プロジェクトが見つかった場合、そのプロジェクトの履歴を取得
+      console.log('Found project for conversation_id:', targetProject.projectPath);
+      this.appStore.setQHistoryLoading(true);
+      this.websocket.getProjectHistory(targetProject.projectPath);
+      this.websocket.getProjectHistoryDetailed(targetProject.projectPath);
+    } else {
+      // プロジェクトが見つからない場合、履歴リストを再取得
+      console.log('Project not found for conversation_id, refreshing history list');
+      this.websocket.getAllProjectsHistory().then(() => {
+        // 再取得後に再度検索
+        const updatedProjects = this.appStore.amazonQHistory();
+        const foundProject = updatedProjects.find(p => p.conversation_id === conversationId);
+        if (foundProject) {
+          this.appStore.setQHistoryLoading(true);
+          this.websocket.getProjectHistory(foundProject.projectPath);
+          this.websocket.getProjectHistoryDetailed(foundProject.projectPath);
+        }
+      });
+    }
   }
 
   clearSessionError(): void {

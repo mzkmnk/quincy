@@ -34,4 +34,5 @@ export interface ListenerFlags {
   chatListenersSetup: boolean;
   historyListenersSetup: boolean;
   projectSessionListenersSetup: boolean;
+  conversationListenersSetup: boolean;
 }

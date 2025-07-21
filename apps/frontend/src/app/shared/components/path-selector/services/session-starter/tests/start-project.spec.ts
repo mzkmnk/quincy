@@ -17,6 +17,7 @@ describe('startProject', () => {
       connect: vi.fn(),
       startProjectSession: vi.fn(),
       setupProjectSessionListeners: vi.fn(),
+      setupConversationListeners: vi.fn(),
       on: vi.fn(),
     } as Partial<WebSocketService>;
 
@@ -136,7 +137,26 @@ describe('startProject', () => {
       callback(sessionData);
 
       expect(mockAppStore.switchToActiveSession).toHaveBeenCalledWith(sessionData);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/chat']);
+
+      // 新しいフローではsetupConversationListenersが呼ばれる
+      expect(mockWebSocket.setupConversationListeners).toHaveBeenCalled();
+
+      // conversation:readyイベントをシミュレート
+      const conversationCalls = (
+        mockWebSocket.setupConversationListeners as unknown as {
+          mock: { calls: [(data: any) => void, any, any, any][] };
+        }
+      ).mock.calls;
+      const conversationReadyCallback = conversationCalls[0][0];
+      const conversationData = {
+        sessionId: 'test-session',
+        conversationId: 'test-conversation-123',
+        projectPath: '/test/path',
+      };
+
+      conversationReadyCallback(conversationData);
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/chat', 'test-conversation-123']);
     });
   });
 

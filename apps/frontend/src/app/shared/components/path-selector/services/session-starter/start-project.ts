@@ -46,8 +46,40 @@ export async function startProject(
       // アクティブセッションモードに切り替え
       appStore.switchToActiveSession(data);
 
-      // チャット画面に移動
-      router.navigate(['/chat']);
+      // conversation_idリスナーを設定
+      websocket.setupConversationListeners(
+        // onConversationReady - conversation_id確定時の処理
+        (conversationData: { sessionId: string; conversationId: string; projectPath: string }) => {
+          console.log('Conversation ready, navigating to chat:', conversationData.conversationId);
+          startingSignal.set(false);
+
+          // /chat/:conversation_idに遷移
+          router.navigate(['/chat', conversationData.conversationId]);
+        },
+        // onTranscriptUpdate - transcript更新（今は何もしない）
+        (transcriptData: {
+          conversationId: string;
+          newMessages: Array<{
+            role: 'user' | 'assistant';
+            content: Array<{ text: string }>;
+          }>;
+          totalMessageCount: number;
+        }) => {
+          console.log('Transcript update received:', transcriptData);
+        },
+        // onToolActivity - ツール使用通知（今は何もしない）
+        (toolData: { conversationId: string; tools: string[]; message: string }) => {
+          console.log('Tool activity received:', toolData);
+        },
+        // onConversationTimeout - タイムアウト処理
+        (timeoutData: { sessionId?: string; conversationId?: string; error: string }) => {
+          console.error('Conversation timeout:', timeoutData);
+          appStore.setSessionError(
+            'conversation_idの取得がタイムアウトしました。しばらく待ってから再度お試しください。'
+          );
+          startingSignal.set(false);
+        }
+      );
     });
 
     // エラーハンドリングのリスナーを設定

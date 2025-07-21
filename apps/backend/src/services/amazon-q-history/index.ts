@@ -112,3 +112,11 @@ export {
   getLatestConversationEntry,
   extractLastChatMessage,
 };
+
+// 新しいconversation_id管理機能のエクスポート
+export { extractConversationIdFromDatabase } from './extract-conversation-id-from-sqlite';
+export { trackActiveConversation, ConversationTracker } from './track-active-conversation';
+export {
+  monitorConversationTranscript,
+  TranscriptMonitor,
+} from './monitor-conversation-transcript';

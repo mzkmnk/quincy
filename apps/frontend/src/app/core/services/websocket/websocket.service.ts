@@ -30,6 +30,12 @@ import {
   createSessionFailedObservable,
   removeProjectSessionListeners,
 } from './project-session';
+// conversation管理
+import {
+  setupConversationListeners,
+  removeConversationListeners,
+  ConversationListeners,
+} from './conversation';
 // 型定義
 import { ChatListeners, HistoryListeners, ListenerFlags } from './types';
 
@@ -46,6 +52,7 @@ export class WebSocketService {
     chatListenersSetup: false,
     historyListenersSetup: false,
     projectSessionListenersSetup: false,
+    conversationListenersSetup: false,
   };
 
   // Connection state getters
@@ -201,5 +208,48 @@ export class WebSocketService {
 
   onSessionFailed(): Observable<{ error: string }> {
     return createSessionFailedObservable(this.socket);
+  }
+
+  // === Conversation管理 ===
+  setupConversationListeners(
+    onConversationReady: (data: {
+      sessionId: string;
+      conversationId: string;
+      projectPath: string;
+    }) => void,
+    onTranscriptUpdate: (data: {
+      conversationId: string;
+      newMessages: Array<{
+        role: 'user' | 'assistant';
+        content: Array<{ text: string }>;
+      }>;
+      totalMessageCount: number;
+    }) => void,
+    onToolActivity: (data: { conversationId: string; tools: string[]; message: string }) => void,
+    onConversationTimeout: (data: {
+      sessionId?: string;
+      conversationId?: string;
+      error: string;
+    }) => void
+  ): void {
+    // 重複セットアップを防止
+    if (this.listenerFlags.conversationListenersSetup) {
+      this.removeConversationListeners();
+    }
+
+    const listeners: ConversationListeners = {
+      onConversationReady,
+      onTranscriptUpdate,
+      onToolActivity,
+      onConversationTimeout,
+    };
+
+    setupConversationListeners(this.socket, listeners);
+    this.listenerFlags.conversationListenersSetup = true;
+  }
+
+  removeConversationListeners(): void {
+    removeConversationListeners(this.socket);
+    this.listenerFlags.conversationListenersSetup = false;
   }
 }

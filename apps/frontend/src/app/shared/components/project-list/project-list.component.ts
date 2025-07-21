@@ -319,8 +319,8 @@ export class ProjectListComponent implements OnInit, OnDestroy {
     // 詳細履歴データも取得
     this.webSocketService.getProjectHistoryDetailed(project.projectPath);
 
-    // チャットページに移動
-    this.router.navigate(['/chat']);
+    // conversation_idを使用してチャットページに移動
+    this.router.navigate(['/chat', project.conversation_id]);
   }
 
   openQProjectMenu(project: ConversationMetadata): void {

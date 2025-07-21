@@ -93,6 +93,34 @@ export interface ConnectionStats {
   uptime: number;
 }
 
+// Conversation関連のイベントデータ型
+export interface ConversationReadyEventData {
+  sessionId: SessionId;
+  conversationId: string;
+  projectPath: string;
+}
+
+export interface ConversationTranscriptUpdateEventData {
+  conversationId: string;
+  newMessages: Array<{
+    role: 'user' | 'assistant';
+    content: Array<{ text: string }>;
+  }>;
+  totalMessageCount: number;
+}
+
+export interface ConversationToolActivityEventData {
+  conversationId: string;
+  tools: string[];
+  message: string;
+}
+
+export interface ConversationTimeoutEventData {
+  sessionId?: SessionId;
+  conversationId?: string;
+  error: string;
+}
+
 // WebSocketイベント型の統合
 export interface WebSocketEvents {
   // 接続関連
@@ -112,6 +140,12 @@ export interface WebSocketEvents {
 
   // データベース変更関連
   'database-changed': (data: DatabaseChangeEvent) => void;
+
+  // Conversation関連
+  'conversation:ready': (data: ConversationReadyEventData) => void;
+  'conversation:transcript-update': (data: ConversationTranscriptUpdateEventData) => void;
+  'conversation:tool-activity': (data: ConversationToolActivityEventData) => void;
+  'conversation:timeout': (data: ConversationTimeoutEventData) => void;
 
   // システム関連
   ping: () => void;

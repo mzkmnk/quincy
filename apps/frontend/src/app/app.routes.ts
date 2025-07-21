@@ -11,6 +11,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/chat/chat.component').then(m => m.ChatComponent),
   },
   {
+    path: 'chat/:conversation_id',
+    loadComponent: () => import('./features/chat/chat.component').then(m => m.ChatComponent),
+  },
+  {
     path: '**',
     redirectTo: '/chat',
   },

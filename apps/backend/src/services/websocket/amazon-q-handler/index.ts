@@ -13,3 +13,7 @@ export { handleQResume } from './handle-q-resume';
 export { handleQProjectStart } from './handle-q-project-start';
 export { setupQCLIEventHandlers } from './setup-q-cli-event-handlers';
 export { handleDatabaseChangeNotification } from './handle-database-change';
+export {
+  handleConversationTranscriptUpdate,
+  ConversationHandler,
+} from './handle-conversation-transcript-update';
