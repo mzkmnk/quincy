@@ -1,0 +1,1794 @@
+{
+  "conversation_id": "7e956466-26ef-4fcf-a7c4-8a4f53dde6a8",
+  "next_message": null,
+  "history": [
+    [
+      {
+        "additional_context": "--- CONTEXT ENTRY BEGIN ---\nThis section (like others) contains important information that I want you to use in your responses. I have gathered this context from valuable programmatic script hooks. You must follow any requests and consider all of the information in this section\n\n--- CONTEXT ENTRY END ---\n\n",
+        "env_context": {
+          "env_state": {
+            "operating_system": "macos",
+            "current_working_directory": "/Users/username/dev/quincy-worktrees/stdio-termination-detection/apps/frontend/test-amazon-q-behavior",
+            "environment_variables": []
+          }
+        },
+        "content": { "Prompt": { "prompt": "新しいファイルを作成して下さい" } },
+        "images": null
+      },
+      {
+        "Response": {
+          "message_id": "e594820a-fa08-45bc-9b0b-4a205bf081fd",
+          "content": "I'll help you create a new file. Could you please provide:\n\n1. The name or path for the file you want to create\n2. The content you'd like to include in the file\n\nOnce you provide these details, I can create the file for you in the current directory (/Users/mzkmnk/dev/quincy-worktrees/stdio-termination-detection/apps/frontend/test-amazon-q-behavior/)."
+        }
+      }
+    ],
+    [
+      {
+        "additional_context": "--- CONTEXT ENTRY BEGIN ---\nThis section (like others) contains important information that I want you to use in your responses. I have gathered this context from valuable programmatic script hooks. You must follow any requests and consider all of the information in this section\n\n--- CONTEXT ENTRY END ---\n\n",
+        "env_context": {
+          "env_state": {
+            "operating_system": "macos",
+            "current_working_directory": "/Users/username/dev/quincy-worktrees/stdio-termination-detection/apps/frontend/test-amazon-q-behavior",
+            "environment_variables": []
+          }
+        },
+        "content": { "Prompt": { "prompt": "In a few words, summarize our conversation so far." } },
+        "images": null
+      },
+      {
+        "Response": {
+          "message_id": "e1f5b655-ae59-43c9-80f9-9cd10240db1b",
+          "content": "You asked me to create a new file, but didn't provide a filename or content. I asked for those details so I could help you create the file in the current directory."
+        }
+      }
+    ],
+    [
+      {
+        "additional_context": "--- CONTEXT ENTRY BEGIN ---\nThis section (like others) contains important information that I want you to use in your responses. I have gathered this context from valuable programmatic script hooks. You must follow any requests and consider all of the information in this section\n\n--- CONTEXT ENTRY END ---\n\n",
+        "env_context": {
+          "env_state": {
+            "operating_system": "macos",
+            "current_working_directory": "/Users/username/dev/quincy-worktrees/stdio-termination-detection/apps/frontend/test-amazon-q-behavior",
+            "environment_variables": []
+          }
+        },
+        "content": { "Prompt": { "prompt": "履歴を確認して下さい" } },
+        "images": null
+      },
+      {
+        "Response": {
+          "message_id": "1a8fbdf7-d391-48ad-abad-f7d82e487217",
+          "content": "I'll help you check the history of our conversation.\n\nSo far, our conversation has included:\n1. You asked me to create a new file (新しいファイルを作成して下さい)\n2. I asked for details about the filename and content\n3. You asked for a summary of our conversation\n4. Now you're asking to check the history (履歴を確認して下さい)\n\nWe're currently in the test-amazon-q-behavior directory, which appears to be a project for testing Amazon Q CLI behavior.\n\nIs there anything specific about our conversation history you'd like me to elaborate on?"
+        }
+      }
+    ]
+  ],
+  "valid_history_range": [0, 2],
+  "transcript": [
+    "> 新しいファイルを作成して下さい",
+    "I'll help you create a new file. Could you please provide:\n\n1. The name or path for the file you want to create\n2. The content you'd like to include in the file\n\nOnce you provide these details, I can create the file for you in the current directory (/Users/mzkmnk/dev/quincy-worktrees/stdio-termination-detection/apps/frontend/test-amazon-q-behavior/).\n[Tool uses: none]",
+    "You asked me to create a new file, but didn't provide a filename or content. I asked for those details so I could help you create the file in the current directory.\n[Tool uses: none]",
+    "> 履歴を確認して下さい",
+    "I'll help you check the history of our conversation.\n\nSo far, our conversation has included:\n1. You asked me to create a new file (新しいファイルを作成して下さい)\n2. I asked for details about the filename and content\n3. You asked for a summary of our conversation\n4. Now you're asking to check the history (履歴を確認して下さい)\n\nWe're currently in the test-amazon-q-behavior directory, which appears to be a project for testing Amazon Q CLI behavior.\n\nIs there anything specific about our conversation history you'd like me to elaborate on?\n[Tool uses: none]"
+  ],
+  "tools": {
+    "native___": [
+      {
+        "ToolSpecification": {
+          "name": "use_aws",
+          "description": "Make an AWS CLI api call with the specified service, operation, and parameters. All arguments MUST conform to the AWS CLI specification. Should the output of the invocation indicate a malformed command, invoke help to obtain the the correct command.",
+          "input_schema": {
+            "json": {
+              "required": ["region", "service_name", "operation_name", "label"],
+              "properties": {
+                "parameters": {
+                  "type": "object",
+                  "description": "The parameters for the operation. The parameter keys MUST conform to the AWS CLI specification. You should prefer to use JSON Syntax over shorthand syntax wherever possible. For parameters that are booleans, prioritize using flags with no value. Denote these flags with flag names as key and an empty string as their value. You should also prefer kebab case."
+                },
+                "region": {
+                  "type": "string",
+                  "description": "Region name for calling the operation on AWS."
+                },
+                "operation_name": {
+                  "description": "The name of the operation to perform.",
+                  "type": "string"
+                },
+                "service_name": {
+                  "description": "The name of the AWS service. If you want to query s3, you should use s3api if possible.",
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Human readable description of the api that is being called."
+                },
+                "profile_name": {
+                  "type": "string",
+                  "description": "Optional: AWS profile name to use from ~/.aws/credentials. Defaults to default profile if not specified."
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "dummy",
+          "description": "This is a dummy tool. If you are seeing this that means the tool associated with this tool call is not in the list of available tools. This could be because a wrong tool name was supplied or the list of tools has changed since the conversation has started. Do not show this when user asks you to list tools.",
+          "input_schema": { "json": { "required": [], "properties": {}, "type": "object" } }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "execute_bash",
+          "description": "Execute the specified bash command.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "summary": {
+                  "type": "string",
+                  "description": "A brief explanation of what the command does"
+                },
+                "command": { "type": "string", "description": "Bash command to execute" }
+              },
+              "required": ["command"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "fs_write",
+          "description": "A tool for creating and editing files\n * The `create` command will override the file at `path` if it already exists as a file, and otherwise create a new file\n * The `append` command will add content to the end of an existing file, automatically adding a newline if the file doesn't end with one. The file must exist.\n Notes for using the `str_replace` command:\n * The `old_str` parameter should match EXACTLY one or more consecutive lines from the original file. Be mindful of whitespaces!\n * If the `old_str` parameter is not unique in the file, the replacement will not be performed. Make sure to include enough context in `old_str` to make it unique\n * The `new_str` parameter should contain the edited lines that should replace the `old_str`.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "required": ["command", "path"],
+              "properties": {
+                "file_text": {
+                  "type": "string",
+                  "description": "Required parameter of `create` command, with the content of the file to be created."
+                },
+                "new_str": {
+                  "description": "Required parameter of `str_replace` command containing the new string. Required parameter of `insert` command containing the string to insert. Required parameter of `append` command containing the content to append to the file.",
+                  "type": "string"
+                },
+                "insert_line": {
+                  "type": "integer",
+                  "description": "Required parameter of `insert` command. The `new_str` will be inserted AFTER the line `insert_line` of `path`."
+                },
+                "old_str": {
+                  "description": "Required parameter of `str_replace` command containing the string in `path` to replace.",
+                  "type": "string"
+                },
+                "path": {
+                  "description": "Absolute path to file or directory, e.g. `/repo/file.py` or `/repo`.",
+                  "type": "string"
+                },
+                "summary": {
+                  "type": "string",
+                  "description": "A brief explanation of what the file change does or why it's being made."
+                },
+                "command": {
+                  "enum": ["create", "str_replace", "insert", "append"],
+                  "description": "The commands to run. Allowed options are: `create`, `str_replace`, `insert`, `append`.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "report_issue",
+          "description": "Opens the browser to a pre-filled gh (GitHub) issue template to report chat issues, bugs, or feature requests. Pre-filled information includes the conversation transcript, chat context, and chat request IDs from the service.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "required": ["title"],
+              "properties": {
+                "title": { "description": "The title of the GitHub issue.", "type": "string" },
+                "actual_behavior": {
+                  "type": "string",
+                  "description": "Optional: The actual chat behavior that happened and demonstrates the issue or lack of a feature."
+                },
+                "steps_to_reproduce": {
+                  "type": "string",
+                  "description": "Optional: Previous user chat requests or steps that were taken that may have resulted in the issue or error response."
+                },
+                "expected_behavior": {
+                  "description": "Optional: The expected chat behavior or action that did not happen.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "fs_read",
+          "description": "Tool for reading files (for example, `cat -n`),  directories (for example, `ls -la`) and images. If user has supplied paths that appear to be leading to images, you should use this tool right away using Image mode. The behavior of this tool is determined by the `mode` parameter. The available modes are:\n- line: Show lines in a file, given by an optional `start_line` and optional `end_line`.\n- directory: List directory contents. Content is returned in the \"long format\" of ls (that is, `ls -la`).\n- search: Search for a pattern in a file. The pattern is a string. The matching is case insensitive.\n\nExample Usage:\n1. Read all lines from a file: command=\"line\", path=\"/path/to/file.txt\"\n2. Read the last 5 lines from a file: command=\"line\", path=\"/path/to/file.txt\", start_line=-5\n3. List the files in the home directory: command=\"line\", path=\"~\"\n4. Recursively list files in a directory to a max depth of 2: command=\"line\", path=\"/path/to/directory\", depth=2\n5. Search for all instances of \"test\" in a file: command=\"search\", path=\"/path/to/file.txt\", pattern=\"test\"\n",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "required": ["path", "mode"],
+              "properties": {
+                "mode": {
+                  "description": "The mode to run in: `Line`, `Directory`, `Search`. `Line` and `Search` are only for text files, and `Directory` is only for directories. `Image` is for image files, in this mode `image_paths` is required.",
+                  "enum": ["Line", "Directory", "Search", "Image"],
+                  "type": "string"
+                },
+                "depth": {
+                  "type": "integer",
+                  "default": 0,
+                  "description": "Depth of a recursive directory listing (optional, for Directory mode)"
+                },
+                "path": {
+                  "type": "string",
+                  "description": "Path to the file or directory. The path should be absolute, or otherwise start with ~ for the user's home."
+                },
+                "start_line": {
+                  "default": 1,
+                  "description": "Starting line number (optional, for Line mode). A negative index represents a line number starting from the end of the file.",
+                  "type": "integer"
+                },
+                "context_lines": {
+                  "description": "Number of context lines around search results (optional, for Search mode)",
+                  "type": "integer",
+                  "default": 2
+                },
+                "pattern": {
+                  "type": "string",
+                  "description": "Pattern to search for (required, for Search mode). Case insensitive. The pattern matching is performed per line."
+                },
+                "image_paths": {
+                  "type": "array",
+                  "description": "List of paths to the images. This is currently supported by the Image mode.",
+                  "items": { "type": "string" }
+                },
+                "end_line": {
+                  "default": -1,
+                  "description": "Ending line number (optional, for Line mode). A negative index represents a line number starting from the end of the file.",
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "github": [
+      {
+        "ToolSpecification": {
+          "name": "github___create_and_submit_pull_request_review",
+          "description": "Create and submit a review for a pull request without review comments.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "repo": { "type": "string", "description": "Repository name" },
+                "body": { "description": "Review comment text", "type": "string" },
+                "commitID": { "type": "string", "description": "SHA of commit to review" },
+                "pullNumber": { "description": "Pull request number", "type": "number" },
+                "event": {
+                  "enum": ["APPROVE", "REQUEST_CHANGES", "COMMENT"],
+                  "description": "Review action to perform",
+                  "type": "string"
+                },
+                "owner": { "type": "string", "description": "Repository owner" }
+              },
+              "required": ["owner", "repo", "pullNumber", "body", "event"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___fork_repository",
+          "description": "Fork a GitHub repository to your account or specified organization",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "organization": { "description": "Organization to fork to", "type": "string" },
+                "owner": { "description": "Repository owner", "type": "string" },
+                "repo": { "description": "Repository name", "type": "string" }
+              },
+              "required": ["owner", "repo"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___add_pull_request_review_comment_to_pending_review",
+          "description": "Add a comment to the requester's latest pending pull request review, a pending review needs to already exist to call this (check with the user if not sure).",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "required": ["owner", "repo", "pullNumber", "path", "body", "subjectType"],
+              "properties": {
+                "startSide": {
+                  "description": "For multi-line comments, the starting side of the diff that the comment applies to. LEFT indicates the previous state, RIGHT indicates the new state",
+                  "type": "string",
+                  "enum": ["LEFT", "RIGHT"]
+                },
+                "pullNumber": { "description": "Pull request number", "type": "number" },
+                "side": {
+                  "type": "string",
+                  "description": "The side of the diff to comment on. LEFT indicates the previous state, RIGHT indicates the new state",
+                  "enum": ["LEFT", "RIGHT"]
+                },
+                "path": {
+                  "description": "The relative path to the file that necessitates a comment",
+                  "type": "string"
+                },
+                "owner": { "type": "string", "description": "Repository owner" },
+                "line": {
+                  "description": "The line of the blob in the pull request diff that the comment applies to. For multi-line comments, the last line of the range",
+                  "type": "number"
+                },
+                "body": { "description": "The text of the review comment", "type": "string" },
+                "repo": { "description": "Repository name", "type": "string" },
+                "startLine": {
+                  "description": "For multi-line comments, the first line of the range that the comment applies to",
+                  "type": "number"
+                },
+                "subjectType": {
+                  "type": "string",
+                  "enum": ["FILE", "LINE"],
+                  "description": "The level at which the comment is targeted"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___list_code_scanning_alerts",
+          "description": "List code scanning alerts in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "owner": { "type": "string", "description": "The owner of the repository." },
+                "repo": { "description": "The name of the repository.", "type": "string" },
+                "state": {
+                  "default": "open",
+                  "type": "string",
+                  "enum": ["open", "closed", "dismissed", "fixed"],
+                  "description": "Filter code scanning alerts by state. Defaults to open"
+                },
+                "ref": {
+                  "type": "string",
+                  "description": "The Git reference for the results you want to list."
+                },
+                "severity": {
+                  "enum": ["critical", "high", "medium", "low", "warning", "note", "error"],
+                  "description": "Filter code scanning alerts by severity",
+                  "type": "string"
+                },
+                "tool_name": {
+                  "type": "string",
+                  "description": "The name of the tool used for code scanning."
+                }
+              },
+              "type": "object",
+              "required": ["owner", "repo"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_code_scanning_alert",
+          "description": "Get details of a specific code scanning alert in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "required": ["owner", "repo", "alertNumber"],
+              "properties": {
+                "repo": { "type": "string", "description": "The name of the repository." },
+                "alertNumber": { "description": "The number of the alert.", "type": "number" },
+                "owner": { "description": "The owner of the repository.", "type": "string" }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___update_pull_request_branch",
+          "description": "Update the branch of a pull request with the latest changes from the base branch.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "expectedHeadSha": {
+                  "description": "The expected SHA of the pull request's HEAD ref",
+                  "type": "string"
+                },
+                "owner": { "type": "string", "description": "Repository owner" },
+                "pullNumber": { "type": "number", "description": "Pull request number" },
+                "repo": { "description": "Repository name", "type": "string" }
+              },
+              "required": ["owner", "repo", "pullNumber"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___merge_pull_request",
+          "description": "Merge a pull request in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "required": ["owner", "repo", "pullNumber"],
+              "type": "object",
+              "properties": {
+                "commit_title": { "type": "string", "description": "Title for merge commit" },
+                "pullNumber": { "type": "number", "description": "Pull request number" },
+                "merge_method": {
+                  "description": "Merge method",
+                  "enum": ["merge", "squash", "rebase"],
+                  "type": "string"
+                },
+                "owner": { "description": "Repository owner", "type": "string" },
+                "commit_message": {
+                  "type": "string",
+                  "description": "Extra detail for merge commit"
+                },
+                "repo": { "description": "Repository name", "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_issue_comments",
+          "description": "Get comments for a specific issue in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "required": ["owner", "repo", "issue_number"],
+              "properties": {
+                "page": { "type": "number", "description": "Page number" },
+                "issue_number": { "description": "Issue number", "type": "number" },
+                "per_page": { "type": "number", "description": "Number of records per page" },
+                "repo": { "type": "string", "description": "Repository name" },
+                "owner": { "description": "Repository owner", "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___list_commits",
+          "description": "Get list of commits of a branch in a GitHub repository",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "page": {
+                  "type": "number",
+                  "minimum": 1,
+                  "description": "Page number for pagination (min 1)"
+                },
+                "sha": { "type": "string", "description": "SHA or Branch name" },
+                "repo": { "description": "Repository name", "type": "string" },
+                "perPage": {
+                  "maximum": 100,
+                  "type": "number",
+                  "description": "Results per page for pagination (min 1, max 100)",
+                  "minimum": 1
+                },
+                "owner": { "description": "Repository owner", "type": "string" }
+              },
+              "required": ["owner", "repo"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___assign_copilot_to_issue",
+          "description": "Assign Copilot to a specific issue in a GitHub repository.\n\nThis tool can help with the following outcomes:\n- a Pull Request created with source code changes to resolve the issue\n\n\nMore information can be found at:\n- https://docs.github.com/en/copilot/using-github-copilot/using-copilot-coding-agent-to-work-on-tasks/about-assigning-tasks-to-copilot\n",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "issueNumber": { "description": "Issue number", "type": "number" },
+                "owner": { "type": "string", "description": "Repository owner" },
+                "repo": { "type": "string", "description": "Repository name" }
+              },
+              "required": ["owner", "repo", "issueNumber"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_pull_request_status",
+          "description": "Get the status of a specific pull request.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "required": ["owner", "repo", "pullNumber"],
+              "properties": {
+                "repo": { "description": "Repository name", "type": "string" },
+                "pullNumber": { "type": "number", "description": "Pull request number" },
+                "owner": { "description": "Repository owner", "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___dismiss_notification",
+          "description": "Dismiss a notification by marking it as read or done",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "state": {
+                  "description": "The new state of the notification (read/done)",
+                  "enum": ["read", "done"],
+                  "type": "string"
+                },
+                "threadID": { "type": "string", "description": "The ID of the notification thread" }
+              },
+              "required": ["threadID"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___submit_pending_pull_request_review",
+          "description": "Submit the requester's latest pending pull request review, normally this is a final step after creating a pending review, adding comments first, unless you know that the user already did the first two steps, you should check before calling this.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "repo": { "type": "string", "description": "Repository name" },
+                "owner": { "description": "Repository owner", "type": "string" },
+                "pullNumber": { "description": "Pull request number", "type": "number" },
+                "event": {
+                  "description": "The event to perform",
+                  "enum": ["APPROVE", "REQUEST_CHANGES", "COMMENT"],
+                  "type": "string"
+                },
+                "body": { "description": "The text of the review comment", "type": "string" }
+              },
+              "type": "object",
+              "required": ["owner", "repo", "pullNumber", "event"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___manage_repository_notification_subscription",
+          "description": "Manage a repository notification subscription: ignore, watch, or delete repository notifications subscription for the provided repository.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "owner": {
+                  "description": "The account owner of the repository.",
+                  "type": "string"
+                },
+                "repo": { "type": "string", "description": "The name of the repository." },
+                "action": {
+                  "enum": ["ignore", "watch", "delete"],
+                  "type": "string",
+                  "description": "Action to perform: ignore, watch, or delete the repository notification subscription."
+                }
+              },
+              "required": ["owner", "repo", "action"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___add_issue_comment",
+          "description": "Add a comment to a specific issue in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "repo": { "type": "string", "description": "Repository name" },
+                "body": { "description": "Comment content", "type": "string" },
+                "issue_number": { "description": "Issue number to comment on", "type": "number" },
+                "owner": { "description": "Repository owner", "type": "string" }
+              },
+              "required": ["owner", "repo", "issue_number", "body"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___list_notifications",
+          "description": "Lists all GitHub notifications for the authenticated user, including unread notifications, mentions, review requests, assignments, and updates on issues or pull requests. Use this tool whenever the user asks what to work on next, requests a summary of their GitHub activity, wants to see pending reviews, or needs to check for new updates or tasks. This tool is the primary way to discover actionable items, reminders, and outstanding work on GitHub. Always call this tool when asked what to work on next, what is pending, or what needs attention in GitHub.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "perPage": {
+                  "description": "Results per page for pagination (min 1, max 100)",
+                  "minimum": 1,
+                  "type": "number",
+                  "maximum": 100
+                },
+                "repo": {
+                  "description": "Optional repository name. If provided with owner, only notifications for this repository are listed.",
+                  "type": "string"
+                },
+                "since": {
+                  "type": "string",
+                  "description": "Only show notifications updated after the given time (ISO 8601 format)"
+                },
+                "before": {
+                  "description": "Only show notifications updated before the given time (ISO 8601 format)",
+                  "type": "string"
+                },
+                "filter": {
+                  "description": "Filter notifications to, use default unless specified. Read notifications are ones that have already been acknowledged by the user. Participating notifications are those that the user is directly involved in, such as issues or pull requests they have commented on or created.",
+                  "enum": ["default", "include_read_notifications", "only_participating"],
+                  "type": "string"
+                },
+                "page": {
+                  "type": "number",
+                  "description": "Page number for pagination (min 1)",
+                  "minimum": 1
+                },
+                "owner": {
+                  "description": "Optional repository owner. If provided with repo, only notifications for this repository are listed.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___delete_file",
+          "description": "Delete a file from a GitHub repository",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "branch": { "type": "string", "description": "Branch to delete the file from" },
+                "message": { "description": "Commit message", "type": "string" },
+                "repo": { "type": "string", "description": "Repository name" },
+                "path": { "description": "Path to the file to delete", "type": "string" },
+                "owner": {
+                  "type": "string",
+                  "description": "Repository owner (username or organization)"
+                }
+              },
+              "type": "object",
+              "required": ["owner", "repo", "path", "message", "branch"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_secret_scanning_alert",
+          "description": "Get details of a specific secret scanning alert in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "repo": { "description": "The name of the repository.", "type": "string" },
+                "alertNumber": { "type": "number", "description": "The number of the alert." },
+                "owner": { "type": "string", "description": "The owner of the repository." }
+              },
+              "required": ["owner", "repo", "alertNumber"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___create_pull_request",
+          "description": "Create a new pull request in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "body": { "description": "PR description", "type": "string" },
+                "maintainer_can_modify": {
+                  "description": "Allow maintainer edits",
+                  "type": "boolean"
+                },
+                "base": { "type": "string", "description": "Branch to merge into" },
+                "owner": { "type": "string", "description": "Repository owner" },
+                "draft": { "description": "Create as draft PR", "type": "boolean" },
+                "repo": { "type": "string", "description": "Repository name" },
+                "title": { "description": "PR title", "type": "string" },
+                "head": { "description": "Branch containing changes", "type": "string" }
+              },
+              "type": "object",
+              "required": ["owner", "repo", "title", "head", "base"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___search_code",
+          "description": "Search for code across GitHub repositories",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "perPage": {
+                  "minimum": 1,
+                  "description": "Results per page for pagination (min 1, max 100)",
+                  "maximum": 100,
+                  "type": "number"
+                },
+                "order": { "enum": ["asc", "desc"], "type": "string", "description": "Sort order" },
+                "page": {
+                  "description": "Page number for pagination (min 1)",
+                  "minimum": 1,
+                  "type": "number"
+                },
+                "q": {
+                  "description": "Search query using GitHub code search syntax",
+                  "type": "string"
+                },
+                "sort": { "description": "Sort field ('indexed' only)", "type": "string" }
+              },
+              "required": ["q"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_me",
+          "description": "Get details of the authenticated GitHub user. Use this when a request includes \"me\", \"my\". The output will not change unless the user changes their profile, so only call this once.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "reason": {
+                  "type": "string",
+                  "description": "Optional: the reason for requesting the user information"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_pull_request",
+          "description": "Get details of a specific pull request in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "repo": { "description": "Repository name", "type": "string" },
+                "pullNumber": { "description": "Pull request number", "type": "number" },
+                "owner": { "type": "string", "description": "Repository owner" }
+              },
+              "type": "object",
+              "required": ["owner", "repo", "pullNumber"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___delete_pending_pull_request_review",
+          "description": "Delete the requester's latest pending pull request review. Use this after the user decides not to submit a pending review, if you don't know if they already created one then check first.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "owner": { "description": "Repository owner", "type": "string" },
+                "repo": { "description": "Repository name", "type": "string" },
+                "pullNumber": { "description": "Pull request number", "type": "number" }
+              },
+              "required": ["owner", "repo", "pullNumber"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___list_issues",
+          "description": "List issues in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "type": "string",
+                  "enum": ["open", "closed", "all"],
+                  "description": "Filter by state"
+                },
+                "since": { "description": "Filter by date (ISO 8601 timestamp)", "type": "string" },
+                "owner": { "type": "string", "description": "Repository owner" },
+                "repo": { "description": "Repository name", "type": "string" },
+                "direction": {
+                  "enum": ["asc", "desc"],
+                  "description": "Sort direction",
+                  "type": "string"
+                },
+                "labels": {
+                  "items": { "type": "string" },
+                  "description": "Filter by labels",
+                  "type": "array"
+                },
+                "page": {
+                  "type": "number",
+                  "description": "Page number for pagination (min 1)",
+                  "minimum": 1
+                },
+                "perPage": {
+                  "type": "number",
+                  "maximum": 100,
+                  "description": "Results per page for pagination (min 1, max 100)",
+                  "minimum": 1
+                },
+                "sort": {
+                  "type": "string",
+                  "enum": ["created", "updated", "comments"],
+                  "description": "Sort order"
+                }
+              },
+              "required": ["owner", "repo"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___push_files",
+          "description": "Push multiple files to a GitHub repository in a single commit",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "owner": { "description": "Repository owner", "type": "string" },
+                "branch": { "description": "Branch to push to", "type": "string" },
+                "message": { "description": "Commit message", "type": "string" },
+                "repo": { "description": "Repository name", "type": "string" },
+                "files": {
+                  "description": "Array of file objects to push, each object with path (string) and content (string)",
+                  "type": "array",
+                  "items": {
+                    "additionalProperties": false,
+                    "required": ["path", "content"],
+                    "type": "object",
+                    "properties": {
+                      "path": { "type": "string", "description": "path to the file" },
+                      "content": { "description": "file content", "type": "string" }
+                    }
+                  }
+                }
+              },
+              "required": ["owner", "repo", "branch", "files", "message"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___update_issue",
+          "description": "Update an existing issue in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "required": ["owner", "repo", "issue_number"],
+              "properties": {
+                "title": { "type": "string", "description": "New title" },
+                "body": { "type": "string", "description": "New description" },
+                "repo": { "type": "string", "description": "Repository name" },
+                "labels": {
+                  "type": "array",
+                  "description": "New labels",
+                  "items": { "type": "string" }
+                },
+                "owner": { "type": "string", "description": "Repository owner" },
+                "milestone": { "description": "New milestone number", "type": "number" },
+                "issue_number": { "description": "Issue number to update", "type": "number" },
+                "assignees": {
+                  "description": "New assignees",
+                  "items": { "type": "string" },
+                  "type": "array"
+                },
+                "state": {
+                  "enum": ["open", "closed"],
+                  "type": "string",
+                  "description": "New state"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_pull_request_files",
+          "description": "Get the files changed in a specific pull request.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "owner": { "type": "string", "description": "Repository owner" },
+                "pullNumber": { "type": "number", "description": "Pull request number" },
+                "repo": { "description": "Repository name", "type": "string" }
+              },
+              "type": "object",
+              "required": ["owner", "repo", "pullNumber"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___create_repository",
+          "description": "Create a new GitHub repository in your account",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "description": { "type": "string", "description": "Repository description" },
+                "autoInit": { "description": "Initialize with README", "type": "boolean" },
+                "name": { "description": "Repository name", "type": "string" },
+                "private": { "description": "Whether repo should be private", "type": "boolean" }
+              },
+              "required": ["name"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___list_secret_scanning_alerts",
+          "description": "List secret scanning alerts in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "resolution": {
+                  "type": "string",
+                  "description": "Filter by resolution",
+                  "enum": [
+                    "false_positive",
+                    "wont_fix",
+                    "revoked",
+                    "pattern_edited",
+                    "pattern_deleted",
+                    "used_in_tests"
+                  ]
+                },
+                "state": {
+                  "enum": ["open", "resolved"],
+                  "type": "string",
+                  "description": "Filter by state"
+                },
+                "repo": { "type": "string", "description": "The name of the repository." },
+                "secret_type": {
+                  "description": "A comma-separated list of secret types to return. All default secret patterns are returned. To return generic patterns, pass the token name(s) in the parameter.",
+                  "type": "string"
+                },
+                "owner": { "type": "string", "description": "The owner of the repository." }
+              },
+              "type": "object",
+              "required": ["owner", "repo"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___list_branches",
+          "description": "List branches in a GitHub repository",
+          "input_schema": {
+            "json": {
+              "required": ["owner", "repo"],
+              "properties": {
+                "perPage": {
+                  "minimum": 1,
+                  "maximum": 100,
+                  "description": "Results per page for pagination (min 1, max 100)",
+                  "type": "number"
+                },
+                "owner": { "type": "string", "description": "Repository owner" },
+                "repo": { "type": "string", "description": "Repository name" },
+                "page": {
+                  "description": "Page number for pagination (min 1)",
+                  "minimum": 1,
+                  "type": "number"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_notification_details",
+          "description": "Get detailed information for a specific GitHub notification, always call this tool when the user asks for details about a specific notification, if you don't know the ID list notifications first.",
+          "input_schema": {
+            "json": {
+              "required": ["notificationID"],
+              "type": "object",
+              "properties": {
+                "notificationID": { "description": "The ID of the notification", "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_tag",
+          "description": "Get details about a specific git tag in a GitHub repository",
+          "input_schema": {
+            "json": {
+              "required": ["owner", "repo", "tag"],
+              "properties": {
+                "tag": { "type": "string", "description": "Tag name" },
+                "owner": { "description": "Repository owner", "type": "string" },
+                "repo": { "description": "Repository name", "type": "string" }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_commit",
+          "description": "Get details for a commit from a GitHub repository",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "required": ["owner", "repo", "sha"],
+              "properties": {
+                "repo": { "type": "string", "description": "Repository name" },
+                "perPage": {
+                  "description": "Results per page for pagination (min 1, max 100)",
+                  "type": "number",
+                  "maximum": 100,
+                  "minimum": 1
+                },
+                "owner": { "description": "Repository owner", "type": "string" },
+                "page": {
+                  "type": "number",
+                  "description": "Page number for pagination (min 1)",
+                  "minimum": 1
+                },
+                "sha": { "type": "string", "description": "Commit SHA, branch name, or tag name" }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_file_contents",
+          "description": "Get the contents of a file or directory from a GitHub repository",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "owner": {
+                  "type": "string",
+                  "description": "Repository owner (username or organization)"
+                },
+                "path": {
+                  "type": "string",
+                  "description": "Path to file/directory (directories must end with a slash '/')"
+                },
+                "repo": { "type": "string", "description": "Repository name" },
+                "branch": { "type": "string", "description": "Branch to get contents from" }
+              },
+              "required": ["owner", "repo", "path"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___list_pull_requests",
+          "description": "List pull requests in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "perPage": {
+                  "description": "Results per page for pagination (min 1, max 100)",
+                  "maximum": 100,
+                  "minimum": 1,
+                  "type": "number"
+                },
+                "base": { "type": "string", "description": "Filter by base branch" },
+                "repo": { "description": "Repository name", "type": "string" },
+                "owner": { "type": "string", "description": "Repository owner" },
+                "state": {
+                  "description": "Filter by state",
+                  "enum": ["open", "closed", "all"],
+                  "type": "string"
+                },
+                "head": { "type": "string", "description": "Filter by head user/org and branch" },
+                "page": {
+                  "description": "Page number for pagination (min 1)",
+                  "type": "number",
+                  "minimum": 1
+                },
+                "sort": {
+                  "description": "Sort by",
+                  "type": "string",
+                  "enum": ["created", "updated", "popularity", "long-running"]
+                },
+                "direction": {
+                  "description": "Sort direction",
+                  "type": "string",
+                  "enum": ["asc", "desc"]
+                }
+              },
+              "required": ["owner", "repo"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___create_or_update_file",
+          "description": "Create or update a single file in a GitHub repository. If updating, you must provide the SHA of the file you want to update.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "message": { "description": "Commit message", "type": "string" },
+                "sha": {
+                  "description": "SHA of file being replaced (for updates)",
+                  "type": "string"
+                },
+                "content": { "description": "Content of the file", "type": "string" },
+                "branch": {
+                  "type": "string",
+                  "description": "Branch to create/update the file in"
+                },
+                "path": { "description": "Path where to create/update the file", "type": "string" },
+                "repo": { "description": "Repository name", "type": "string" },
+                "owner": {
+                  "description": "Repository owner (username or organization)",
+                  "type": "string"
+                }
+              },
+              "required": ["owner", "repo", "path", "content", "message", "branch"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___mark_all_notifications_read",
+          "description": "Mark all notifications as read",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "repo": {
+                  "description": "Optional repository name. If provided with owner, only notifications for this repository are marked as read.",
+                  "type": "string"
+                },
+                "owner": {
+                  "type": "string",
+                  "description": "Optional repository owner. If provided with repo, only notifications for this repository are marked as read."
+                },
+                "lastReadAt": {
+                  "description": "Describes the last point that notifications were checked (optional). Default: Now",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___request_copilot_review",
+          "description": "Request a GitHub Copilot code review for a pull request. Use this for automated feedback on pull requests, usually before requesting a human reviewer.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "pullNumber": { "description": "Pull request number", "type": "number" },
+                "owner": { "description": "Repository owner", "type": "string" },
+                "repo": { "description": "Repository name", "type": "string" }
+              },
+              "required": ["owner", "repo", "pullNumber"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_pull_request_diff",
+          "description": "Get the diff of a pull request.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "repo": { "type": "string", "description": "Repository name" },
+                "owner": { "description": "Repository owner", "type": "string" },
+                "pullNumber": { "description": "Pull request number", "type": "number" }
+              },
+              "required": ["owner", "repo", "pullNumber"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___create_issue",
+          "description": "Create a new issue in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "required": ["owner", "repo", "title"],
+              "properties": {
+                "assignees": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Usernames to assign to this issue"
+                },
+                "labels": {
+                  "items": { "type": "string" },
+                  "type": "array",
+                  "description": "Labels to apply to this issue"
+                },
+                "milestone": { "description": "Milestone number", "type": "number" },
+                "body": { "type": "string", "description": "Issue body content" },
+                "owner": { "type": "string", "description": "Repository owner" },
+                "repo": { "description": "Repository name", "type": "string" },
+                "title": { "description": "Issue title", "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_pull_request_comments",
+          "description": "Get comments for a specific pull request.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "owner": { "type": "string", "description": "Repository owner" },
+                "pullNumber": { "type": "number", "description": "Pull request number" },
+                "repo": { "type": "string", "description": "Repository name" }
+              },
+              "required": ["owner", "repo", "pullNumber"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___list_tags",
+          "description": "List git tags in a GitHub repository",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "repo": { "description": "Repository name", "type": "string" },
+                "page": {
+                  "type": "number",
+                  "minimum": 1,
+                  "description": "Page number for pagination (min 1)"
+                },
+                "perPage": {
+                  "description": "Results per page for pagination (min 1, max 100)",
+                  "maximum": 100,
+                  "minimum": 1,
+                  "type": "number"
+                },
+                "owner": { "description": "Repository owner", "type": "string" }
+              },
+              "required": ["owner", "repo"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___create_branch",
+          "description": "Create a new branch in a GitHub repository",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "branch": { "description": "Name for new branch", "type": "string" },
+                "repo": { "description": "Repository name", "type": "string" },
+                "from_branch": {
+                  "type": "string",
+                  "description": "Source branch (defaults to repo default)"
+                },
+                "owner": { "description": "Repository owner", "type": "string" }
+              },
+              "required": ["owner", "repo", "branch"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___search_issues",
+          "description": "Search for issues in GitHub repositories.",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "required": ["q"],
+              "properties": {
+                "q": {
+                  "type": "string",
+                  "description": "Search query using GitHub issues search syntax"
+                },
+                "sort": {
+                  "description": "Sort field by number of matches of categories, defaults to best match",
+                  "enum": [
+                    "comments",
+                    "reactions",
+                    "reactions-+1",
+                    "reactions--1",
+                    "reactions-smile",
+                    "reactions-thinking_face",
+                    "reactions-heart",
+                    "reactions-tada",
+                    "interactions",
+                    "created",
+                    "updated"
+                  ],
+                  "type": "string"
+                },
+                "order": { "enum": ["asc", "desc"], "description": "Sort order", "type": "string" },
+                "page": {
+                  "minimum": 1,
+                  "type": "number",
+                  "description": "Page number for pagination (min 1)"
+                },
+                "perPage": {
+                  "type": "number",
+                  "minimum": 1,
+                  "description": "Results per page for pagination (min 1, max 100)",
+                  "maximum": 100
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___search_repositories",
+          "description": "Search for GitHub repositories",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "page": {
+                  "minimum": 1,
+                  "description": "Page number for pagination (min 1)",
+                  "type": "number"
+                },
+                "perPage": {
+                  "description": "Results per page for pagination (min 1, max 100)",
+                  "maximum": 100,
+                  "type": "number",
+                  "minimum": 1
+                },
+                "query": { "description": "Search query", "type": "string" }
+              },
+              "required": ["query"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_pull_request_reviews",
+          "description": "Get reviews for a specific pull request.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "owner": { "description": "Repository owner", "type": "string" },
+                "pullNumber": { "description": "Pull request number", "type": "number" },
+                "repo": { "type": "string", "description": "Repository name" }
+              },
+              "required": ["owner", "repo", "pullNumber"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___search_users",
+          "description": "Search for GitHub users",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "page": {
+                  "description": "Page number for pagination (min 1)",
+                  "minimum": 1,
+                  "type": "number"
+                },
+                "perPage": {
+                  "maximum": 100,
+                  "minimum": 1,
+                  "type": "number",
+                  "description": "Results per page for pagination (min 1, max 100)"
+                },
+                "sort": {
+                  "type": "string",
+                  "enum": ["followers", "repositories", "joined"],
+                  "description": "Sort field by category"
+                },
+                "q": {
+                  "type": "string",
+                  "description": "Search query using GitHub users search syntax"
+                },
+                "order": { "description": "Sort order", "type": "string", "enum": ["asc", "desc"] }
+              },
+              "required": ["q"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___update_pull_request",
+          "description": "Update an existing pull request in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "state": {
+                  "type": "string",
+                  "description": "New state",
+                  "enum": ["open", "closed"]
+                },
+                "base": { "type": "string", "description": "New base branch name" },
+                "pullNumber": { "type": "number", "description": "Pull request number to update" },
+                "owner": { "description": "Repository owner", "type": "string" },
+                "maintainer_can_modify": {
+                  "description": "Allow maintainer edits",
+                  "type": "boolean"
+                },
+                "repo": { "description": "Repository name", "type": "string" },
+                "title": { "type": "string", "description": "New title" },
+                "body": { "description": "New description", "type": "string" }
+              },
+              "required": ["owner", "repo", "pullNumber"],
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___get_issue",
+          "description": "Get details of a specific issue in a GitHub repository.",
+          "input_schema": {
+            "json": {
+              "required": ["owner", "repo", "issue_number"],
+              "properties": {
+                "repo": { "description": "The name of the repository", "type": "string" },
+                "issue_number": { "description": "The number of the issue", "type": "number" },
+                "owner": { "description": "The owner of the repository", "type": "string" }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___manage_notification_subscription",
+          "description": "Manage a notification subscription: ignore, watch, or delete a notification thread subscription.",
+          "input_schema": {
+            "json": {
+              "required": ["notificationID", "action"],
+              "type": "object",
+              "properties": {
+                "action": {
+                  "description": "Action to perform: ignore, watch, or delete the notification subscription.",
+                  "enum": ["ignore", "watch", "delete"],
+                  "type": "string"
+                },
+                "notificationID": {
+                  "description": "The ID of the notification thread.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "github___create_pending_pull_request_review",
+          "description": "Create a pending review for a pull request. Call this first before attempting to add comments to a pending review, and ultimately submitting it. A pending pull request review means a pull request review, it is pending because you create it first and submit it later, and the PR author will not see it until it is submitted.",
+          "input_schema": {
+            "json": {
+              "required": ["owner", "repo", "pullNumber"],
+              "properties": {
+                "repo": { "type": "string", "description": "Repository name" },
+                "owner": { "type": "string", "description": "Repository owner" },
+                "commitID": { "type": "string", "description": "SHA of commit to review" },
+                "pullNumber": { "type": "number", "description": "Pull request number" }
+              },
+              "type": "object"
+            }
+          }
+        }
+      }
+    ],
+    "browsermcp": [
+      {
+        "ToolSpecification": {
+          "name": "browsermcp___browser_get_console_logs",
+          "description": "Get the console logs from the browser",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "additionalProperties": false,
+              "properties": {}
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "browsermcp___browser_go_back",
+          "description": "Go back to the previous page",
+          "input_schema": {
+            "json": {
+              "additionalProperties": false,
+              "type": "object",
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "properties": {}
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "browsermcp___browser_wait",
+          "description": "Wait for a specified time in seconds",
+          "input_schema": {
+            "json": {
+              "required": ["time"],
+              "properties": {
+                "time": { "description": "The time to wait in seconds", "type": "number" }
+              },
+              "additionalProperties": false,
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "browsermcp___browser_press_key",
+          "description": "Press a key on the keyboard",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "description": "Name of the key to press or a character to generate, such as `ArrowLeft` or `a`"
+                }
+              },
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "additionalProperties": false,
+              "required": ["key"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "browsermcp___browser_snapshot",
+          "description": "Capture accessibility snapshot of the current page. Use this for getting references to elements to interact with.",
+          "input_schema": {
+            "json": {
+              "properties": {},
+              "type": "object",
+              "additionalProperties": false,
+              "$schema": "http://json-schema.org/draft-07/schema#"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "browsermcp___browser_navigate",
+          "description": "Navigate to a URL",
+          "input_schema": {
+            "json": {
+              "properties": {
+                "url": { "description": "The URL to navigate to", "type": "string" }
+              },
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["url"],
+              "$schema": "http://json-schema.org/draft-07/schema#"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "browsermcp___browser_type",
+          "description": "Type text into editable element",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "element": {
+                  "type": "string",
+                  "description": "Human-readable element description used to obtain permission to interact with the element"
+                },
+                "submit": {
+                  "type": "boolean",
+                  "description": "Whether to submit entered text (press Enter after)"
+                },
+                "text": { "type": "string", "description": "Text to type into the element" },
+                "ref": {
+                  "description": "Exact target element reference from the page snapshot",
+                  "type": "string"
+                }
+              },
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "additionalProperties": false,
+              "required": ["element", "ref", "text", "submit"]
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "browsermcp___browser_go_forward",
+          "description": "Go forward to the next page",
+          "input_schema": {
+            "json": {
+              "additionalProperties": false,
+              "type": "object",
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "properties": {}
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "browsermcp___browser_screenshot",
+          "description": "Take a screenshot of the current page",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "additionalProperties": false,
+              "properties": {}
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "browsermcp___browser_hover",
+          "description": "Hover over element on page",
+          "input_schema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "element": {
+                  "description": "Human-readable element description used to obtain permission to interact with the element",
+                  "type": "string"
+                },
+                "ref": {
+                  "description": "Exact target element reference from the page snapshot",
+                  "type": "string"
+                }
+              },
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "required": ["element", "ref"],
+              "additionalProperties": false
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "browsermcp___browser_select_option",
+          "description": "Select an option in a dropdown",
+          "input_schema": {
+            "json": {
+              "additionalProperties": false,
+              "properties": {
+                "element": {
+                  "type": "string",
+                  "description": "Human-readable element description used to obtain permission to interact with the element"
+                },
+                "values": {
+                  "description": "Array of values to select in the dropdown. This can be a single value or multiple values.",
+                  "items": { "type": "string" },
+                  "type": "array"
+                },
+                "ref": {
+                  "description": "Exact target element reference from the page snapshot",
+                  "type": "string"
+                }
+              },
+              "required": ["element", "ref", "values"],
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "type": "object"
+            }
+          }
+        }
+      },
+      {
+        "ToolSpecification": {
+          "name": "browsermcp___browser_click",
+          "description": "Perform click on a web page",
+          "input_schema": {
+            "json": {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "additionalProperties": false,
+              "properties": {
+                "element": {
+                  "description": "Human-readable element description used to obtain permission to interact with the element",
+                  "type": "string"
+                },
+                "ref": {
+                  "description": "Exact target element reference from the page snapshot",
+                  "type": "string"
+                }
+              },
+              "required": ["element", "ref"],
+              "type": "object"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "context_manager": {
+    "max_context_files_size": 150000,
+    "global_config": {
+      "paths": [
+        ".amazonq/rules/**/*.md",
+        "README.md",
+        "AmazonQ.md",
+        "./.aws/amazonq/rules/interactive-commands-restriction.md"
+      ],
+      "hooks": {}
+    },
+    "current_profile": "default",
+    "profile_config": { "paths": [], "hooks": {} }
+  },
+  "context_message_length": 552,
+  "latest_summary": null,
+  "model": "CLAUDE_3_7_SONNET_20250219_V1_0"
+}
