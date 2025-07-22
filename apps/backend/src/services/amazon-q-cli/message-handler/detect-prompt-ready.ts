@@ -8,10 +8,10 @@
 export function detectPromptReady(outputLine: string): boolean {
   const trimmed = outputLine.trim();
 
-  // `>`が単独で表示されるパターンを検出（応答終了のサイン）
-  const isPromptPattern = /^>\s*$/.test(trimmed);
+  // `>`で始まる行を検出（応答終了のサイン）
+  const isPromptPattern = /^>\s*/.test(trimmed);
 
-  // シンプル化: `>`が表示されたら一律でプロンプト準備完了
+  // シンプル化: `>`で始まる行が表示されたら一律でプロンプト準備完了
   // ツール実行中やthinking状態に関係なく、`>`で応答終了と判定
 
   console.log(

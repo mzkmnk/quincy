@@ -87,8 +87,7 @@ export function setupProcessHandlers(
     // セッションを即座に無効化してID衝突を防ぐ
     session.status = 'terminated';
 
-    // Thinking状態をリセット
-    session.isThinkingActive = false;
+    // プロセス終了時のクリーンアップ（Thinking状態管理は削除済み）
 
     // セッションをクリーンアップ（遅延実行）
     setTimeout(() => {

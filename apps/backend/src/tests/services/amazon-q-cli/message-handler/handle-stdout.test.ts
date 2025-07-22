@@ -70,8 +70,6 @@ describe('handleStdout - ツール検出機能', () => {
       incompleteErrorLine: '',
       lastInfoMessage: '',
       lastInfoMessageTime: 0,
-      isThinkingActive: false,
-      lastThinkingTime: 0,
       initializationBuffer: [],
       initializationPhase: false,
       currentTools: [],

@@ -10,7 +10,7 @@
 
 import { signal, computed } from '@angular/core';
 
-export type ChatStatus = 'idle' | 'thinking' | 'responding' | 'prompt-ready' | 'error';
+export type ChatStatus = 'idle' | 'thinking' | 'responding' | 'error';
 
 interface ChatState {
   status: ChatStatus;
@@ -26,12 +26,10 @@ interface ChatStateManager {
   isIdle: typeof isIdle;
   isThinking: typeof isThinking;
   isResponding: typeof isResponding;
-  isPromptReady: typeof isPromptReady;
   hasError: typeof hasError;
   setStatus: typeof setStatus;
   setThinking: typeof setThinking;
   setResponding: typeof setResponding;
-  setPromptReady: typeof setPromptReady;
   setIdle: typeof setIdle;
   setError: typeof setError;
   clearError: typeof clearError;
@@ -56,7 +54,6 @@ const canSend = computed(() => {
 const isIdle = computed(() => chatState().status === 'idle');
 const isThinking = computed(() => chatState().status === 'thinking');
 const isResponding = computed(() => chatState().status === 'responding');
-const isPromptReady = computed(() => chatState().status === 'prompt-ready');
 const hasError = computed(() => chatState().status === 'error');
 
 // 状態更新関数
@@ -79,16 +76,6 @@ function setResponding(sessionId?: string, streamingMessageId?: string): void {
     status: 'responding',
     sessionId: sessionId || state.sessionId,
     streamingMessageId,
-    errorMessage: undefined,
-  }));
-}
-
-function setPromptReady(sessionId?: string): void {
-  chatState.update(state => ({
-    ...state,
-    status: 'prompt-ready',
-    sessionId: sessionId || state.sessionId,
-    streamingMessageId: undefined,
     errorMessage: undefined,
   }));
 }
@@ -154,12 +141,10 @@ export const chatStateManager: ChatStateManager = {
   isIdle,
   isThinking,
   isResponding,
-  isPromptReady,
   hasError,
   setStatus,
   setThinking,
   setResponding,
-  setPromptReady,
   setIdle,
   setError,
   clearError,

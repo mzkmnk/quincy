@@ -7,9 +7,6 @@ import { parseToolUsage, filterToolOutput } from '../../amazon-q-message-parser'
 import { shouldSkipOutput } from './should-skip-output';
 import { isInitializationMessage } from './is-initialization-message';
 import { isInitializationComplete } from './is-initialization-complete';
-import { isThinkingMessage } from './is-thinking-message';
-import { shouldSkipThinking } from './should-skip-thinking';
-import { updateThinkingState } from './update-thinking-state';
 import { detectPromptReady } from './detect-prompt-ready';
 
 export function handleStdout(
@@ -95,12 +92,11 @@ export function handleStdout(
 
     // プロンプト準備完了の検出（シンプル版）
     if (detectPromptReady(cleanLine)) {
-      // プロンプト準備完了時に状態をリセット
-      session.isThinkingActive = false;
+      // プロンプト準備完了時にツール状態をリセット
       session.currentTools = [];
 
       console.log(
-        `Prompt ready detected for session: ${session.sessionId}, resetting all state and enabling chat`
+        `Prompt ready detected for session: ${session.sessionId}, resetting tool state and enabling chat`
       );
 
       if (emitPromptReadyCallback) {
@@ -109,14 +105,7 @@ export function handleStdout(
       continue; // プロンプト行は通常処理をスキップ
     }
 
-    // 「Thinking」メッセージの特別処理
-    if (isThinkingMessage(cleanLine)) {
-      if (shouldSkipThinking(session)) {
-        continue;
-      }
-      // Thinking状態を更新
-      updateThinkingState(session);
-    }
+    // 「Thinking」メッセージはそのまま通す（特別処理なし）
 
     // 直接レスポンスイベントを発行（行ベース）
     const responseEvent: QResponseEvent = {

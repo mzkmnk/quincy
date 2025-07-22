@@ -31,13 +31,6 @@ export const sendControlState = computed<SendControlState>(() => {
         buttonText: '送信',
       };
 
-    case 'prompt-ready':
-      return {
-        canSend: true,
-        isLoading: false,
-        buttonText: '送信',
-      };
-
     case 'thinking':
       return {
         canSend: false,
