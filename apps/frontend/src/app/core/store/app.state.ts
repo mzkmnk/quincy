@@ -216,11 +216,27 @@ export class AppStore {
       totalToolUses: number;
     } | null
   ) => {
-    AmazonQHistoryActions.switchToDetailedHistoryView(messages, stats);
-    // アクティブセッションをクリア
+    console.log('🔄 Switching to detailed history view:', {
+      messagesCount: messages.length,
+      stats,
+      currentSession: this.currentQSession()?.sessionId,
+      currentConversation: this.currentQConversation()?.conversation_id
+    });
+    
+    // 最初にセッションをクリア（重要：詳細履歴設定前に実行）
     SessionActions.setCurrentQSession(null);
     SessionActions.setSessionStarting(false);
     SessionActions.setSessionError(null);
+    ChatActions.clearChatMessages();
+    
+    // その後で詳細履歴を設定
+    AmazonQHistoryActions.switchToDetailedHistoryView(messages, stats);
+    
+    console.log('✅ Detailed history view switch completed:', {
+      detailedMessagesCount: this.detailedHistoryMessages().length,
+      hasCurrentSession: !!this.currentQSession(),
+      hasCurrentConversation: !!this.currentQConversation()
+    });
   };
 
   // === Chat Actions ===
