@@ -29,6 +29,21 @@ export interface BaseResponse {
   errorCode?: ErrorCode;
 }
 
+// チャットメッセージ型
+export interface ChatMessage {
+  id: MessageId;
+  content: string;
+  role: 'user' | 'assistant' | 'system';
+  timestamp?: number;
+  isStreaming?: boolean;
+  error?: string;
+  tools?: string[];
+  hasToolContent?: boolean;
+  needsResync?: boolean;
+  lastUpdated?: number;
+  toolUpdateCount?: number;
+}
+
 // ページネーション型
 export interface Pagination {
   page: number;
