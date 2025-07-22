@@ -24,7 +24,7 @@ export async function handleQHistory(
       return;
     }
 
-    const conversation = await qHistoryService.getProjectHistory();
+    const conversation = await qHistoryService.getProjectHistory(data.projectPath);
 
     if (!conversation) {
       socket.emit('q:history:data', {

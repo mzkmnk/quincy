@@ -4,6 +4,7 @@ import type {
   ServerToClientEvents,
   InterServerEvents,
   SocketData,
+  DisplayMessage,
 } from '@quincy/shared';
 
 import type { AmazonQHistoryService } from '../../amazon-q-history';
@@ -24,8 +25,8 @@ export async function handleQHistoryDetailed(
       return;
     }
 
-    const displayMessages = await qHistoryService.getProjectHistoryDetailed();
-    const stats = await qHistoryService.getConversationStats();
+    const displayMessages = await qHistoryService.getProjectHistoryDetailed(data.projectPath);
+    const stats = await qHistoryService.getConversationStats(data.projectPath);
 
     if (displayMessages.length === 0) {
       socket.emit('q:history:detailed:data', {
