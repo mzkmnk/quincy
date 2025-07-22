@@ -1,6 +1,11 @@
 /**
- * 統合チャット状態管理
+ * 統合チャット状態管理（シンプル版）
  * Amazon Q CLIの全体状態を一元管理する
+ *
+ * 動作フロー:
+ * 1. メッセージ送信 → thinking状態 → 送信不可
+ * 2. Amazon Q処理中（ツール利用含む） → thinking状態維持
+ * 3. `>`プロンプト検知 → idle状態 → 送信可能
  */
 
 import { signal, computed } from '@angular/core';
@@ -41,10 +46,11 @@ const chatState = signal<ChatState>({
   status: 'idle',
 });
 
-// computed状態
+// computed状態（シンプル版）
 const canSend = computed(() => {
   const state = chatState();
-  return state.status === 'idle' || state.status === 'prompt-ready';
+  // `>`プロンプト検知までは一律で送信不可
+  return state.status === 'idle';
 });
 
 const isIdle = computed(() => chatState().status === 'idle');

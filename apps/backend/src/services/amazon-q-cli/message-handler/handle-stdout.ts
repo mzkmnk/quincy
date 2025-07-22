@@ -6,6 +6,7 @@ import { parseToolUsage, filterToolOutput } from '../../amazon-q-message-parser'
 
 import { shouldSkipOutput } from './should-skip-output';
 import { isInitializationMessage } from './is-initialization-message';
+import { isInitializationComplete } from './is-initialization-complete';
 import { isThinkingMessage } from './is-thinking-message';
 import { shouldSkipThinking } from './should-skip-thinking';
 import { updateThinkingState } from './update-thinking-state';
@@ -44,6 +45,28 @@ export function handleStdout(
       continue;
     }
 
+    // 初期化完了検知
+    if (session.initializationPhase && isInitializationComplete(cleanLine)) {
+      session.initializationPhase = false;
+      console.log(`Amazon Q CLI initialization completed for session: ${session.sessionId}`);
+
+      // 初期化完了時にプロンプト準備完了として通知
+      if (emitPromptReadyCallback) {
+        emitPromptReadyCallback(session.sessionId);
+      }
+
+      // 初期化完了メッセージをレスポンスとして送信
+      const responseEvent: QResponseEvent = {
+        sessionId: session.sessionId,
+        data: cleanLine + '\n',
+        type: 'stream',
+        tools: session.currentTools || [],
+        hasToolContent: (session.currentTools || []).length > 0,
+      };
+      emitCallback('q:response', responseEvent);
+      continue;
+    }
+
     // ツール実行の詳細出力をフィルタリング（Phase 3）
     const filterResult = filterToolOutput(cleanLine);
     if (filterResult.shouldSkip) {
@@ -70,14 +93,16 @@ export function handleStdout(
       continue; // ツール検出された行は通常処理をスキップ
     }
 
-    // プロンプト準備完了の検出
-    if (
-      detectPromptReady(
-        cleanLine,
-        session.isThinkingActive,
-        (session.currentTools || []).length > 0
-      )
-    ) {
+    // プロンプト準備完了の検出（シンプル版）
+    if (detectPromptReady(cleanLine)) {
+      // プロンプト準備完了時に状態をリセット
+      session.isThinkingActive = false;
+      session.currentTools = [];
+
+      console.log(
+        `Prompt ready detected for session: ${session.sessionId}, resetting all state and enabling chat`
+      );
+
       if (emitPromptReadyCallback) {
         emitPromptReadyCallback(session.sessionId);
       }
