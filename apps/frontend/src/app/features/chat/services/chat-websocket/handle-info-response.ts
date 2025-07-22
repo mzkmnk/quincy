@@ -17,7 +17,9 @@ export function handleInfoResponse(
 
     // プロンプト準備完了メッセージの検出
     if (data.type === 'status' && data.message === 'prompt-ready') {
-      chatStateManager.setPromptReady(sessionId);
+      console.log('Prompt ready received, setting chat state to idle');
+      // プロンプト準備完了時はアイドル状態に戻す（送信可能）
+      chatStateManager.setIdle();
       return; // プロンプト準備完了は通常のinfo処理をスキップ
     }
 
