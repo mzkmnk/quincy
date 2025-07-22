@@ -1,6 +1,7 @@
 import { AppStore, ChatMessage } from '../../../../core/store/app.state';
 import { convertDisplayMessagesToChatMessages } from '../../../utils/converters';
 import { generateWelcomeMessage } from '../../../utils/generators';
+import { chatStore } from '../../../../core/store/chat/actions';
 
 /**
  * 表示するメッセージを選択する
@@ -25,8 +26,17 @@ export function selectMessages(appStore: AppStore): ChatMessage[] {
 
   // 3. 従来の履歴表示モード
   if (currentConversation && !currentSession) {
-    const allMessages = appStore.chatMessages();
-    return allMessages.length === 0 ? [] : allMessages;
+    const allMessages = chatStore.getAllMessages();
+    // CommonChatMessageをChatMessageに変換
+    const convertedMessages: ChatMessage[] = allMessages.map(msg => ({
+      id: msg.id,
+      content: msg.content,
+      sender: msg.role === 'user' ? 'user' : 'assistant',
+      timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+      tools: msg.tools,
+      hasToolContent: msg.hasToolContent,
+    }));
+    return convertedMessages.length === 0 ? [] : convertedMessages;
   }
 
   // 4. デフォルト状態

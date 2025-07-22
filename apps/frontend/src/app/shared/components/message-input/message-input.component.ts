@@ -17,7 +17,7 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 import { AppStore } from '../../../core/store/app.state';
 
 import { sendMessage } from './services/message-sender';
-import { sendControlState, canSendMessage as canSendMessageNew } from './services/send-control';
+import { sendControlState, canSendMessage } from './services/send-control';
 import {
   handleCompositionStart,
   handleCompositionEnd,
@@ -85,7 +85,7 @@ export class MessageInputComponent {
 
   // 分離されたサービス関数をコンポーネントメソッドとして公開
   canSend = (): boolean => {
-    return canSendMessageNew(this.messageText());
+    return canSendMessage(this.messageText());
   };
 
   onSendMessage = async (): Promise<void> => {

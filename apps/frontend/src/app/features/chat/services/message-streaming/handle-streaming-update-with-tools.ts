@@ -2,7 +2,7 @@
  * ツール情報対応ストリーミングアップデート処理
  */
 
-import type { ChatMessage } from '../../../../core/store/chat/chat.state';
+import type { ChatMessage as CommonChatMessage } from '../../../../core/types/common.types';
 import { ToolList } from '../../../../core/types/tool-display.types';
 
 /**
@@ -24,8 +24,8 @@ export function handleStreamingUpdateWithTools(
   hasToolContent: boolean,
   streamingMessageId: string,
   messageIndexMap: Map<string, number>,
-  getCurrentMessages: () => ChatMessage[],
-  updateChatMessage: (messageId: string, updates: Partial<ChatMessage>) => void,
+  getCurrentMessages: () => CommonChatMessage[],
+  updateChatMessage: (messageId: string, updates: Partial<CommonChatMessage>) => void,
   markForScrollUpdate: () => void,
   updateMessageIndexMap: () => void
 ): void {
@@ -33,7 +33,7 @@ export function handleStreamingUpdateWithTools(
   const messageIndex = messageIndexMap.get(streamingMessageId);
   const currentMessages = getCurrentMessages();
 
-  let targetMessage: ChatMessage | undefined;
+  let targetMessage: CommonChatMessage | undefined;
 
   if (
     messageIndex !== undefined &&
@@ -58,7 +58,7 @@ export function handleStreamingUpdateWithTools(
   const updatedContent = targetMessage.content + content;
 
   // ツール情報の統合処理
-  const updates: Partial<ChatMessage> = {
+  const updates: Partial<CommonChatMessage> = {
     content: updatedContent,
   };
 
