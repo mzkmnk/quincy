@@ -16,13 +16,20 @@ export function setupProcessHandlers(
   addToInitializationBufferCallback: (session: QProcessSession, message: string) => void,
   flushInitializationBufferCallback: (session: QProcessSession) => void,
   flushOutputBufferCallback: (session: QProcessSession) => void,
-  deleteSessionCallback: (sessionId: string) => void
+  deleteSessionCallback: (sessionId: string) => void,
+  emitPromptReadyCallback?: (sessionId: string) => void
 ): void {
   const { process } = session;
 
   // 標準出力の処理（行ベースバッファリング）
   process.stdout?.on('data', (data: Buffer) => {
-    handleStdout(session, data, emitCallback, flushIncompleteOutputLineCallback);
+    handleStdout(
+      session,
+      data,
+      emitCallback,
+      flushIncompleteOutputLineCallback,
+      emitPromptReadyCallback
+    );
   });
 
   // 標準エラー出力の処理（行ベース分類付き）

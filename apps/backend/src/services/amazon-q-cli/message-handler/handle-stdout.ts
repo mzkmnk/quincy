@@ -9,12 +9,14 @@ import { isInitializationMessage } from './is-initialization-message';
 import { isThinkingMessage } from './is-thinking-message';
 import { shouldSkipThinking } from './should-skip-thinking';
 import { updateThinkingState } from './update-thinking-state';
+import { detectPromptReady } from './detect-prompt-ready';
 
 export function handleStdout(
   session: QProcessSession,
   data: Buffer,
   emitCallback: (event: string, data: QResponseEvent) => void,
-  flushIncompleteLineCallback: (session: QProcessSession) => void
+  flushIncompleteLineCallback: (session: QProcessSession) => void,
+  emitPromptReadyCallback?: (sessionId: string) => void
 ): void {
   session.lastActivity = Date.now();
   const rawOutput = data.toString();
@@ -66,6 +68,20 @@ export function handleStdout(
         emitCallback('q:response', responseEvent);
       }
       continue; // ツール検出された行は通常処理をスキップ
+    }
+
+    // プロンプト準備完了の検出
+    if (
+      detectPromptReady(
+        cleanLine,
+        session.isThinkingActive,
+        (session.currentTools || []).length > 0
+      )
+    ) {
+      if (emitPromptReadyCallback) {
+        emitPromptReadyCallback(session.sessionId);
+      }
+      continue; // プロンプト行は通常処理をスキップ
     }
 
     // 「Thinking」メッセージの特別処理
