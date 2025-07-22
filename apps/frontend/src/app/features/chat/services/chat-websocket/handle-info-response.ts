@@ -4,6 +4,8 @@
  * @param sessionId 現在のセッションID
  * @param onHandleInfo 情報処理コールバック
  */
+import { chatStateManager } from '../../../../core/store/chat/actions';
+
 export function handleInfoResponse(
   data: { sessionId: string; message: string; type?: string },
   sessionId: string,
@@ -12,6 +14,13 @@ export function handleInfoResponse(
   // Filter by session ID
   if (data.sessionId === sessionId) {
     console.log('Received Q info for current session:', data);
+
+    // プロンプト準備完了メッセージの検出
+    if (data.type === 'status' && data.message === 'prompt-ready') {
+      chatStateManager.setPromptReady(sessionId);
+      return; // プロンプト準備完了は通常のinfo処理をスキップ
+    }
+
     onHandleInfo(data);
   }
 }
