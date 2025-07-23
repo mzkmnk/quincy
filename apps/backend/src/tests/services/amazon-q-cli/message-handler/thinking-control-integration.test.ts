@@ -8,7 +8,6 @@ import { handleStdout } from '../../../../services/amazon-q-cli/message-handler/
 import { handleStderr } from '../../../../services/amazon-q-cli/message-handler/handle-stderr';
 import { sendInput } from '../../../../services/amazon-q-cli/session-manager/send-input';
 import { ToolDetectionBuffer } from '../../../../services/amazon-q-message-parser';
-import { ParagraphProcessor } from '../../../../services/amazon-q-cli/message-handler';
 
 describe('thinking完全スキップの統合テスト', () => {
   let mockSession: QProcessSession;
@@ -47,7 +46,6 @@ describe('thinking完全スキップの統合テスト', () => {
       currentTools: [],
       toolBuffer: '',
       toolDetectionBuffer: new ToolDetectionBuffer(),
-      paragraphProcessor: new ParagraphProcessor(),
     };
   });
 
@@ -58,37 +56,19 @@ describe('thinking完全スキップの統合テスト', () => {
       };
 
       // 1回目のthinking
-      handleStdout(
-        mockSession,
-        Buffer.from('Thinking...\n'),
-        emitCallback,
-        () => {},
-        () => {
-          promptReadyEmitted = true;
-        }
-      );
+      handleStdout(mockSession, Buffer.from('Thinking...\n'), emitCallback, () => {
+        promptReadyEmitted = true;
+      });
 
       // 2回目のthinking
-      handleStdout(
-        mockSession,
-        Buffer.from('Thinking...\n'),
-        emitCallback,
-        () => {},
-        () => {
-          promptReadyEmitted = true;
-        }
-      );
+      handleStdout(mockSession, Buffer.from('Thinking...\n'), emitCallback, () => {
+        promptReadyEmitted = true;
+      });
 
       // 3回目のthinking（違うパターン）
-      handleStdout(
-        mockSession,
-        Buffer.from('thinking\n'),
-        emitCallback,
-        () => {},
-        () => {
-          promptReadyEmitted = true;
-        }
-      );
+      handleStdout(mockSession, Buffer.from('thinking\n'), emitCallback, () => {
+        promptReadyEmitted = true;
+      });
 
       // thinkingメッセージが1回も送信されていないことを確認
       const thinkingEvents = emittedEvents.filter(e =>
@@ -103,26 +83,14 @@ describe('thinking完全スキップの統合テスト', () => {
       };
 
       // 1回目のthinking
-      handleStdout(
-        mockSession,
-        Buffer.from('Thinking...\n'),
-        emitCallback,
-        () => {},
-        () => {
-          promptReadyEmitted = true;
-        }
-      );
+      handleStdout(mockSession, Buffer.from('Thinking...\n'), emitCallback, () => {
+        promptReadyEmitted = true;
+      });
 
       // プロンプト表示
-      handleStdout(
-        mockSession,
-        Buffer.from('>\n'),
-        emitCallback,
-        () => {},
-        () => {
-          promptReadyEmitted = true;
-        }
-      );
+      handleStdout(mockSession, Buffer.from('>\n'), emitCallback, () => {
+        promptReadyEmitted = true;
+      });
 
       // タイムアウトを待ってからフラッシュ処理を確認
       await new Promise(resolve => setTimeout(resolve, 250));
@@ -131,15 +99,9 @@ describe('thinking完全スキップの統合テスト', () => {
       expect(promptReadyEmitted).toBe(true);
 
       // 2回目のthinking（プロンプト後）
-      handleStdout(
-        mockSession,
-        Buffer.from('Thinking...\n'),
-        emitCallback,
-        () => {},
-        () => {
-          promptReadyEmitted = true;
-        }
-      );
+      handleStdout(mockSession, Buffer.from('Thinking...\n'), emitCallback, () => {
+        promptReadyEmitted = true;
+      });
 
       // thinkingメッセージが1回も送信されていないことを確認
       const thinkingEvents = emittedEvents.filter(e =>
@@ -154,15 +116,9 @@ describe('thinking完全スキップの統合テスト', () => {
       };
 
       // 1回目のthinking
-      handleStdout(
-        mockSession,
-        Buffer.from('Thinking...\n'),
-        emitCallback,
-        () => {},
-        () => {
-          promptReadyEmitted = true;
-        }
-      );
+      handleStdout(mockSession, Buffer.from('Thinking...\n'), emitCallback, () => {
+        promptReadyEmitted = true;
+      });
 
       // 新規メッセージ送信
       const sessions = new Map<string, QProcessSession>();
@@ -172,15 +128,9 @@ describe('thinking完全スキップの統合テスト', () => {
       expect(result).toBe(true);
 
       // 2回目のthinking（新規メッセージ後）
-      handleStdout(
-        mockSession,
-        Buffer.from('Thinking...\n'),
-        emitCallback,
-        () => {},
-        () => {
-          promptReadyEmitted = true;
-        }
-      );
+      handleStdout(mockSession, Buffer.from('Thinking...\n'), emitCallback, () => {
+        promptReadyEmitted = true;
+      });
 
       // thinkingメッセージが1回も送信されていないことを確認
       const thinkingEvents = emittedEvents.filter(e =>

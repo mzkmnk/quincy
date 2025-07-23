@@ -16,5 +16,3 @@ export {
   resetThinkingFlag,
   resetThinkingFlagForNewMessage,
 } from './should-send-thinking';
-export { ParagraphProcessor } from './paragraph-processor';
-export { processParagraph } from './process-paragraph';

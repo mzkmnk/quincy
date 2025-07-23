@@ -1,69 +1,27 @@
 import type { ChildProcess } from 'child_process';
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
-import type { QResponseEvent } from '@quincy/shared';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+import type { QProcessSession, QProcessOptions, IToolDetectionBuffer } from '../../../../types';
+
+// テスト対象
 import { handleStdout } from '../../../../services/amazon-q-cli/message-handler/handle-stdout';
-import type { QProcessSession, QProcessOptions, AbsolutePath } from '../../../../types';
-import { ToolDetectionBuffer } from '../../../../services/amazon-q-message-parser';
-import { ParagraphProcessor } from '../../../../services/amazon-q-cli/message-handler';
 
-describe('handleStdout - ツール検出機能', () => {
+describe('handleStdout', () => {
   let mockSession: QProcessSession;
-  let mockEmitCallback: ReturnType<typeof vi.fn<(event: string, data: QResponseEvent) => void>>;
-  let mockFlushCallback: ReturnType<typeof vi.fn<(session: QProcessSession) => void>>;
+  let mockEmitCallback: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    const mockProcess = {
-      pid: 123,
-      connected: false,
-      stdin: null,
-      stdout: null,
-      stderr: null,
-      stdio: [null, null, null, null, null],
-      killed: false,
-      exitCode: null,
-      signalCode: null,
-      spawnargs: [],
-      spawnfile: '',
-      kill: vi.fn().mockReturnValue(true),
-      send: vi.fn().mockReturnValue(true),
-      disconnect: vi.fn(),
-      unref: vi.fn(),
-      ref: vi.fn(),
-      addListener: vi.fn(),
-      emit: vi.fn(),
-      eventNames: vi.fn(),
-      getMaxListeners: vi.fn(),
-      listenerCount: vi.fn(),
-      listeners: vi.fn(),
-      off: vi.fn(),
-      on: vi.fn(),
-      once: vi.fn(),
-      prependListener: vi.fn(),
-      prependOnceListener: vi.fn(),
-      rawListeners: vi.fn(),
-      removeAllListeners: vi.fn(),
-      removeListener: vi.fn(),
-      setMaxListeners: vi.fn(),
-      [Symbol.dispose]: vi.fn(),
-    } as ChildProcess;
-
-    const mockOptions: QProcessOptions = {
-      workingDir: '/test' as AbsolutePath,
-      timeout: 30000,
-    };
-
+    mockEmitCallback = vi.fn();
     mockSession = {
-      sessionId: 'q_session_123',
-      process: mockProcess,
+      sessionId: 'q_session_test',
+      process: {} as unknown as ChildProcess,
       workingDir: '/test',
       startTime: Date.now(),
       status: 'running',
       lastActivity: Date.now(),
-      pid: 123,
       command: 'test',
-      options: mockOptions,
+      options: {} as unknown as QProcessOptions,
       outputBuffer: '',
       errorBuffer: '',
       bufferFlushCount: 0,
@@ -77,176 +35,176 @@ describe('handleStdout - ツール検出機能', () => {
       initializationPhase: false,
       currentTools: [],
       toolBuffer: '',
-      toolDetectionBuffer: new ToolDetectionBuffer(),
-      paragraphProcessor: new ParagraphProcessor(),
-    };
-
-    mockEmitCallback = vi.fn();
-    mockFlushCallback = vi.fn();
+      toolDetectionBuffer: {} as unknown as IToolDetectionBuffer,
+    } as QProcessSession;
   });
 
-  describe('TDD Red: ツール検出機能のテスト', () => {
-    test('ツール使用行を検出してツール情報を含むレスポンスイベントを発行する', () => {
-      const data = Buffer.from('🛠️ Using tool: fs_read\n');
+  describe('基本的なメッセージ処理', () => {
+    it('単一行のメッセージを即座に送信', () => {
+      const data = Buffer.from('Hello World\n');
 
-      handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
-
-      // ツール検出後の期待される動作
-      expect(mockSession.currentTools).toEqual(['fs_read']);
-      // ツール行のみの場合はクリーンな行が空なのでレスポンスイベントは発行されない
-      expect(mockEmitCallback).not.toHaveBeenCalled();
-    });
-
-    test('(trusted)付きツールを正しく処理する', () => {
-      const data = Buffer.from('🛠️ Using tool: fs_read (trusted)\n');
-
-      handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
-
-      expect(mockSession.currentTools).toEqual(['fs_read']);
-      // ツール行のみの場合はクリーンな行が空なのでレスポンスイベントは発行されない
-      expect(mockEmitCallback).not.toHaveBeenCalled();
-    });
-
-    test('ツール行とテキストが混在する場合', async () => {
-      const data = Buffer.from(
-        'ファイルを確認します\n🛠️ Using tool: fs_read\n結果をお知らせします\n'
-      );
-
-      handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
-
-      // タイムアウトによるフラッシュを待つ
-      await new Promise(resolve => setTimeout(resolve, 250));
-
-      expect(mockSession.currentTools).toEqual(['fs_read']);
-
-      // 段落処理により2つのレスポンスイベントが発行される
-      // 1つ目: "ファイルを確認します"
-      // 2つ目: "結果をお知らせします"
-      expect(mockEmitCallback).toHaveBeenCalledTimes(2);
+      handleStdout(mockSession, data, mockEmitCallback);
 
       expect(mockEmitCallback).toHaveBeenCalledWith('q:response', {
-        sessionId: 'q_session_123',
-        data: 'ファイルを確認します\n\n',
+        sessionId: 'q_session_test',
+        data: 'Hello World\n',
         type: 'stream',
         tools: [],
         hasToolContent: false,
       });
+    });
 
-      expect(mockEmitCallback).toHaveBeenCalledWith('q:response', {
-        sessionId: 'q_session_123',
-        data: '結果をお知らせします\n\n',
+    it('複数行のメッセージを各行ごとに送信', () => {
+      const data = Buffer.from('Line 1\nLine 2\nLine 3\n');
+
+      handleStdout(mockSession, data, mockEmitCallback);
+
+      expect(mockEmitCallback).toHaveBeenCalledTimes(3);
+      expect(mockEmitCallback).toHaveBeenNthCalledWith(1, 'q:response', {
+        sessionId: 'q_session_test',
+        data: 'Line 1\n',
         type: 'stream',
-        tools: ['fs_read'],
+        tools: [],
+        hasToolContent: false,
+      });
+      expect(mockEmitCallback).toHaveBeenNthCalledWith(2, 'q:response', {
+        sessionId: 'q_session_test',
+        data: 'Line 2\n',
+        type: 'stream',
+        tools: [],
+        hasToolContent: false,
+      });
+      expect(mockEmitCallback).toHaveBeenNthCalledWith(3, 'q:response', {
+        sessionId: 'q_session_test',
+        data: 'Line 3\n',
+        type: 'stream',
+        tools: [],
+        hasToolContent: false,
+      });
+    });
+
+    it('不完全な行を次回のデータと結合', () => {
+      // 最初のデータ（改行なし）
+      handleStdout(mockSession, Buffer.from('Hello '), mockEmitCallback);
+      expect(mockEmitCallback).not.toHaveBeenCalled();
+
+      // 2回目のデータで完成
+      handleStdout(mockSession, Buffer.from('World\n'), mockEmitCallback);
+      expect(mockEmitCallback).toHaveBeenCalledWith('q:response', {
+        sessionId: 'q_session_test',
+        data: 'Hello World\n',
+        type: 'stream',
+        tools: [],
+        hasToolContent: false,
+      });
+    });
+  });
+
+  describe('ツール検出と処理', () => {
+    it('ツール使用行を検出してツール情報を蓄積', () => {
+      const data = Buffer.from('🛠️ Using tool: fs_read 🛠️ Using tool: github_mcp\nSome content\n');
+
+      handleStdout(mockSession, data, mockEmitCallback);
+
+      expect(mockSession.currentTools).toEqual(['fs_read', 'github_mcp']);
+      expect(mockEmitCallback).toHaveBeenCalledWith('q:response', {
+        sessionId: 'q_session_test',
+        data: 'Some content\n',
+        type: 'stream',
+        tools: ['fs_read', 'github_mcp'],
         hasToolContent: true,
       });
     });
 
-    test('ツールなしの通常行を処理する', async () => {
-      const data = Buffer.from('通常のAI応答です\n');
+    it('複数のツール行でツール情報を累積', () => {
+      handleStdout(mockSession, Buffer.from('🛠️ Using tool: fs_read\n'), mockEmitCallback);
+      handleStdout(
+        mockSession,
+        Buffer.from('🛠️ Using tool: github_mcp\nContent\n'),
+        mockEmitCallback
+      );
 
-      handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
+      expect(mockSession.currentTools).toEqual(['fs_read', 'github_mcp']);
+      expect(mockEmitCallback).toHaveBeenLastCalledWith('q:response', {
+        sessionId: 'q_session_test',
+        data: 'Content\n',
+        type: 'stream',
+        tools: ['fs_read', 'github_mcp'],
+        hasToolContent: true,
+      });
+    });
+  });
 
-      // タイムアウトによるフラッシュを待つ
-      await new Promise(resolve => setTimeout(resolve, 250));
+  describe('特殊行の処理', () => {
+    it('thinkingメッセージをスキップ', () => {
+      const data = Buffer.from('thinking\nActual content\n');
+
+      handleStdout(mockSession, data, mockEmitCallback);
+
+      expect(mockEmitCallback).toHaveBeenCalledTimes(1);
+      expect(mockEmitCallback).toHaveBeenCalledWith('q:response', {
+        sessionId: 'q_session_test',
+        data: 'Actual content\n',
+        type: 'stream',
+        tools: [],
+        hasToolContent: false,
+      });
+    });
+
+    it('プロンプト行（>）でツール状態をリセット', () => {
+      // ツールを設定
+      mockSession.currentTools = ['fs_read'];
+
+      const data = Buffer.from('>\n');
+      const mockPromptCallback = vi.fn();
+
+      handleStdout(mockSession, data, mockEmitCallback, mockPromptCallback);
 
       expect(mockSession.currentTools).toEqual([]);
+      expect(mockPromptCallback).toHaveBeenCalledWith('q_session_test');
+      expect(mockEmitCallback).not.toHaveBeenCalled();
+    });
+
+    it('ANSI エスケープコードを除去', () => {
+      const data = Buffer.from('\x1b[31mRed text\x1b[0m\n');
+
+      handleStdout(mockSession, data, mockEmitCallback);
+
       expect(mockEmitCallback).toHaveBeenCalledWith('q:response', {
-        sessionId: 'q_session_123',
-        data: '通常のAI応答です\n\n',
+        sessionId: 'q_session_test',
+        data: 'Red text\n',
         type: 'stream',
         tools: [],
         hasToolContent: false,
       });
     });
+  });
 
-    test('セッションに既存ツールがある場合、累積される', () => {
-      // 事前にツールを設定
-      mockSession.currentTools = ['existing_tool'];
-
-      const data = Buffer.from('🛠️ Using tool: fs_read\n');
-
-      handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
-
-      expect(mockSession.currentTools).toEqual(['existing_tool', 'fs_read']);
-      // ツール行のみの場合はクリーンな行が空なのでレスポンスイベントは発行されない
-      expect(mockEmitCallback).not.toHaveBeenCalled();
+  describe('エラーハンドリング', () => {
+    it('空のデータでもエラーにならない', () => {
+      expect(() => {
+        handleStdout(mockSession, Buffer.from(''), mockEmitCallback);
+      }).not.toThrow();
     });
 
-    test('ツール行をスキップして表示しない機能', async () => {
-      const data = Buffer.from('前の行\n🛠️ Using tool: fs_read\n後の行\n');
-
-      handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
-
-      // タイムアウトによるフラッシュを待つ
-      await new Promise(resolve => setTimeout(resolve, 250));
-
-      // 段落処理により2つのレスポンスイベントが発行される
-      expect(mockEmitCallback).toHaveBeenCalledTimes(2);
-
-      expect(mockEmitCallback).toHaveBeenCalledWith(
-        'q:response',
-        expect.objectContaining({
-          data: '前の行\n\n',
-          tools: [],
-          hasToolContent: false,
-        })
-      );
-
-      expect(mockEmitCallback).toHaveBeenCalledWith(
-        'q:response',
-        expect.objectContaining({
-          data: '後の行\n\n',
-          tools: ['fs_read'],
-          hasToolContent: true,
-        })
-      );
-    });
-
-    test('空のツール名や不正なツール行を適切に処理する', async () => {
-      const data = Buffer.from('🛠️ Using tool: \n🛠️ Using tool: fs_read\n不正なUsing tool形式\n');
-
-      handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
-
-      // タイムアウトによるフラッシュを待つ
-      await new Promise(resolve => setTimeout(resolve, 250));
-
-      // 有効なツールのみが抽出される
-      expect(mockSession.currentTools).toEqual(['fs_read']);
-
-      // 空のツール行がある場合、それも段落として処理される可能性がある
-      expect(mockEmitCallback).toHaveBeenCalled();
-
-      // 最後の呼び出しが不正なツール行の処理であることを確認
-      const lastCall = mockEmitCallback.mock.calls[mockEmitCallback.mock.calls.length - 1];
-      expect(lastCall[0]).toBe('q:response');
-      expect(lastCall[1]).toMatchObject({
-        data: '不正なUsing tool形式\n\n',
-        tools: ['fs_read'],
-        hasToolContent: true,
-      });
+    it('無効なUTF-8データでもエラーにならない', () => {
+      expect(() => {
+        handleStdout(mockSession, Buffer.from([0xff, 0xfe]), mockEmitCallback);
+      }).not.toThrow();
     });
   });
 
-  describe('TDD Red: 既存機能との統合テスト', () => {
-    test('初期化フェーズ中のツール検出', () => {
-      mockSession.initializationPhase = true;
+  describe('パフォーマンス', () => {
+    it('大量のデータを効率的に処理', () => {
+      const largeData = 'Line '.repeat(1000) + '\n';
+      const data = Buffer.from(largeData);
 
-      const data = Buffer.from('🛠️ Using tool: fs_read\n初期化メッセージ\n');
+      const start = Date.now();
+      handleStdout(mockSession, data, mockEmitCallback);
+      const duration = Date.now() - start;
 
-      handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
-
-      // 初期化フェーズ中でもツール検出は動作する
-      expect(mockSession.currentTools).toEqual(['fs_read']);
-    });
-
-    test('Thinkingメッセージとツール検出の組み合わせ', () => {
-      const data = Buffer.from('Thinking...\n🛠️ Using tool: fs_read\n');
-
-      handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
-
-      expect(mockSession.currentTools).toEqual(['fs_read']);
-      // Thinkingメッセージは完全にスキップされる
-      expect(mockEmitCallback).toHaveBeenCalledTimes(0); // ツール検出のみ、Thinkingはスキップ
+      expect(duration).toBeLessThan(100); // 100ms以内
+      expect(mockEmitCallback).toHaveBeenCalledTimes(1);
     });
   });
 });

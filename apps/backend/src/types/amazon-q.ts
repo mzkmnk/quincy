@@ -5,8 +5,6 @@
 
 import { ChildProcess } from 'child_process';
 
-import type { ParagraphProcessor } from '../services/amazon-q-cli/message-handler/paragraph-processor';
-
 import { SessionId, ProcessStatus, AbsolutePath, Timestamp } from './common';
 
 // Amazon Q プロセスセッション型
@@ -22,10 +20,9 @@ export interface QProcessSession {
   cpuUsage?: number;
   command: string;
   options: QProcessOptions;
-  // レスポンスバッファリング用
+  // レスポンスバッファリング用（後方互換性のため保持）
   outputBuffer: string;
   errorBuffer: string;
-  bufferTimeout?: NodeJS.Timeout;
   bufferFlushCount: number;
   // 行ベースバッファリング用
   incompleteOutputLine: string;
@@ -40,12 +37,10 @@ export interface QProcessSession {
   initializationBuffer: string[];
   initializationPhase: boolean;
   initializationTimeout?: NodeJS.Timeout;
-  // ツール管理用フィールド（新規追加）
+  // ツール管理用フィールド
   currentTools: string[];
   toolBuffer: string;
   toolDetectionBuffer: IToolDetectionBuffer;
-  // 段落処理用
-  paragraphProcessor: ParagraphProcessor;
 }
 
 // Amazon Q プロセスオプション型

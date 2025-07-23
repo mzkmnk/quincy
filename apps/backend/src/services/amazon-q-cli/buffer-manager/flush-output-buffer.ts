@@ -20,10 +20,4 @@ export function flushOutputBuffer(
 
   // バッファをクリア
   session.outputBuffer = '';
-
-  // タイムアウトをクリア
-  if (session.bufferTimeout) {
-    clearTimeout(session.bufferTimeout);
-    session.bufferTimeout = undefined;
-  }
 }

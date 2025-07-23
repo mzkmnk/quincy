@@ -4,7 +4,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 
 import { isDuplicateThinking } from '../../../../services/amazon-q-cli/message-handler/is-duplicate-thinking';
 import type { QProcessSession, QProcessOptions } from '../../../../types';
-import { ParagraphProcessor } from '../../../../services/amazon-q-cli/message-handler';
 import { ToolDetectionBuffer } from '../../../../services/amazon-q-message-parser';
 
 describe('isDuplicateThinking', () => {
@@ -36,7 +35,6 @@ describe('isDuplicateThinking', () => {
       currentTools: [],
       toolBuffer: '',
       toolDetectionBuffer: {} as unknown as ToolDetectionBuffer,
-      paragraphProcessor: new ParagraphProcessor(),
     };
   });
 

@@ -298,8 +298,8 @@ describe('AmazonQCLIService', () => {
 
       const promise = new Promise<void>(resolve => {
         service.on('q:response', data => {
-          // 段落処理のため\n\nが追加される
-          expect(data.data).toBe('Hello from Q CLI\n\n');
+          // シンプル実装では行ベース処理
+          expect(data.data).toBe('Hello from Q CLI\n');
           expect(data.type).toBe('stream');
           expect(data.sessionId).toMatch(/^q_session_/);
           resolve();
