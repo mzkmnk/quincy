@@ -6,8 +6,7 @@ import { shouldSkipOutput, isInitializationMessage, processParagraph } from '../
 
 export function flushIncompleteOutputLine(
   session: QProcessSession,
-  emitCallback: (event: string, data: QResponseEvent) => void,
-  _emitPromptReadyCallback?: (sessionId: string) => void
+  emitCallback: (event: string, data: QResponseEvent) => void
 ): void {
   // 段落処理をフラッシュ
   const remainingParagraph = session.paragraphProcessor.forceFlush();

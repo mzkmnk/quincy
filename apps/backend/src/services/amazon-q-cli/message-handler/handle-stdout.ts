@@ -39,8 +39,32 @@ export function handleStdout(
     const line = lines[i];
     const cleanLine = stripAnsiCodes(line);
 
-    // 無意味な記号のみの行はスキップ
-    if (cleanLine === '>' || cleanLine === '>>' || cleanLine === '>>>') {
+    // プロンプト準備完了の検出（スキップより前に実行）
+    if (detectPromptReady(cleanLine)) {
+      // 段落処理をフラッシュ
+      const remainingParagraph = session.paragraphProcessor.forceFlush();
+      if (remainingParagraph) {
+        processParagraph(session, remainingParagraph, emitCallback);
+      }
+
+      // プロンプト準備完了時にツール状態をリセット
+      session.currentTools = [];
+
+      // thinking送信フラグもリセット
+      resetThinkingFlag(session);
+
+      console.log(
+        `Prompt ready detected for session: ${session.sessionId}, resetting tool state and thinking flag, enabling chat`
+      );
+
+      if (emitPromptReadyCallback) {
+        emitPromptReadyCallback(session.sessionId);
+      }
+      continue; // プロンプト行は通常処理をスキップ
+    }
+
+    // 無意味な記号のみの行はスキップ（ただし>はプロンプト検出で処理済み）
+    if (cleanLine === '>>' || cleanLine === '>>>') {
       continue;
     }
 
@@ -77,30 +101,6 @@ export function handleStdout(
       continue;
     }
 
-    // プロンプト準備完了の検出（シンプル版）
-    if (detectPromptReady(cleanLine)) {
-      // 段落処理をフラッシュ
-      const remainingParagraph = session.paragraphProcessor.forceFlush();
-      if (remainingParagraph) {
-        processParagraph(session, remainingParagraph, emitCallback);
-      }
-
-      // プロンプト準備完了時にツール状態をリセット
-      session.currentTools = [];
-
-      // thinking送信フラグもリセット
-      resetThinkingFlag(session);
-
-      console.log(
-        `Prompt ready detected for session: ${session.sessionId}, resetting tool state and thinking flag, enabling chat`
-      );
-
-      if (emitPromptReadyCallback) {
-        emitPromptReadyCallback(session.sessionId);
-      }
-      continue; // プロンプト行は通常処理をスキップ
-    }
-
     // 「Thinking」メッセージは完全にスキップ（フロントエンドでLoading状態で制御）
     if (isThinkingMessage(cleanLine)) {
       continue; // thinking メッセージはスキップ
@@ -115,28 +115,34 @@ export function handleStdout(
       if (!toolDetection.cleanedLine.trim()) {
         continue;
       }
-    }
-
-    // 段落処理（addLineが必要に応じて段落を返す）
-    const paragraph = session.paragraphProcessor.addLine(line);
-    if (paragraph) {
-      processParagraph(session, paragraph, emitCallback);
-    }
-  }
-
-  // 不完全な行がある場合は短時間でタイムアウト処理
-  if (session.incompleteOutputLine.trim()) {
-    if (session.bufferTimeout) {
-      clearTimeout(session.bufferTimeout);
-    }
-
-    session.bufferTimeout = setTimeout(() => {
-      // 段落処理をフラッシュ
-      const remainingParagraph = session.paragraphProcessor.forceFlush();
-      if (remainingParagraph) {
-        processParagraph(session, remainingParagraph, emitCallback);
+      // クリーンな行がある場合は、それを段落処理に渡す
+      const paragraph = session.paragraphProcessor.addLine(toolDetection.cleanedLine);
+      if (paragraph) {
+        processParagraph(session, paragraph, emitCallback);
       }
-      flushIncompleteLineCallback(session, emitCallback, emitPromptReadyCallback);
-    }, 200); // 200ms後にフラッシュ
+    } else {
+      // ツールが含まれない通常の行の処理
+      const paragraph = session.paragraphProcessor.addLine(line);
+      if (paragraph) {
+        processParagraph(session, paragraph, emitCallback);
+      }
+    }
   }
+
+  // 段落処理のタイムアウト（常に設定）
+  if (session.bufferTimeout) {
+    clearTimeout(session.bufferTimeout);
+  }
+
+  session.bufferTimeout = setTimeout(() => {
+    // 段落処理をフラッシュ
+    const remainingParagraph = session.paragraphProcessor.forceFlush();
+    if (remainingParagraph) {
+      processParagraph(session, remainingParagraph, emitCallback);
+    }
+    // 不完全な行もフラッシュ
+    if (session.incompleteOutputLine.trim()) {
+      flushIncompleteLineCallback(session, emitCallback);
+    }
+  }, 200); // 200ms後にフラッシュ
 }

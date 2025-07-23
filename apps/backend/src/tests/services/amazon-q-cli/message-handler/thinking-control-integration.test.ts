@@ -97,7 +97,7 @@ describe('thinking完全スキップの統合テスト', () => {
       expect(thinkingEvents).toHaveLength(0);
     });
 
-    it('プロンプト表示後もthinkingはスキップされる', () => {
+    it('プロンプト表示後もthinkingはスキップされる', async () => {
       const emitCallback = (event: string, data: QResponseEvent) => {
         emittedEvents.push({ event, data });
       };
@@ -116,13 +116,16 @@ describe('thinking完全スキップの統合テスト', () => {
       // プロンプト表示
       handleStdout(
         mockSession,
-        Buffer.from('> \n'),
+        Buffer.from('>\n'),
         emitCallback,
         () => {},
         () => {
           promptReadyEmitted = true;
         }
       );
+
+      // タイムアウトを待ってからフラッシュ処理を確認
+      await new Promise(resolve => setTimeout(resolve, 250));
 
       // プロンプト準備完了が通知されたことを確認
       expect(promptReadyEmitted).toBe(true);

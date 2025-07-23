@@ -13,8 +13,7 @@ export function setupProcessHandlers(
   ) => void,
   flushIncompleteOutputLineCallback: (
     session: QProcessSession,
-    emitCallback: (event: string, data: QResponseEvent) => void,
-    emitPromptReadyCallback?: (sessionId: string) => void
+    emitCallback: (event: string, data: QResponseEvent) => void
   ) => void,
   flushIncompleteErrorLineCallback: (session: QProcessSession) => void,
   addToInitializationBufferCallback: (session: QProcessSession, message: string) => void,
@@ -56,7 +55,7 @@ export function setupProcessHandlers(
 
     // 残りの不完全な行をフラッシュ
     if (session.incompleteOutputLine.trim()) {
-      flushIncompleteOutputLineCallback(session, emitCallback, emitPromptReadyCallback);
+      flushIncompleteOutputLineCallback(session, emitCallback);
     }
     if (session.incompleteErrorLine.trim()) {
       flushIncompleteErrorLineCallback(session);
