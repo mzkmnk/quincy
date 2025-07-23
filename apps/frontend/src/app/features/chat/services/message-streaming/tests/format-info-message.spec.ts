@@ -60,21 +60,29 @@ describe('formatInfoMessage', () => {
 
   it('重複するthinkingメッセージは2回目以降nullを返す', () => {
     const sessionId = 'duplicate-test-session';
-    
+
     // 1回目: 正常に処理される
     const result1 = formatInfoMessage({ sessionId, message: 'thinking', type: 'general' });
     expect(result1).toBe('🤔 Thinking...');
-    
+
     // 2回目: 1秒以内なので重複とみなされnullが返される
     const result2 = formatInfoMessage({ sessionId, message: 'thinking', type: 'general' });
     expect(result2).toBe(null);
   });
 
   it('異なるセッションのthinkingメッセージは重複判定されない', () => {
-    const result1 = formatInfoMessage({ sessionId: 'session-1', message: 'thinking', type: 'general' });
+    const result1 = formatInfoMessage({
+      sessionId: 'session-1',
+      message: 'thinking',
+      type: 'general',
+    });
     expect(result1).toBe('🤔 Thinking...');
-    
-    const result2 = formatInfoMessage({ sessionId: 'session-2', message: 'thinking', type: 'general' });
+
+    const result2 = formatInfoMessage({
+      sessionId: 'session-2',
+      message: 'thinking',
+      type: 'general',
+    });
     expect(result2).toBe('🤔 Thinking...');
   });
 

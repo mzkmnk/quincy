@@ -6,6 +6,7 @@ import type { QResponseEvent } from '@quincy/shared';
 import { handleStdout } from '../../../../services/amazon-q-cli/message-handler/handle-stdout';
 import type { QProcessSession, QProcessOptions, AbsolutePath } from '../../../../types';
 import { ToolDetectionBuffer } from '../../../../services/amazon-q-message-parser';
+import { ParagraphProcessor } from '../../../../services/amazon-q-cli/message-handler';
 
 describe('handleStdout - ツール検出機能', () => {
   let mockSession: QProcessSession;
@@ -77,6 +78,7 @@ describe('handleStdout - ツール検出機能', () => {
       currentTools: [],
       toolBuffer: '',
       toolDetectionBuffer: new ToolDetectionBuffer(),
+      paragraphProcessor: new ParagraphProcessor(),
     };
 
     mockEmitCallback = vi.fn();

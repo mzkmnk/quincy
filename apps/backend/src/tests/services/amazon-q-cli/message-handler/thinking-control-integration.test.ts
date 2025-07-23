@@ -1,12 +1,14 @@
-import { describe, it, expect, vi } from 'vitest';
 import type { ChildProcess } from 'child_process';
 
-import type { QProcessSession } from '../../../../types';
+import { describe, it, expect, vi } from 'vitest';
 import type { QResponseEvent } from '@quincy/shared';
+
+import type { QProcessSession, QProcessOptions } from '../../../../types';
 import { handleStdout } from '../../../../services/amazon-q-cli/message-handler/handle-stdout';
 import { handleStderr } from '../../../../services/amazon-q-cli/message-handler/handle-stderr';
 import { sendInput } from '../../../../services/amazon-q-cli/session-manager/send-input';
 import { ToolDetectionBuffer } from '../../../../services/amazon-q-message-parser';
+import { ParagraphProcessor } from '../../../../services/amazon-q-cli/message-handler';
 
 describe('thinking完全スキップの統合テスト', () => {
   let mockSession: QProcessSession;
@@ -16,7 +18,7 @@ describe('thinking完全スキップの統合テスト', () => {
   beforeEach(() => {
     emittedEvents = [];
     promptReadyEmitted = false;
-    
+
     mockSession = {
       sessionId: 'q_session_test',
       process: {
@@ -30,7 +32,7 @@ describe('thinking完全スキップの統合テスト', () => {
       status: 'running',
       lastActivity: Date.now(),
       command: 'test',
-      options: {} as any,
+      options: {} as unknown as QProcessOptions,
       outputBuffer: '',
       errorBuffer: '',
       bufferFlushCount: 0,
@@ -45,6 +47,7 @@ describe('thinking完全スキップの統合テスト', () => {
       currentTools: [],
       toolBuffer: '',
       toolDetectionBuffer: new ToolDetectionBuffer(),
+      paragraphProcessor: new ParagraphProcessor(),
     };
   });
 
@@ -60,7 +63,9 @@ describe('thinking完全スキップの統合テスト', () => {
         Buffer.from('Thinking...\n'),
         emitCallback,
         () => {},
-        () => { promptReadyEmitted = true; }
+        () => {
+          promptReadyEmitted = true;
+        }
       );
 
       // 2回目のthinking
@@ -69,7 +74,9 @@ describe('thinking完全スキップの統合テスト', () => {
         Buffer.from('Thinking...\n'),
         emitCallback,
         () => {},
-        () => { promptReadyEmitted = true; }
+        () => {
+          promptReadyEmitted = true;
+        }
       );
 
       // 3回目のthinking（違うパターン）
@@ -78,11 +85,13 @@ describe('thinking完全スキップの統合テスト', () => {
         Buffer.from('thinking\n'),
         emitCallback,
         () => {},
-        () => { promptReadyEmitted = true; }
+        () => {
+          promptReadyEmitted = true;
+        }
       );
 
       // thinkingメッセージが1回も送信されていないことを確認
-      const thinkingEvents = emittedEvents.filter(e => 
+      const thinkingEvents = emittedEvents.filter(e =>
         e.data.data.toLowerCase().includes('thinking')
       );
       expect(thinkingEvents).toHaveLength(0);
@@ -99,7 +108,9 @@ describe('thinking完全スキップの統合テスト', () => {
         Buffer.from('Thinking...\n'),
         emitCallback,
         () => {},
-        () => { promptReadyEmitted = true; }
+        () => {
+          promptReadyEmitted = true;
+        }
       );
 
       // プロンプト表示
@@ -108,23 +119,27 @@ describe('thinking完全スキップの統合テスト', () => {
         Buffer.from('> \n'),
         emitCallback,
         () => {},
-        () => { promptReadyEmitted = true; }
+        () => {
+          promptReadyEmitted = true;
+        }
       );
 
       // プロンプト準備完了が通知されたことを確認
       expect(promptReadyEmitted).toBe(true);
-      
+
       // 2回目のthinking（プロンプト後）
       handleStdout(
         mockSession,
         Buffer.from('Thinking...\n'),
         emitCallback,
         () => {},
-        () => { promptReadyEmitted = true; }
+        () => {
+          promptReadyEmitted = true;
+        }
       );
 
       // thinkingメッセージが1回も送信されていないことを確認
-      const thinkingEvents = emittedEvents.filter(e => 
+      const thinkingEvents = emittedEvents.filter(e =>
         e.data.data.toLowerCase().includes('thinking')
       );
       expect(thinkingEvents).toHaveLength(0);
@@ -141,13 +156,15 @@ describe('thinking完全スキップの統合テスト', () => {
         Buffer.from('Thinking...\n'),
         emitCallback,
         () => {},
-        () => { promptReadyEmitted = true; }
+        () => {
+          promptReadyEmitted = true;
+        }
       );
 
       // 新規メッセージ送信
       const sessions = new Map<string, QProcessSession>();
       sessions.set('q_session_test', mockSession);
-      
+
       const result = await sendInput(sessions, 'q_session_test', 'New message\n');
       expect(result).toBe(true);
 
@@ -157,11 +174,13 @@ describe('thinking完全スキップの統合テスト', () => {
         Buffer.from('Thinking...\n'),
         emitCallback,
         () => {},
-        () => { promptReadyEmitted = true; }
+        () => {
+          promptReadyEmitted = true;
+        }
       );
 
       // thinkingメッセージが1回も送信されていないことを確認
-      const thinkingEvents = emittedEvents.filter(e => 
+      const thinkingEvents = emittedEvents.filter(e =>
         e.data.data.toLowerCase().includes('thinking')
       );
       expect(thinkingEvents).toHaveLength(0);

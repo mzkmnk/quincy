@@ -1,7 +1,11 @@
+import type { ChildProcess } from 'child_process';
+
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import { isDuplicateThinking } from '../../../../services/amazon-q-cli/message-handler/is-duplicate-thinking';
-import type { QProcessSession } from '../../../../types';
+import type { QProcessSession, QProcessOptions } from '../../../../types';
+import { ParagraphProcessor } from '../../../../services/amazon-q-cli/message-handler';
+import { ToolDetectionBuffer } from '../../../../services/amazon-q-message-parser';
 
 describe('isDuplicateThinking', () => {
   let mockSession: QProcessSession;
@@ -14,13 +18,13 @@ describe('isDuplicateThinking', () => {
       lastInfoMessageTime: 0,
       hasThinkingSent: false,
       // その他の必須フィールドをモック値で埋める
-      process: {} as any,
+      process: {} as unknown as ChildProcess,
       workingDir: '/test',
       startTime: Date.now(),
       status: 'running',
       lastActivity: Date.now(),
       command: 'test',
-      options: {} as any,
+      options: {} as unknown as QProcessOptions,
       outputBuffer: '',
       errorBuffer: '',
       bufferFlushCount: 0,
@@ -31,7 +35,8 @@ describe('isDuplicateThinking', () => {
       initializationPhase: false,
       currentTools: [],
       toolBuffer: '',
-      toolDetectionBuffer: {} as any,
+      toolDetectionBuffer: {} as unknown as ToolDetectionBuffer,
+      paragraphProcessor: new ParagraphProcessor(),
     };
   });
 
@@ -64,14 +69,14 @@ describe('isDuplicateThinking', () => {
       const now = Date.now();
       mockSession.lastThinkingMessage = 'thinking';
       mockSession.lastInfoMessageTime = now - 500; // 500ms前
-      
+
       // Date.nowをモック
       const originalNow = Date.now;
       Date.now = () => now;
-      
+
       const result = isDuplicateThinking('thinking', mockSession);
       expect(result).toBe(true);
-      
+
       // Date.nowを復元
       Date.now = originalNow;
     });
@@ -80,15 +85,15 @@ describe('isDuplicateThinking', () => {
       const now = Date.now();
       mockSession.lastThinkingMessage = 'thinking';
       mockSession.lastInfoMessageTime = now - 1500; // 1.5秒前
-      
+
       // Date.nowをモック
       const originalNow = Date.now;
       Date.now = () => now;
-      
+
       const result = isDuplicateThinking('thinking', mockSession);
       expect(result).toBe(false);
       expect(mockSession.lastThinkingMessage).toBe('thinking');
-      
+
       // Date.nowを復元
       Date.now = originalNow;
     });
@@ -97,15 +102,15 @@ describe('isDuplicateThinking', () => {
       const now = Date.now();
       mockSession.lastThinkingMessage = 'thinking';
       mockSession.lastInfoMessageTime = now - 100; // 100ms前
-      
+
       // Date.nowをモック
       const originalNow = Date.now;
       Date.now = () => now;
-      
+
       const result = isDuplicateThinking('thinking...', mockSession);
       expect(result).toBe(false);
       // lastThinkingMessageの更新はshouldSendThinkingで行うため、変更されない
-      
+
       // Date.nowを復元
       Date.now = originalNow;
     });

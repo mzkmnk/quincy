@@ -2,21 +2,24 @@ import type { QResponseEvent } from '@quincy/shared';
 
 import type { QProcessSession } from '../session-manager/types';
 import { stripAnsiCodes } from '../../../utils/ansi-stripper';
-import { parseToolUsage, filterToolOutput } from '../../amazon-q-message-parser';
+import { parseToolUsage } from '../../amazon-q-message-parser';
 
-import { shouldSkipOutput } from './should-skip-output';
 import { isInitializationMessage } from './is-initialization-message';
 import { isInitializationComplete } from './is-initialization-complete';
 import { detectPromptReady } from './detect-prompt-ready';
-import { isDuplicateThinking } from './is-duplicate-thinking';
-import { shouldSendThinking, resetThinkingFlag } from './should-send-thinking';
+import { resetThinkingFlag } from './should-send-thinking';
 import { isThinkingMessage } from './is-thinking-message';
+import { processParagraph } from './process-paragraph';
 
 export function handleStdout(
   session: QProcessSession,
   data: Buffer,
   emitCallback: (event: string, data: QResponseEvent) => void,
-  flushIncompleteLineCallback: (session: QProcessSession) => void,
+  flushIncompleteLineCallback: (
+    session: QProcessSession,
+    emitCallback: (event: string, data: QResponseEvent) => void,
+    emitPromptReadyCallback?: (sessionId: string) => void
+  ) => void,
   emitPromptReadyCallback?: (sessionId: string) => void
 ): void {
   session.lastActivity = Date.now();
@@ -32,11 +35,12 @@ export function handleStdout(
   session.incompleteOutputLine = lines.pop() || '';
 
   // 完全な行のみを処理
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const cleanLine = stripAnsiCodes(line);
 
-    // 空の行や無意味な行をスキップ
-    if (shouldSkipOutput(cleanLine)) {
+    // 無意味な記号のみの行はスキップ
+    if (cleanLine === '>' || cleanLine === '>>' || cleanLine === '>>>') {
       continue;
     }
 
@@ -49,6 +53,12 @@ export function handleStdout(
     if (session.initializationPhase && isInitializationComplete(cleanLine)) {
       session.initializationPhase = false;
       console.log(`Amazon Q CLI initialization completed for session: ${session.sessionId}`);
+
+      // 段落処理をフラッシュ
+      const remainingParagraph = session.paragraphProcessor.forceFlush();
+      if (remainingParagraph) {
+        processParagraph(session, remainingParagraph, emitCallback);
+      }
 
       // 初期化完了時にプロンプト準備完了として通知
       if (emitPromptReadyCallback) {
@@ -67,37 +77,17 @@ export function handleStdout(
       continue;
     }
 
-    // ツール実行の詳細出力をフィルタリング（Phase 3）
-    const filterResult = filterToolOutput(cleanLine);
-    if (filterResult.shouldSkip) {
-      continue;
-    }
-
-    // ツール検出処理
-    const toolDetection = parseToolUsage(cleanLine);
-    if (toolDetection.hasTools) {
-      // ツール情報をセッションに蓄積
-      session.currentTools = [...(session.currentTools || []), ...toolDetection.tools];
-
-      // クリーンな行が空でない場合のみレスポンスイベントを発行
-      if (toolDetection.cleanedLine.trim()) {
-        const responseEvent: QResponseEvent = {
-          sessionId: session.sessionId,
-          data: toolDetection.cleanedLine + '\n',
-          type: 'stream',
-          tools: session.currentTools,
-          hasToolContent: session.currentTools.length > 0,
-        };
-        emitCallback('q:response', responseEvent);
-      }
-      continue; // ツール検出された行は通常処理をスキップ
-    }
-
     // プロンプト準備完了の検出（シンプル版）
     if (detectPromptReady(cleanLine)) {
+      // 段落処理をフラッシュ
+      const remainingParagraph = session.paragraphProcessor.forceFlush();
+      if (remainingParagraph) {
+        processParagraph(session, remainingParagraph, emitCallback);
+      }
+
       // プロンプト準備完了時にツール状態をリセット
       session.currentTools = [];
-      
+
       // thinking送信フラグもリセット
       resetThinkingFlag(session);
 
@@ -116,16 +106,22 @@ export function handleStdout(
       continue; // thinking メッセージはスキップ
     }
 
-    // 直接レスポンスイベントを発行（行ベース）
-    const responseEvent: QResponseEvent = {
-      sessionId: session.sessionId,
-      data: cleanLine + '\n', // 改行を復元
-      type: 'stream',
-      tools: session.currentTools || [],
-      hasToolContent: (session.currentTools || []).length > 0,
-    };
+    // ツール検出（段落処理とは別に行う）
+    const toolDetection = parseToolUsage(cleanLine);
+    if (toolDetection.hasTools) {
+      // ツール情報をセッションに蓄積
+      session.currentTools = [...(session.currentTools || []), ...toolDetection.tools];
+      // ツール行自体はスキップし、クリーンな行があれば通常の行として処理
+      if (!toolDetection.cleanedLine.trim()) {
+        continue;
+      }
+    }
 
-    emitCallback('q:response', responseEvent);
+    // 段落処理（addLineが必要に応じて段落を返す）
+    const paragraph = session.paragraphProcessor.addLine(line);
+    if (paragraph) {
+      processParagraph(session, paragraph, emitCallback);
+    }
   }
 
   // 不完全な行がある場合は短時間でタイムアウト処理
@@ -135,7 +131,12 @@ export function handleStdout(
     }
 
     session.bufferTimeout = setTimeout(() => {
-      flushIncompleteLineCallback(session);
+      // 段落処理をフラッシュ
+      const remainingParagraph = session.paragraphProcessor.forceFlush();
+      if (remainingParagraph) {
+        processParagraph(session, remainingParagraph, emitCallback);
+      }
+      flushIncompleteLineCallback(session, emitCallback, emitPromptReadyCallback);
     }, 200); // 200ms後にフラッシュ
   }
 }

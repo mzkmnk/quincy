@@ -28,7 +28,7 @@ function stripUnicodeDecorations(text: string): string {
 }
 
 // 最後に処理されたthinkingメッセージのキャッシュ
-let lastThinkingCache: { sessionId: string; timestamp: number } | null = null;
+// const lastThinkingCache: { sessionId: string; timestamp: number } | null = null;
 
 /**
  * 情報メッセージをフォーマットする

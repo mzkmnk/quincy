@@ -2,12 +2,19 @@ import type { QResponseEvent } from '@quincy/shared';
 
 import type { QProcessSession } from '../session-manager/types';
 import { stripAnsiCodes } from '../../../utils/ansi-stripper';
-import { shouldSkipOutput, isInitializationMessage } from '../message-handler';
+import { shouldSkipOutput, isInitializationMessage, processParagraph } from '../message-handler';
 
 export function flushIncompleteOutputLine(
   session: QProcessSession,
-  emitCallback: (event: string, data: QResponseEvent) => void
+  emitCallback: (event: string, data: QResponseEvent) => void,
+  _emitPromptReadyCallback?: (sessionId: string) => void
 ): void {
+  // 段落処理をフラッシュ
+  const remainingParagraph = session.paragraphProcessor.forceFlush();
+  if (remainingParagraph) {
+    processParagraph(session, remainingParagraph, emitCallback);
+  }
+
   if (!session.incompleteOutputLine.trim()) {
     return;
   }
@@ -22,15 +29,12 @@ export function flushIncompleteOutputLine(
       return;
     }
 
-    // Thinkingメッセージはそのまま通す（特別処理なし）
-
-    const responseEvent: QResponseEvent = {
-      sessionId: session.sessionId,
-      data: cleanLine,
-      type: 'stream',
-    };
-
-    emitCallback('q:response', responseEvent);
+    // 最後の不完全な行を段落として処理
+    session.paragraphProcessor.addLine(session.incompleteOutputLine);
+    const lastParagraph = session.paragraphProcessor.forceFlush();
+    if (lastParagraph) {
+      processParagraph(session, lastParagraph, emitCallback);
+    }
   }
 
   // 不完全な行をクリア

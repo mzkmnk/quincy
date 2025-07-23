@@ -29,9 +29,7 @@ export interface SessionStatus {
             ></path>
           </svg>
         </div>
-        <h2 class="text-2xl font-semibold text-[var(--text-primary)] mb-4">
-          Loading...
-        </h2>
+        <h2 class="text-2xl font-semibold text-[var(--text-primary)] mb-4">Loading...</h2>
         <p class="text-[var(--text-secondary)] mb-6 leading-relaxed">
           Please wait while we initialize your Amazon Q session...
         </p>

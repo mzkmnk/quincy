@@ -5,6 +5,8 @@
 
 import { ChildProcess } from 'child_process';
 
+import type { ParagraphProcessor } from '../services/amazon-q-cli/message-handler/paragraph-processor';
+
 import { SessionId, ProcessStatus, AbsolutePath, Timestamp } from './common';
 
 // Amazon Q プロセスセッション型
@@ -42,6 +44,8 @@ export interface QProcessSession {
   currentTools: string[];
   toolBuffer: string;
   toolDetectionBuffer: IToolDetectionBuffer;
+  // 段落処理用
+  paragraphProcessor: ParagraphProcessor;
 }
 
 // Amazon Q プロセスオプション型

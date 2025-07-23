@@ -1,12 +1,11 @@
 import { describe, it, expect } from 'vitest';
 
 import type { QProcessSession } from '../../../../types';
-
 // まだ実装されていない関数をテスト（TDD RED phase）
-import { 
-  shouldSendThinking, 
-  resetThinkingFlag, 
-  resetThinkingFlagForNewMessage 
+import {
+  shouldSendThinking,
+  resetThinkingFlag,
+  resetThinkingFlagForNewMessage,
 } from '../../../../services/amazon-q-cli/message-handler/should-send-thinking';
 
 describe('shouldSendThinking', () => {
@@ -15,7 +14,7 @@ describe('shouldSendThinking', () => {
       const session: Partial<QProcessSession> = {
         hasThinkingSent: false,
       };
-      
+
       const result = shouldSendThinking(session as QProcessSession, 'thinking');
       expect(result).toBe(true);
     });
@@ -24,7 +23,7 @@ describe('shouldSendThinking', () => {
       const session: Partial<QProcessSession> = {
         hasThinkingSent: false,
       };
-      
+
       const result = shouldSendThinking(session as QProcessSession, 'thinking');
       expect(result).toBe(true);
       expect(session.hasThinkingSent).toBe(true);
@@ -36,7 +35,7 @@ describe('shouldSendThinking', () => {
       const session: Partial<QProcessSession> = {
         hasThinkingSent: true,
       };
-      
+
       const result = shouldSendThinking(session as QProcessSession, 'thinking');
       expect(result).toBe(false);
     });
@@ -45,7 +44,7 @@ describe('shouldSendThinking', () => {
       const session: Partial<QProcessSession> = {
         hasThinkingSent: true,
       };
-      
+
       const result = shouldSendThinking(session as QProcessSession, 'thinking');
       expect(result).toBe(false);
       expect(session.hasThinkingSent).toBe(true);
@@ -57,9 +56,9 @@ describe('shouldSendThinking', () => {
       const session: Partial<QProcessSession> = {
         hasThinkingSent: true,
       };
-      
+
       resetThinkingFlag(session as QProcessSession);
-      
+
       expect(session.hasThinkingSent).toBe(false);
     });
   });
@@ -69,9 +68,9 @@ describe('shouldSendThinking', () => {
       const session: Partial<QProcessSession> = {
         hasThinkingSent: true,
       };
-      
+
       resetThinkingFlagForNewMessage(session as QProcessSession);
-      
+
       expect(session.hasThinkingSent).toBe(false);
     });
   });

@@ -14,7 +14,7 @@ export function shouldSendThinking(session: QProcessSession, message: string): b
     session.lastInfoMessageTime = Date.now();
     return true;
   }
-  
+
   // 既に送信済みの場合は送信しない
   return false;
 }

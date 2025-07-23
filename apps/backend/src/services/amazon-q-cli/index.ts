@@ -244,7 +244,8 @@ export class AmazonQCLIService extends EventEmitter {
     setupProcessHandlers(
       session,
       this.emit.bind(this),
-      session => flushIncompleteOutputLine(session, this.emit.bind(this)),
+      (session, emitCallback, emitPromptReadyCallback) =>
+        flushIncompleteOutputLine(session, emitCallback, emitPromptReadyCallback),
       session =>
         flushIncompleteErrorLine(session, this.emit.bind(this), (session, message) =>
           addToInitializationBuffer(session, message, session =>

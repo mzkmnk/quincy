@@ -2,6 +2,7 @@ import { ChildProcess } from 'child_process';
 
 import type { QProcessSession, QProcessOptions, SessionId } from '../../../types';
 import { ToolDetectionBuffer } from '../../amazon-q-message-parser';
+import { ParagraphProcessor } from '../message-handler';
 
 export function createSession(
   sessionId: SessionId,
@@ -36,5 +37,7 @@ export function createSession(
     currentTools: [],
     toolBuffer: '',
     toolDetectionBuffer: new ToolDetectionBuffer(),
+    // 段落処理の初期化
+    paragraphProcessor: new ParagraphProcessor(),
   };
 }
