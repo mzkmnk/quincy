@@ -10,3 +10,5 @@ export { shouldSkipDuplicateInfo } from './should-skip-duplicate-info';
 export { setupProcessHandlers } from './setup-process-handlers';
 export { isToolUsageLine } from './is-tool-usage-line';
 export { detectPromptReady } from './detect-prompt-ready';
+export { isDuplicateThinking } from './is-duplicate-thinking';
+export { shouldSendThinking, resetThinkingFlag, resetThinkingFlagForNewMessage } from './should-send-thinking';

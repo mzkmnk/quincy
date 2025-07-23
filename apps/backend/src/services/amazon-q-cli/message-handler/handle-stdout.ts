@@ -8,6 +8,9 @@ import { shouldSkipOutput } from './should-skip-output';
 import { isInitializationMessage } from './is-initialization-message';
 import { isInitializationComplete } from './is-initialization-complete';
 import { detectPromptReady } from './detect-prompt-ready';
+import { isDuplicateThinking } from './is-duplicate-thinking';
+import { shouldSendThinking, resetThinkingFlag } from './should-send-thinking';
+import { isThinkingMessage } from './is-thinking-message';
 
 export function handleStdout(
   session: QProcessSession,
@@ -94,9 +97,12 @@ export function handleStdout(
     if (detectPromptReady(cleanLine)) {
       // プロンプト準備完了時にツール状態をリセット
       session.currentTools = [];
+      
+      // thinking送信フラグもリセット
+      resetThinkingFlag(session);
 
       console.log(
-        `Prompt ready detected for session: ${session.sessionId}, resetting tool state and enabling chat`
+        `Prompt ready detected for session: ${session.sessionId}, resetting tool state and thinking flag, enabling chat`
       );
 
       if (emitPromptReadyCallback) {
@@ -105,7 +111,10 @@ export function handleStdout(
       continue; // プロンプト行は通常処理をスキップ
     }
 
-    // 「Thinking」メッセージはそのまま通す（特別処理なし）
+    // 「Thinking」メッセージは完全にスキップ（フロントエンドでLoading状態で制御）
+    if (isThinkingMessage(cleanLine)) {
+      continue; // thinking メッセージはスキップ
+    }
 
     // 直接レスポンスイベントを発行（行ベース）
     const responseEvent: QResponseEvent = {

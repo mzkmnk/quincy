@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
     <div
       class="flex items-center space-x-2 bg-[var(--secondary-bg)] rounded-lg px-4 py-3 shadow-sm border border-[var(--border-color)]"
     >
-      <span class="text-[var(--text-secondary)] text-sm">Amazon Q is thinking</span>
+      <span class="text-[var(--text-secondary)] text-sm">Loading...</span>
       <div class="flex space-x-1">
         <div
           class="w-2 h-2 bg-[var(--text-muted)] rounded-full animate-bounce"

@@ -31,6 +31,9 @@ export interface QProcessSession {
   // 重複メッセージ防止用
   lastInfoMessage: string;
   lastInfoMessageTime: Timestamp;
+  lastThinkingMessage: string;
+  // thinking表示制御用
+  hasThinkingSent: boolean;
   // 初期化メッセージバッファリング
   initializationBuffer: string[];
   initializationPhase: boolean;

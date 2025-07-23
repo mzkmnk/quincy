@@ -70,6 +70,8 @@ describe('handleStdout - ツール検出機能', () => {
       incompleteErrorLine: '',
       lastInfoMessage: '',
       lastInfoMessageTime: 0,
+      lastThinkingMessage: '',
+      hasThinkingSent: false,
       initializationBuffer: [],
       initializationPhase: false,
       currentTools: [],
@@ -223,8 +225,8 @@ describe('handleStdout - ツール検出機能', () => {
       handleStdout(mockSession, data, mockEmitCallback, mockFlushCallback);
 
       expect(mockSession.currentTools).toEqual(['fs_read']);
-      // Thinkingメッセージも適切に処理される
-      expect(mockEmitCallback).toHaveBeenCalledTimes(1); // Thinkingはスキップされる可能性
+      // Thinkingメッセージは完全にスキップされる
+      expect(mockEmitCallback).toHaveBeenCalledTimes(0); // ツール検出のみ、Thinkingはスキップ
     });
   });
 });

@@ -7,6 +7,9 @@ import { classifyStderrMessage } from './classify-stderr-message';
 import { isInitializationMessage } from './is-initialization-message';
 import { shouldSkipDuplicateInfo } from './should-skip-duplicate-info';
 import { getInfoMessageType } from './get-info-message-type';
+import { isDuplicateThinking } from './is-duplicate-thinking';
+import { shouldSendThinking } from './should-send-thinking';
+import { isThinkingMessage } from './is-thinking-message';
 
 export function handleStderr(
   session: QProcessSession,
@@ -45,7 +48,11 @@ export function handleStderr(
         continue;
       }
 
-      // Thinkingメッセージはそのまま通す（特別処理なし）
+      // Thinkingメッセージは完全にスキップ（フロントエンドでLoading状態で制御）
+      if (isThinkingMessage(cleanLine)) {
+        continue; // thinking メッセージはスキップ
+      }
+      
       // 通常の重複メッセージチェック
       if (shouldSkipDuplicateInfo(session, cleanLine)) {
         continue;

@@ -52,9 +52,30 @@ describe('formatInfoMessage', () => {
   });
 
   it('thinking...メッセージの処理', () => {
-    const data = { sessionId: 'test-session', message: 'thinking...', type: 'general' };
+    // 異なるセッションIDを使用して重複チェックに引っかからないようにする
+    const data = { sessionId: 'different-session-id', message: 'thinking...', type: 'general' };
     const result = formatInfoMessage(data);
     expect(result).toBe('🤔 Thinking...');
+  });
+
+  it('重複するthinkingメッセージは2回目以降nullを返す', () => {
+    const sessionId = 'duplicate-test-session';
+    
+    // 1回目: 正常に処理される
+    const result1 = formatInfoMessage({ sessionId, message: 'thinking', type: 'general' });
+    expect(result1).toBe('🤔 Thinking...');
+    
+    // 2回目: 1秒以内なので重複とみなされnullが返される
+    const result2 = formatInfoMessage({ sessionId, message: 'thinking', type: 'general' });
+    expect(result2).toBe(null);
+  });
+
+  it('異なるセッションのthinkingメッセージは重複判定されない', () => {
+    const result1 = formatInfoMessage({ sessionId: 'session-1', message: 'thinking', type: 'general' });
+    expect(result1).toBe('🤔 Thinking...');
+    
+    const result2 = formatInfoMessage({ sessionId: 'session-2', message: 'thinking', type: 'general' });
+    expect(result2).toBe('🤔 Thinking...');
   });
 
   it('初期化タイプメッセージのフォーマット', () => {
