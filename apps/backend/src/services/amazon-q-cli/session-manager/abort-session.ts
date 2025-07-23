@@ -25,8 +25,7 @@ export async function abortSession(
     // プロセスを強制終了
     killProcess(session.process);
 
-    // Thinking状態をリセット
-    session.isThinkingActive = false;
+    // セッション中止時のクリーンアップ（Thinking状態管理は削除済み）
 
     // ツール情報をクリア
     session.currentTools = [];

@@ -5,6 +5,8 @@
  * @param shouldDisplayError エラー表示判定関数
  * @param onHandleError エラー処理コールバック
  */
+import { chatStateManager } from '../../../../core/store/chat/actions';
+
 export function handleErrorResponse(
   data: { sessionId: string; error: string },
   sessionId: string,
@@ -14,6 +16,9 @@ export function handleErrorResponse(
   // Filter by session ID
   if (data.sessionId === sessionId) {
     console.error('Received Q error for current session:', data);
+
+    // エラー状態に更新
+    chatStateManager.setError(data.error, sessionId);
 
     // 意味のあるエラーのみ表示
     if (shouldDisplayError(data.error)) {

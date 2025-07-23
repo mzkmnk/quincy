@@ -5,9 +5,6 @@ import { stripAnsiCodes } from '../../../utils/ansi-stripper';
 import {
   classifyStderrMessage,
   isInitializationMessage,
-  isThinkingMessage,
-  shouldSkipThinking,
-  updateThinkingState,
   shouldSkipDuplicateInfo,
   getInfoMessageType,
 } from '../message-handler';
@@ -33,30 +30,16 @@ export function flushIncompleteErrorLine(
       return;
     }
 
-    // Thinkingメッセージの特別処理
-    if (isThinkingMessage(cleanLine)) {
-      if (!shouldSkipThinking(session)) {
-        updateThinkingState(session);
+    // Thinkingメッセージはそのまま通す（特別処理なし）
+    // 重複メッセージチェック
+    if (!shouldSkipDuplicateInfo(session, cleanLine)) {
+      const infoEvent: QInfoEvent = {
+        sessionId: session.sessionId,
+        message: cleanLine,
+        type: getInfoMessageType(cleanLine),
+      };
 
-        const infoEvent: QInfoEvent = {
-          sessionId: session.sessionId,
-          message: cleanLine,
-          type: getInfoMessageType(cleanLine),
-        };
-
-        emitCallback('q:info', infoEvent);
-      }
-    } else {
-      // 通常の重複メッセージチェック
-      if (!shouldSkipDuplicateInfo(session, cleanLine)) {
-        const infoEvent: QInfoEvent = {
-          sessionId: session.sessionId,
-          message: cleanLine,
-          type: getInfoMessageType(cleanLine),
-        };
-
-        emitCallback('q:info', infoEvent);
-      }
+      emitCallback('q:info', infoEvent);
     }
   } else if (messageType === 'error') {
     const errorEvent: QErrorEvent = {

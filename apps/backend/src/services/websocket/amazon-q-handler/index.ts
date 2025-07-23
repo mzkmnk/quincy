@@ -12,3 +12,4 @@ export { handleQProjects } from './handle-q-projects';
 export { handleQResume } from './handle-q-resume';
 export { handleQProjectStart } from './handle-q-project-start';
 export { setupQCLIEventHandlers } from './setup-q-cli-event-handlers';
+export { emitPromptReady } from './emit-prompt-ready';

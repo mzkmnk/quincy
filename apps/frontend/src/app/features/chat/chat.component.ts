@@ -13,6 +13,7 @@ import { CommonModule } from '@angular/common';
 import { AppStore } from '../../core/store/app.state';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { MessageListComponent } from '../../shared/components/message-list/message-list.component';
+import { chatStore } from '../../core/store/chat/actions';
 import { MessageInputComponent } from '../../shared/components/message-input/message-input.component';
 
 import { ChatHeaderComponent } from './components/chat-header/chat-header.component';
@@ -308,8 +309,8 @@ export class ChatComponent implements OnInit, OnDestroy {
         hasToolContent ?? false,
         currentStreamingId,
         this.messageIndexMap,
-        () => this.appStore.chatMessages(),
-        (messageId, updates) => this.appStore.updateChatMessage(messageId, updates),
+        () => chatStore.getAllMessages(),
+        (messageId, updates) => chatStore.updateMessage(messageId, updates),
         () => this.chatMessages()?.messageList()?.markForScrollUpdate(),
         () => this.updateMessageIndexMap()
       );
@@ -338,8 +339,8 @@ export class ChatComponent implements OnInit, OnDestroy {
           messageId,
           messageContent,
           sessionId: this.appStore.currentQSession()?.sessionId,
-          totalMessages: this.appStore.chatMessages().length,
-          currentSessionMessages: this.appStore.currentSessionMessages().length,
+          totalMessages: chatStore.getAllMessages().length,
+          currentSessionMessages: chatStore.getAllMessages().length,
         });
       } else {
         console.warn('MessageList component not found');
@@ -353,6 +354,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private updateMessageIndexMap(): void {
-    updateMessageIndexMap(this.messageIndexMap, this.appStore.chatMessages());
+    updateMessageIndexMap(this.messageIndexMap, chatStore.getAllMessages());
   }
 }

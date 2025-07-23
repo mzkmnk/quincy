@@ -298,7 +298,8 @@ describe('AmazonQCLIService', () => {
 
       const promise = new Promise<void>(resolve => {
         service.on('q:response', data => {
-          expect(data.data).toBe('Hello from Q CLI');
+          // シンプル実装では行ベース処理
+          expect(data.data).toBe('Hello from Q CLI\n');
           expect(data.type).toBe('stream');
           expect(data.sessionId).toMatch(/^q_session_/);
           resolve();
@@ -306,7 +307,10 @@ describe('AmazonQCLIService', () => {
       });
 
       await service.startSession('help', options);
-      mockChildProcess.stdout.emit('data', Buffer.from('Hello from Q CLI'));
+      mockChildProcess.stdout.emit('data', Buffer.from('Hello from Q CLI\n'));
+
+      // タイムアウトによるフラッシュを待つ
+      await new Promise(resolve => setTimeout(resolve, 250));
 
       await promise;
     });

@@ -16,7 +16,8 @@ import { TextareaModule } from 'primeng/textarea';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AppStore } from '../../../core/store/app.state';
 
-import { sendMessage, canSendMessage } from './services/message-sender';
+import { sendMessage } from './services/message-sender';
+import { sendControlState, canSendMessage } from './services/send-control';
 import {
   handleCompositionStart,
   handleCompositionEnd,
@@ -51,7 +52,8 @@ import {
           <p-button
             (onClick)="onSendMessage()"
             [disabled]="!canSend()"
-            [loading]="sending()"
+            [loading]="sendControl().isLoading"
+            [label]="sendControl().buttonText"
             icon="pi pi-arrow-up"
             [rounded]="true"
             [text]="false"
@@ -78,9 +80,12 @@ export class MessageInputComponent {
   sending = signal(false);
   isComposing = signal(false);
 
+  // 統合送信制御の使用
+  sendControl = sendControlState;
+
   // 分離されたサービス関数をコンポーネントメソッドとして公開
   canSend = (): boolean => {
-    return canSendMessage(this.messageText(), this.sending());
+    return canSendMessage(this.messageText());
   };
 
   onSendMessage = async (): Promise<void> => {

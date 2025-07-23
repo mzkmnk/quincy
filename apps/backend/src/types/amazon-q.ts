@@ -20,10 +20,9 @@ export interface QProcessSession {
   cpuUsage?: number;
   command: string;
   options: QProcessOptions;
-  // レスポンスバッファリング用
+  // レスポンスバッファリング用（後方互換性のため保持）
   outputBuffer: string;
   errorBuffer: string;
-  bufferTimeout?: NodeJS.Timeout;
   bufferFlushCount: number;
   // 行ベースバッファリング用
   incompleteOutputLine: string;
@@ -31,14 +30,14 @@ export interface QProcessSession {
   // 重複メッセージ防止用
   lastInfoMessage: string;
   lastInfoMessageTime: Timestamp;
-  // グローバルThinking状態管理
-  isThinkingActive: boolean;
-  lastThinkingTime: Timestamp;
+  lastThinkingMessage: string;
+  // thinking表示制御用
+  hasThinkingSent: boolean;
   // 初期化メッセージバッファリング
   initializationBuffer: string[];
   initializationPhase: boolean;
   initializationTimeout?: NodeJS.Timeout;
-  // ツール管理用フィールド（新規追加）
+  // ツール管理用フィールド
   currentTools: string[];
   toolBuffer: string;
   toolDetectionBuffer: IToolDetectionBuffer;

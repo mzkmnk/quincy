@@ -244,7 +244,7 @@ export class AmazonQCLIService extends EventEmitter {
     setupProcessHandlers(
       session,
       this.emit.bind(this),
-      session => flushIncompleteOutputLine(session, this.emit.bind(this)),
+      (session, emitCallback) => flushIncompleteOutputLine(session, emitCallback),
       session =>
         flushIncompleteErrorLine(session, this.emit.bind(this), (session, message) =>
           addToInitializationBuffer(session, message, session =>
@@ -257,7 +257,11 @@ export class AmazonQCLIService extends EventEmitter {
         ),
       session => flushInitializationBuffer(session, this.emit.bind(this)),
       session => flushOutputBuffer(session, this.emit.bind(this)),
-      sessionId => this.sessions.delete(sessionId)
+      sessionId => this.sessions.delete(sessionId),
+      sessionId => {
+        // プロンプト準備完了イベントを発行
+        this.emit('q:info', { sessionId, message: 'prompt-ready', type: 'status' });
+      }
     );
   }
 

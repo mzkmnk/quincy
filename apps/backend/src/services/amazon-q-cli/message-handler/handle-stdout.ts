@@ -2,19 +2,17 @@ import type { QResponseEvent } from '@quincy/shared';
 
 import type { QProcessSession } from '../session-manager/types';
 import { stripAnsiCodes } from '../../../utils/ansi-stripper';
-import { parseToolUsage, filterToolOutput } from '../../amazon-q-message-parser';
+import { parseToolUsage } from '../../amazon-q-message-parser';
 
-import { shouldSkipOutput } from './should-skip-output';
-import { isInitializationMessage } from './is-initialization-message';
-import { isThinkingMessage } from './is-thinking-message';
-import { shouldSkipThinking } from './should-skip-thinking';
-import { updateThinkingState } from './update-thinking-state';
-
+/**
+ * シンプルなstdoutハンドラー - claudecodeui方式を参考にした実装
+ * 段落処理やタイムアウトバッファリングを排除し、リアルタイム性を重視
+ */
 export function handleStdout(
   session: QProcessSession,
   data: Buffer,
   emitCallback: (event: string, data: QResponseEvent) => void,
-  flushIncompleteLineCallback: (session: QProcessSession) => void
+  emitPromptReadyCallback?: (sessionId: string) => void
 ): void {
   session.lastActivity = Date.now();
   const rawOutput = data.toString();
@@ -30,73 +28,86 @@ export function handleStdout(
 
   // 完全な行のみを処理
   for (const line of lines) {
-    const cleanLine = stripAnsiCodes(line);
+    processLine(session, line, emitCallback, emitPromptReadyCallback);
+  }
+}
 
-    // 空の行や無意味な行をスキップ
-    if (shouldSkipOutput(cleanLine)) {
-      continue;
+/**
+ * 単一行を処理する
+ */
+function processLine(
+  session: QProcessSession,
+  line: string,
+  emitCallback: (event: string, data: QResponseEvent) => void,
+  emitPromptReadyCallback?: (sessionId: string) => void
+): void {
+  const cleanLine = stripAnsiCodes(line);
+
+  // プロンプト準備完了の検出（>のみの行）
+  if (cleanLine.trim() === '>') {
+    // ツール状態をリセット
+    session.currentTools = [];
+
+    console.log(`Prompt ready detected for session: ${session.sessionId}, resetting tool state`);
+
+    if (emitPromptReadyCallback) {
+      emitPromptReadyCallback(session.sessionId);
     }
-
-    // 初期化フェーズで初期化メッセージはスキップ（stderrで処理）
-    if (session.initializationPhase && isInitializationMessage(cleanLine)) {
-      continue;
-    }
-
-    // ツール実行の詳細出力をフィルタリング（Phase 3）
-    const filterResult = filterToolOutput(cleanLine);
-    if (filterResult.shouldSkip) {
-      continue;
-    }
-
-    // ツール検出処理
-    const toolDetection = parseToolUsage(cleanLine);
-    if (toolDetection.hasTools) {
-      // ツール情報をセッションに蓄積
-      session.currentTools = [...(session.currentTools || []), ...toolDetection.tools];
-
-      // クリーンな行が空でない場合のみレスポンスイベントを発行
-      if (toolDetection.cleanedLine.trim()) {
-        const responseEvent: QResponseEvent = {
-          sessionId: session.sessionId,
-          data: toolDetection.cleanedLine + '\n',
-          type: 'stream',
-          tools: session.currentTools,
-          hasToolContent: session.currentTools.length > 0,
-        };
-        emitCallback('q:response', responseEvent);
-      }
-      continue; // ツール検出された行は通常処理をスキップ
-    }
-
-    // 「Thinking」メッセージの特別処理
-    if (isThinkingMessage(cleanLine)) {
-      if (shouldSkipThinking(session)) {
-        continue;
-      }
-      // Thinking状態を更新
-      updateThinkingState(session);
-    }
-
-    // 直接レスポンスイベントを発行（行ベース）
-    const responseEvent: QResponseEvent = {
-      sessionId: session.sessionId,
-      data: cleanLine + '\n', // 改行を復元
-      type: 'stream',
-      tools: session.currentTools || [],
-      hasToolContent: (session.currentTools || []).length > 0,
-    };
-
-    emitCallback('q:response', responseEvent);
+    return; // プロンプト行は送信しない
   }
 
-  // 不完全な行がある場合は短時間でタイムアウト処理
-  if (session.incompleteOutputLine.trim()) {
-    if (session.bufferTimeout) {
-      clearTimeout(session.bufferTimeout);
+  // 無意味な記号のみの行はスキップ
+  if (cleanLine === '>>' || cleanLine === '>>>') {
+    return;
+  }
+
+  // thinkingメッセージは完全にスキップ
+  if (isThinkingMessage(cleanLine)) {
+    return;
+  }
+
+  // ツール検出と処理（元の行で検出、クリーンな行で処理）
+  const toolDetection = parseToolUsage(line);
+  if (toolDetection.hasTools) {
+    // ツール情報をセッションに蓄積
+    session.currentTools = [...(session.currentTools || []), ...toolDetection.tools];
+
+    // ツール行のみの場合はスキップ
+    if (!stripAnsiCodes(toolDetection.cleanedLine).trim()) {
+      return;
     }
 
-    session.bufferTimeout = setTimeout(() => {
-      flushIncompleteLineCallback(session);
-    }, 200); // 200ms後にフラッシュ
+    // ツールとコンテンツが混在する場合は、ANSIクリーン済みの行を送信
+    sendMessage(session, stripAnsiCodes(toolDetection.cleanedLine) + '\n', emitCallback);
+  } else {
+    // 通常の行を送信（ANSIクリーン済み）
+    sendMessage(session, cleanLine + '\n', emitCallback);
   }
+}
+
+/**
+ * メッセージを送信する
+ */
+function sendMessage(
+  session: QProcessSession,
+  content: string,
+  emitCallback: (event: string, data: QResponseEvent) => void
+): void {
+  const responseEvent: QResponseEvent = {
+    sessionId: session.sessionId,
+    data: content,
+    type: 'stream',
+    tools: session.currentTools || [],
+    hasToolContent: (session.currentTools || []).length > 0,
+  };
+
+  emitCallback('q:response', responseEvent);
+}
+
+/**
+ * thinkingメッセージかどうかを判定
+ */
+function isThinkingMessage(line: string): boolean {
+  const trimmed = line.trim().toLowerCase();
+  return trimmed === 'thinking' || trimmed === 'thinking...';
 }

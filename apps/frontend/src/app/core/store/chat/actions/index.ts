@@ -3,3 +3,4 @@ export { updateChatMessage } from './update-chat-message';
 export { removeChatMessage } from './remove-chat-message';
 export { setChatMessages } from './set-chat-messages';
 export { clearChatMessages } from './clear-chat-messages';
+export { chatStateManager, type ChatStatus } from '../chat-state-manager';

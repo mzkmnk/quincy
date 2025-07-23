@@ -6,14 +6,18 @@ import { parseToolUsage, hasIncompleteToolPattern } from './parse-tool-usage';
 export interface ChunkProcessResult {
   content: string;
   tools: string[];
+  hasIncompletePattern: boolean;
 }
 
 /**
  * ストリーミング用ツール検出バッファ
+ * 改善されたツール検出精度と安定性を提供
  */
 export class ToolDetectionBuffer {
   private buffer: string = '';
   private detectedTools: string[] = [];
+  private lastProcessedTime: number = 0;
+  private readonly bufferMaxSize: number = 4096; // 4KB制限
 
   /**
    * チャンクを処理してツール検出を行う
@@ -22,60 +26,73 @@ export class ToolDetectionBuffer {
    * @returns 処理結果（コンテンツとツール）
    */
   processChunk(chunk: string): ChunkProcessResult {
+    this.lastProcessedTime = Date.now();
+
     // 型安全性チェック
     if (!chunk || typeof chunk !== 'string') {
       return {
         content: '',
         tools: [],
+        hasIncompletePattern: false,
       };
     }
 
-    // 前回のバッファと結合
-    const fullText = this.buffer + chunk;
+    // バッファサイズ制限チェック
+    if (this.buffer.length + chunk.length > this.bufferMaxSize) {
+      // バッファが大きすぎる場合は古いバッファをクリアして新しいチャンクのみ処理
+      this.buffer = chunk.slice(-this.bufferMaxSize);
+    } else {
+      // 前回のバッファと結合
+      this.buffer += chunk;
+    }
 
     // 不完全パターンの判定を先に行う
-    if (hasIncompleteToolPattern(fullText)) {
-      // 不完全なパターンが見つかった場合
-      // パターン開始位置を探して、それより前の部分をコンテンツとして返す
-      const incompletePatternStart = fullText.lastIndexOf('🛠️ Using tool:');
+    if (hasIncompleteToolPattern(this.buffer)) {
+      // 不完全なパターンが見つかった場合の改善された処理
+      const toolPatternStart = this.buffer.lastIndexOf('🛠️ Using tool:');
 
-      if (incompletePatternStart > 0) {
-        const contentBeforePattern = fullText.substring(0, incompletePatternStart);
-        this.buffer = fullText.substring(incompletePatternStart);
+      if (toolPatternStart > 0) {
+        const contentBeforePattern = this.buffer.substring(0, toolPatternStart);
+        this.buffer = this.buffer.substring(toolPatternStart);
 
         return {
           content: contentBeforePattern,
           tools: [],
+          hasIncompletePattern: true,
         };
       } else {
         // パターンが先頭から始まる場合
-        this.buffer = fullText;
         return {
           content: '',
           tools: [],
+          hasIncompletePattern: true,
         };
       }
     }
 
     // 完全なツール検出を試行
-    const detection = parseToolUsage(fullText);
+    const detection = parseToolUsage(this.buffer);
 
     if (detection.hasTools) {
-      // ツールが検出された場合
-      this.detectedTools.push(...detection.tools);
+      // 新しいツールのみを追加（重複回避）
+      const newTools = detection.tools.filter(tool => !this.detectedTools.includes(tool));
+      this.detectedTools.push(...newTools);
       this.buffer = ''; // バッファをクリア
 
       return {
         content: detection.cleanedLine,
-        tools: detection.tools,
+        tools: newTools,
+        hasIncompletePattern: false,
       };
     }
 
     // 通常のテキストとして処理
+    const content = this.buffer;
     this.buffer = '';
     return {
-      content: fullText,
+      content,
       tools: [],
+      hasIncompletePattern: false,
     };
   }
 
@@ -85,6 +102,7 @@ export class ToolDetectionBuffer {
   clear(): void {
     this.buffer = '';
     this.detectedTools = [];
+    this.lastProcessedTime = 0;
   }
 
   /**
@@ -112,5 +130,44 @@ export class ToolDetectionBuffer {
    */
   getBufferContent(): string {
     return this.buffer;
+  }
+
+  /**
+   * バッファが古すぎる場合は自動的にクリア
+   *
+   * @param maxAge 最大経過時間（ms、デフォルト5000ms）
+   */
+  flushIfStale(maxAge: number = 5000): void {
+    if (this.lastProcessedTime > 0 && Date.now() - this.lastProcessedTime > maxAge) {
+      this.buffer = '';
+    }
+  }
+
+  /**
+   * バッファサイズを取得
+   *
+   * @returns 現在のバッファサイズ（バイト）
+   */
+  getBufferSize(): number {
+    return Buffer.byteLength(this.buffer, 'utf8');
+  }
+
+  /**
+   * ツール検出の統計情報を取得
+   *
+   * @returns 統計情報
+   */
+  getStats(): {
+    bufferSize: number;
+    toolCount: number;
+    lastProcessed: number;
+    hasStaleBuffer: boolean;
+  } {
+    return {
+      bufferSize: this.getBufferSize(),
+      toolCount: this.detectedTools.length,
+      lastProcessed: this.lastProcessedTime,
+      hasStaleBuffer: this.lastProcessedTime > 0 && Date.now() - this.lastProcessedTime > 5000,
+    };
   }
 }

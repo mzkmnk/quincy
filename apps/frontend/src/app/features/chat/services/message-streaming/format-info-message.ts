@@ -27,6 +27,9 @@ function stripUnicodeDecorations(text: string): string {
   return cleanText;
 }
 
+// 最後に処理されたthinkingメッセージのキャッシュ
+// const lastThinkingCache: { sessionId: string; timestamp: number } | null = null;
+
 /**
  * 情報メッセージをフォーマットする
  * @param data 情報データ
@@ -46,10 +49,10 @@ export function formatInfoMessage(data: {
     return null;
   }
 
-  // 特別なメッセージの処理
+  // thinking メッセージは完全にスキップ（バックエンドで既にフィルタリングされているが念のため）
   const lowerTrimmed = trimmed.toLowerCase();
   if (lowerTrimmed === 'thinking' || lowerTrimmed === 'thinking...') {
-    return `🤔 Thinking...`;
+    return null; // thinking メッセージは表示しない
   }
 
   // メッセージタイプに基づいてフォーマット

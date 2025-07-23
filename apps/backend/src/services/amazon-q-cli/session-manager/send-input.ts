@@ -1,3 +1,5 @@
+import { resetThinkingFlagForNewMessage } from '../message-handler/should-send-thinking';
+
 import type { QProcessSession } from './types';
 
 export async function sendInput(
@@ -16,6 +18,9 @@ export async function sendInput(
 
   try {
     if (session.process.stdin && !session.process.stdin.destroyed) {
+      // 新規メッセージ送信時にthinkingフラグをリセット
+      resetThinkingFlagForNewMessage(session);
+
       session.process.stdin.write(input);
       session.lastActivity = Date.now();
       return true;

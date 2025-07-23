@@ -11,18 +11,22 @@ export function setupProcessHandlers(
     event: string,
     data: QResponseEvent | QInfoEvent | QErrorEvent | QCompleteEvent
   ) => void,
-  flushIncompleteOutputLineCallback: (session: QProcessSession) => void,
+  _flushIncompleteOutputLineCallback: (
+    session: QProcessSession,
+    emitCallback: (event: string, data: QResponseEvent) => void
+  ) => void,
   flushIncompleteErrorLineCallback: (session: QProcessSession) => void,
   addToInitializationBufferCallback: (session: QProcessSession, message: string) => void,
   flushInitializationBufferCallback: (session: QProcessSession) => void,
-  flushOutputBufferCallback: (session: QProcessSession) => void,
-  deleteSessionCallback: (sessionId: string) => void
+  _flushOutputBufferCallback: (session: QProcessSession) => void,
+  deleteSessionCallback: (sessionId: string) => void,
+  emitPromptReadyCallback?: (sessionId: string) => void
 ): void {
   const { process } = session;
 
-  // 標準出力の処理（行ベースバッファリング）
+  // 標準出力の処理（シンプル実装）
   process.stdout?.on('data', (data: Buffer) => {
-    handleStdout(session, data, emitCallback, flushIncompleteOutputLineCallback);
+    handleStdout(session, data, emitCallback, emitPromptReadyCallback);
   });
 
   // 標準エラー出力の処理（行ベース分類付き）
@@ -43,23 +47,21 @@ export function setupProcessHandlers(
       flushInitializationBufferCallback(session);
     }
 
-    // 残りの不完全な行をフラッシュ
-    if (session.incompleteOutputLine.trim()) {
-      flushIncompleteOutputLineCallback(session);
-    }
+    // 残りの不完全なエラー行をフラッシュ
     if (session.incompleteErrorLine.trim()) {
       flushIncompleteErrorLineCallback(session);
     }
 
-    // 残りのバッファをフラッシュ（後方互換性のため）
-    if (session.outputBuffer.trim()) {
-      flushOutputBufferCallback(session);
-    }
-
-    // タイムアウトをクリア
-    if (session.bufferTimeout) {
-      clearTimeout(session.bufferTimeout);
-      session.bufferTimeout = undefined;
+    // 残りの不完全な出力行があれば最終メッセージとして送信
+    if (session.incompleteOutputLine.trim()) {
+      const responseEvent: QResponseEvent = {
+        sessionId: session.sessionId,
+        data: session.incompleteOutputLine + '\n',
+        type: 'stream',
+        tools: session.currentTools || [],
+        hasToolContent: (session.currentTools || []).length > 0,
+      };
+      emitCallback('q:response', responseEvent);
     }
 
     // 初期化タイムアウトをクリア
@@ -80,13 +82,10 @@ export function setupProcessHandlers(
     // セッションを即座に無効化してID衝突を防ぐ
     session.status = 'terminated';
 
-    // Thinking状態をリセット
-    session.isThinkingActive = false;
-
     // セッションをクリーンアップ（遅延実行）
     setTimeout(() => {
       deleteSessionCallback(session.sessionId);
-    }, 10000); // 10秒に延長
+    }, 10000);
   });
 
   // プロセスエラーの処理

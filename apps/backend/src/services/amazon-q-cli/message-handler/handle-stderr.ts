@@ -5,11 +5,9 @@ import { stripAnsiCodes } from '../../../utils/ansi-stripper';
 
 import { classifyStderrMessage } from './classify-stderr-message';
 import { isInitializationMessage } from './is-initialization-message';
-import { isThinkingMessage } from './is-thinking-message';
-import { shouldSkipThinking } from './should-skip-thinking';
-import { updateThinkingState } from './update-thinking-state';
 import { shouldSkipDuplicateInfo } from './should-skip-duplicate-info';
 import { getInfoMessageType } from './get-info-message-type';
+import { isThinkingMessage } from './is-thinking-message';
 
 export function handleStderr(
   session: QProcessSession,
@@ -48,17 +46,14 @@ export function handleStderr(
         continue;
       }
 
-      // Thinkingメッセージの特別処理
+      // Thinkingメッセージは完全にスキップ（フロントエンドでLoading状態で制御）
       if (isThinkingMessage(cleanLine)) {
-        if (shouldSkipThinking(session)) {
-          continue;
-        }
-        updateThinkingState(session);
-      } else {
-        // 通常の重複メッセージチェック
-        if (shouldSkipDuplicateInfo(session, cleanLine)) {
-          continue;
-        }
+        continue; // thinking メッセージはスキップ
+      }
+
+      // 通常の重複メッセージチェック
+      if (shouldSkipDuplicateInfo(session, cleanLine)) {
+        continue;
       }
 
       // 情報メッセージとしてq:infoイベントを発行

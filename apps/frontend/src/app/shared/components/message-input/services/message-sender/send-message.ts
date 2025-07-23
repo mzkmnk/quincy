@@ -3,6 +3,7 @@ import { MessageService } from 'primeng/api';
 
 import { WebSocketService } from '../../../../../core/services/websocket.service';
 import { AppStore } from '../../../../../core/store/app.state';
+import { chatStateManager } from '../../../../../core/store/chat/actions';
 
 /**
  * メッセージを送信可能かどうかを判定する
@@ -49,6 +50,9 @@ export async function sendMessage(
   try {
     console.log('Sending message to Amazon Q:', content);
 
+    // メッセージ送信開始時にthinking状態に設定
+    chatStateManager.setThinking(currentSession.sessionId);
+
     // Emit message sent event for parent component to handle
     messageSentEmitter.emit({ content });
 
@@ -64,6 +68,10 @@ export async function sendMessage(
     }
   } catch (error) {
     console.error('Failed to send message:', error);
+
+    // エラー時は状態をエラーに設定
+    chatStateManager.setError('メッセージの送信に失敗しました', currentSession.sessionId);
+
     messageService.add({
       severity: 'error',
       summary: 'エラー',

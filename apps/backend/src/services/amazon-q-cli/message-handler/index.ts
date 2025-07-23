@@ -6,8 +6,13 @@ export { shouldSkipOutput } from './should-skip-output';
 export { isThinkingMessage } from './is-thinking-message';
 export { isInitializationMessage } from './is-initialization-message';
 export { isInitializationComplete } from './is-initialization-complete';
-export { shouldSkipThinking } from './should-skip-thinking';
-export { updateThinkingState } from './update-thinking-state';
 export { shouldSkipDuplicateInfo } from './should-skip-duplicate-info';
 export { setupProcessHandlers } from './setup-process-handlers';
 export { isToolUsageLine } from './is-tool-usage-line';
+export { detectPromptReady } from './detect-prompt-ready';
+export { isDuplicateThinking } from './is-duplicate-thinking';
+export {
+  shouldSendThinking,
+  resetThinkingFlag,
+  resetThinkingFlagForNewMessage,
+} from './should-send-thinking';
