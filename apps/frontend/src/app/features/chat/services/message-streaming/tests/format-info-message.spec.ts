@@ -48,42 +48,41 @@ describe('formatInfoMessage', () => {
   it('thinking系メッセージの処理', () => {
     const data = { sessionId: 'test-session', message: 'thinking', type: 'general' };
     const result = formatInfoMessage(data);
-    expect(result).toBe('🤔 Thinking...');
+    expect(result).toBe(null); // thinkingメッセージは完全にスキップ
   });
 
   it('thinking...メッセージの処理', () => {
-    // 異なるセッションIDを使用して重複チェックに引っかからないようにする
     const data = { sessionId: 'different-session-id', message: 'thinking...', type: 'general' };
     const result = formatInfoMessage(data);
-    expect(result).toBe('🤔 Thinking...');
+    expect(result).toBe(null); // thinkingメッセージは完全にスキップ
   });
 
-  it('重複するthinkingメッセージは2回目以降nullを返す', () => {
+  it('thinkingメッセージは常にnullを返す', () => {
     const sessionId = 'duplicate-test-session';
 
-    // 1回目: 正常に処理される
+    // 1回目: nullを返す
     const result1 = formatInfoMessage({ sessionId, message: 'thinking', type: 'general' });
-    expect(result1).toBe('🤔 Thinking...');
+    expect(result1).toBe(null);
 
-    // 2回目: 1秒以内なので重複とみなされnullが返される
+    // 2回目: 同様にnullを返す
     const result2 = formatInfoMessage({ sessionId, message: 'thinking', type: 'general' });
     expect(result2).toBe(null);
   });
 
-  it('異なるセッションのthinkingメッセージは重複判定されない', () => {
+  it('異なるセッションのthinkingメッセージも同様にnullを返す', () => {
     const result1 = formatInfoMessage({
       sessionId: 'session-1',
       message: 'thinking',
       type: 'general',
     });
-    expect(result1).toBe('🤔 Thinking...');
+    expect(result1).toBe(null);
 
     const result2 = formatInfoMessage({
       sessionId: 'session-2',
       message: 'thinking',
       type: 'general',
     });
-    expect(result2).toBe('🤔 Thinking...');
+    expect(result2).toBe(null);
   });
 
   it('初期化タイプメッセージのフォーマット', () => {
